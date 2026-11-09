@@ -1,0 +1,62 @@
+{
+  "//": [
+    "EXAMPLE ONLY - merge by hand into a project's .claude/settings.json (or ~/.claude/settings.json).",
+    "The installer never writes settings. Replace the <placeholders> with the project's real commands.",
+    "Merge path: by default the OWNER merges (gh pr merge is NOT allowed). To let agents merge,",
+    "move \"Bash(gh pr merge:*)\" from 'ask' to 'allow' and write 'agent merges' in docs/workflow/README.md.",
+    "env: compaction window for long-running sessions. 300000 suits the orchestrator (/loop /deliver);",
+    "ticket workers use ~400000 (set through their launch env if your worktree tool can pass it).",
+    "Subagents get autoCompactWindow: 200000 from their own frontmatter (Claude Code 2.1.296+).",
+    "Pushing ticket branches and opening draft PRs is allowed because workers do it (the /deliver bootstrap",
+    "asks once). Deny rules win over allow rules, so force-pushes stay blocked."
+  ],
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git fetch:*)",
+      "Bash(git worktree list:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh run view:*)",
+      "Bash(<test-runner> test:*)",
+      "Bash(<test-runner> lint:*)",
+      "Bash(<test-runner> typecheck:*)",
+      "Bash(scripts/workflow/checks:*)",
+      "Bash(scripts/workflow/cost:*)",
+      "Bash(git push origin:*)",
+      "Bash(gh pr create --draft:*)",
+      "Bash(gh pr edit:*)",
+      "Bash(gh pr comment:*)",
+      "Bash(gh pr ready:*)"
+    ],
+    "ask": [
+      "Bash(gh pr merge:*)"
+    ],
+    "deny": [
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git push origin --force:*)",
+      "Bash(git push origin -f:*)",
+      "Bash(git push origin main:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean -fd:*)",
+      "Bash(git branch -D main:*)",
+      "Bash(gh repo delete:*)",
+      "Bash(gh pr merge --admin:*)",
+      "Bash(rm -rf /:*)",
+      "Bash(rm -rf ~:*)",
+      "Read(./.env)",
+      "Read(./.env.*)"
+    ]
+  },
+  "env": {
+    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "300000"
+  }
+}
