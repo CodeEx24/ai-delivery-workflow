@@ -13,6 +13,7 @@ Inspired by zazencodes' "software factory v2" (label-driven GitHub issue queue, 
 - **`/deliver --only <keys>`** and **`/deliver --board`**.
 - **`/delivery-init`**: one command to set up a project (marked CLAUDE.md block, `docs/workflow/README.md`, `.gitignore`; settings only on an explicit yes). The installers copy `settings/` into it as templates.
 - **`INSTALL.md`** and an **MIT `LICENSE`**.
+- **`/new-ticket "<description>"`**: one sentence → drafted ticket (testable AC, risk, size, assumptions) → owner approves → created in Jira / Linear / GitHub Issues, or as a local `docs/tickets/T-<nnn>.md` (doubles as the ticket record) with a colour status 🔴 To do / 🟡 In progress / 🟡 In review / 🔴 Blocked / 🟢 Done / ⚪ Won't do, PR link and log. implement-ticket accepts a description and calls it; implement-ticket sets 🟡 on the branch, merge-ticket sets 🟢. Playbook scenario E.
 
 **Changed**
 

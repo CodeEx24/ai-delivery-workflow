@@ -153,6 +153,12 @@ Rules for the local backlog (every skill that reads or writes tickets follows th
   import.
 - Readiness and blockers are read from `main`'s copy: a blocker is Done when its entry says
   `Status: Done` (or its PR is merged — wave-status reports that as out of sync).
+- **Short entries with a ticket file.** An entry may carry `- Record: docs/tickets/T-<nnn>.md`
+  instead of its own description and acceptance criteria (tickets made by the `new-ticket`
+  skill). Readers follow the link for the description and AC. That file shows a colour status
+  (`🔴 To do` / `🟡 In progress` / `🟡 In review` / `🔴 Blocked — …` / `🟢 Done` / `⚪ Won't do`)
+  under the same rule as above: on `main` only 🔴, 🟢 or ⚪; the 🟡 states are written on the
+  ticket branch, and merge-ticket sets 🟢 on the PR branch so it lands with the merge.
 
 ## 7. Record the mapping
 

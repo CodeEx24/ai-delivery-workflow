@@ -60,7 +60,7 @@
 
   #needs.empty { border-style: dashed; }
   .needs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; }
-  .need { border: 1px solid var(--line); border-left: 3px solid var(--stop); border-radius: 10px; padding: 10px 12px; background: var(--card); min-width: 0; }
+  .need { border: 1px solid var(--line); border-left: 3px solid var(--warn); border-radius: 10px; padding: 10px 12px; background: var(--card); min-width: 0; }
   .need.merge { border-left-color: var(--pass); }
   .need.info { border-left-color: var(--warn); }
   .need-top { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
@@ -100,9 +100,9 @@
   .tchip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); flex: none; }
   .st-done .dot { background: var(--done); }
   .st-active .dot { background: var(--accent); animation: pulse 1.6s ease-in-out infinite; }
-  .st-you .dot { background: var(--stop); }
+  .st-you .dot { background: var(--warn); }
   .st-ready .dot { background: var(--pass); }
-  .st-blocked .dot { background: var(--warn); }
+  .st-blocked .dot { background: transparent; box-shadow: inset 0 0 0 1.5px var(--faint); }
   .legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); }
   .legend span { display: inline-flex; align-items: center; gap: 5px; }
   .legend .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
@@ -112,13 +112,13 @@
   .col-head { display: flex; align-items: center; gap: 6px; padding: 0 2px 8px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
   .col-head h3 { margin: 0; font-size: 12.5px; font-weight: 650; }
   .col-head .count { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--muted); }
-  .col.you h3 { color: var(--stop); }
+  .col.you h3 { color: var(--warn); }
   .col.done h3 { color: var(--done); }
   .empty { color: var(--faint); font-size: 12px; padding: 2px; }
   .card { display: block; width: 100%; text-align: left; cursor: pointer; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; margin-bottom: 8px; transition: background .15s, transform .15s; }
   .card:hover { background: var(--card-hover); transform: translateY(-1px); }
   .card:focus-visible, .tchip:focus-visible, .opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .card.you { border-color: var(--stop); }
+  .card.you { border-color: var(--warn); }
   .card.done { opacity: .75; }
   .card-top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .key { white-space: nowrap; }
@@ -128,7 +128,7 @@
   .steps i { flex: 1; height: 4px; border-radius: 2px; background: var(--card-hover); }
   .steps i.done { background: var(--pass); }
   .steps i.cur { background: var(--accent); animation: pulse 1.6s ease-in-out infinite; }
-  .steps i.cur.blk { background: var(--stop); animation: none; }
+  .steps i.cur.blk { background: var(--warn); animation: none; }
   .meta { display: flex; flex-wrap: wrap; gap: 4px 8px; font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
   .meta .quiet { color: var(--warn); }
   .meta .stalled { color: var(--stop); }
@@ -139,7 +139,7 @@
   .vchip.PASS { border: 1px solid transparent; background: var(--pass-bg); color: var(--pass); }
   .vchip.CHANGES { border: 1px solid transparent; background: var(--warn-bg); color: var(--warn); }
   .vchip.FAIL, .vchip.BLOCKED { border: 1px solid transparent; background: var(--stop-bg); color: var(--stop); }
-  .why { font-size: 11.5px; color: var(--stop); margin-top: 5px; overflow-wrap: anywhere; }
+  .why { font-size: 11.5px; color: var(--warn); margin-top: 5px; overflow-wrap: anywhere; }
   .pbar { height: 4px; border-radius: 2px; background: var(--card-hover); overflow: hidden; margin-top: 5px; }
   .pbar > span { display: block; height: 100%; background: var(--accent); }
 
@@ -173,9 +173,10 @@
   .stepper .s.done::after { background: var(--pass); }
   .stepper .s.cur { color: var(--text); font-weight: 600; }
   .stepper .s.cur::before { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-bg); }
-  .stepper .s.cur.blk::before { background: var(--stop); border-color: var(--stop); box-shadow: 0 0 0 4px var(--stop-bg); }
-  .alert { border: 1px solid var(--stop); background: var(--stop-bg); border-radius: 10px; padding: 10px 12px; font-size: 13px; overflow-wrap: anywhere; }
-  .alert.info { border-color: var(--warn); background: var(--warn-bg); }
+  .stepper .s.cur.blk::before { background: var(--warn); border-color: var(--warn); box-shadow: 0 0 0 4px var(--warn-bg); }
+  .alert { border: 1px solid var(--warn); background: var(--warn-bg); border-radius: 10px; padding: 10px 12px; font-size: 13px; overflow-wrap: anywhere; }
+  .alert.info { border-color: var(--line); background: var(--card-hover); }
+  .alert.err { border-color: var(--stop); background: var(--stop-bg); }
   .alert p { margin: 0 0 4px; }
   table.t { border-collapse: collapse; width: 100%; font-size: 12.5px; }
   table.t th, table.t td { border-bottom: 1px solid var(--line); padding: 5px 6px; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
@@ -240,9 +241,9 @@
       <div class="legend">
         <span><i class="dot" style="background:var(--done)"></i>done</span>
         <span><i class="dot" style="background:var(--accent)"></i>in flight</span>
-        <span><i class="dot" style="background:var(--stop)"></i>needs you</span>
+        <span><i class="dot" style="background:var(--warn)"></i>needs you</span>
         <span><i class="dot" style="background:var(--pass)"></i>ready</span>
-        <span><i class="dot" style="background:var(--warn)"></i>blocked</span>
+        <span><i class="dot" style="background:transparent;box-shadow:inset 0 0 0 1.5px var(--faint)"></i>blocked</span>
         <span><i class="dot" style="background:var(--faint)"></i>later</span>
       </div>
     </div>
@@ -305,11 +306,11 @@ const COLUMNS = [
 const ROLE_SHORT = { checks: 'gate', 'test-functional': 'func', 'test-device': 'device', 'review-code': 'code',
   'review-security': 'sec', 'review-ui': 'ui', 'review-ux': 'ux',
   'tester-functional': 'func', 'tester-device': 'device', 'reviewer-code': 'code', 'reviewer-security': 'sec',
-  'reviewer-ui': 'ui', 'reviewer-ux': 'ux', gate: 'gate' }
+  'reviewer-ui': 'ui', 'reviewer-ux': 'ux', gate: 'gate', approver: 'approve', decision: 'approve' }
 const ANSWERABLE = new Set(['decision', 'spec-approval', 'escalation', 'action', 'needs-info'])
 
 const $ = (id) => document.getElementById(id)
-const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
+const esc = (s) => String(s ?? '').replace(/\s*[\u2014\u2013]\s*/g, ' - ').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
 const safeUrl = (u) => (typeof u === 'string' && /^https?:\/\//i.test(u)) ? u : null
 const link = (u, text) => safeUrl(u) ? `<a href="${esc(u)}" target="_blank" rel="noopener">${text}</a>` : `<span>${text}</span>`
 
@@ -320,7 +321,7 @@ const sentLocal = new Map()  // qid -> answer sent from this page, until the orc
 // ---------- time ----------
 function ageMin(iso, now) { if (!iso) return null; const t = Date.parse(iso); return isNaN(t) ? null : Math.max(0, (now - t) / 60000) }
 function fmtAge(min) {
-  if (min === null) return '—'
+  if (min === null) return ''
   if (min < 1) return 'now'
   if (min < 60) return `${Math.floor(min)}m`
   if (min < 48 * 60) return `${Math.floor(min / 60)}h${String(Math.floor(min % 60)).padStart(2, '0')}m`
@@ -339,18 +340,38 @@ function verdictWord(line) {
   return null
 }
 
+// State files are written by agents, so accept the shapes they actually use:
+// roles as "tester-functional" or { role: "tester-functional", model, round };
+// verdicts as "PASS", "VERDICT: PASS, 26 tests…" or { verdict: "PASS", … }.
+function roleName(r) {
+  const name = typeof r === 'string' ? r : (r && (r.role || r.name || r.agent || r.id)) || ''
+  return ROLE_SHORT[name] || name
+}
+function verdictOf(v) {
+  if (v && typeof v === 'object') v = v.verdict || v.result || v.status || ''
+  const s = String(v ?? '').trim()
+  const word = verdictWord(s) || (s.match(/^(PASS|CHANGES|FAIL|BLOCKED|PENDING)\b/i) || [])[1]
+  return word ? word.toUpperCase() : null
+}
+
 function roundsOf(t) {
   const rounds = new Map()
-  const put = (n, role, v) => { if (!rounds.has(n)) rounds.set(n, {}); if (v) rounds.get(n)[role] = v }
+  const put = (n, role, v) => { if (!role) return; if (!rounds.has(n)) rounds.set(n, {}); if (v) rounds.get(n)[role] = v }
+  const flatRound = Math.max(0, ...(t.job?.roles || []).map((r) => Number(r?.round) || 0)) || t.job?.round || t.round || 1
   for (const [rk, vs] of Object.entries(t.job?.verdicts || {})) {
-    const n = Number(String(rk).replace(/\D/g, '')); if (!n) continue
-    for (const [role, v] of Object.entries(vs || {})) put(n, ROLE_SHORT[role] || role, String(v).toUpperCase())
+    const n = Number(String(rk).replace(/\D/g, ''))
+    if (n && vs && typeof vs === 'object') {
+      for (const [role, v] of Object.entries(vs)) put(n, roleName(role), verdictOf(v))
+    } else if (!n) {
+      // Flat form { "test-functional": "VERDICT: PASS …" } = the latest round with verdicts.
+      put(flatRound, roleName(rk), verdictOf(vs))
+    }
   }
   for (const f of t.files || []) {
     const m = f.path.match(/^round-(\d+)\/(checks|test-functional|test-device|review-[a-z]+)\.md$/)
     if (m) put(Number(m[1]), ROLE_SHORT[m[2]] || m[2], verdictWord(f.first) || 'PENDING')
   }
-  const expected = (t.job?.roles?.length ? ['gate', ...t.job.roles] : t.orch?.routing || []).map((r) => ROLE_SHORT[r] || r)
+  const expected = (t.job?.roles?.length ? ['gate', ...t.job.roles] : t.orch?.routing || []).map(roleName).filter(Boolean)
   const n = Math.max(t.round || 0, ...rounds.keys(), 0)
   for (let i = 1; i <= n; i++) put(i, '_', null)
   return { rounds, expected: [...new Set(expected)] }
@@ -415,7 +436,7 @@ function buildTickets(d) {
 
 function whyBlocked(t) {
   if (t.questions.length) return t.questions[0].question
-  if (t.orchStage === 'awaiting_owner_merge') return 'Approved — ready for your review and merge'
+  if (t.orchStage === 'awaiting_owner_merge') return 'Approved, ready for your review and merge'
   if (t.job?.escalation) return t.job.escalation
   if (t.job?.last_error) return t.job.last_error
   if (t.job?.blocked?.length) return t.job.blocked.map((b) => `${b.ac}: ${b.reason}`).join(' · ')
@@ -431,14 +452,14 @@ function renderHeader(d) {
   $('title').textContent = o?.projectKey ? `Delivery board · ${o.projectKey}` : 'Delivery board'
   document.title = o?.projectKey ? `${o.projectKey} · Delivery Board` : 'Delivery Board'
   if (!o) {
-    pills.push('<span class="pill">no orchestrator — showing job folders only</span>')
+    pills.push('<span class="pill">no orchestrator, showing job folders only</span>')
   } else {
     const hb = ageMin(o.lock?.heartbeatAt, now)
     const limit = ((2 * (o.cycle?.lastDelaySec || 600)) / 60) + 10
     const resume = o.flavor === 'factory' ? '/loop /factory run' : `/loop /deliver ${o.projectKey || '<KEY>'}`
     pills.push(hb === null ? '<span class="pill">orchestrator: not started</span>'
       : hb <= limit ? `<span class="pill ok">● orchestrator live · ${fmtAge(hb)} ago</span>`
-      : `<span class="pill warn">orchestrator quiet ${fmtAge(hb)} — run ${esc(resume)}</span>`)
+      : `<span class="pill warn">orchestrator quiet ${fmtAge(hb)}, run ${esc(resume)}</span>`)
     pills.push(`<span class="pill">${esc(o.flavor || 'deliver')} · ${esc(o.mode || 'plain')}</span>`)
     const inflight = Object.values(o.tickets || {}).filter((t) => t.holdsSlot).length
     const cap = o.policy?.cap ?? 2
@@ -472,7 +493,7 @@ function questionCard(d, q) {
     return `<button class="opt ${letter && letter === recLetter ? 'recommended' : ''}" data-answer="${esc(q.id)}" data-value="${esc(opt)}">${esc(opt)}</button>`
   }).join('')
   return `<div class="need" data-q="${esc(q.id)}">
-    <div class="need-top"><span class="tag stop">${esc(q.id)}</span><span class="tag">${esc(q.kind || 'question')}</span>
+    <div class="need-top"><span class="tag warn">${esc(q.id)}</span><span class="tag">${esc(q.kind || 'question')}</span>
       ${q.key ? `<button class="key" data-open="${esc(q.key)}">${esc(q.key)}</button>` : ''}
       ${t?.title ? `<span class="muted">${esc(t.title)}</span>` : ''}
       <span class="faint" style="margin-left:auto">${q.askedAt ? 'asked ' + clock(q.askedAt) : ''}</span></div>
@@ -498,7 +519,7 @@ function renderNeeds(d) {
     if (t.status !== 'you' || asked.has(t.key)) continue
     const merge = t.orchStage === 'awaiting_owner_merge'
     cards.push(`<div class="need ${merge ? 'merge' : ''}">
-      <div class="need-top"><span class="tag ${merge ? 'pass' : 'stop'}">${merge ? 'ready to merge' : esc((t.orchStage || t.jobStage || '').replace(/_/g, ' '))}</span>
+      <div class="need-top"><span class="tag ${merge ? 'pass' : 'warn'}">${merge ? 'ready to merge' : esc((t.orchStage || t.jobStage || '').replace(/_/g, ' '))}</span>
         <button class="key" data-open="${esc(t.key)}">${esc(t.key)}</button><span class="muted">${esc(t.title || '')}</span></div>
       <div class="need-q">${esc(t.why || 'Waiting on you')}</div>
       <div class="d-links">${t.pr?.url ? link(t.pr.url, merge ? `Review &amp; merge PR #${esc(t.pr.number ?? '')}` : `PR #${esc(t.pr.number ?? '')}`) : ''}
@@ -604,7 +625,7 @@ function renderBoard() {
   byCol.set('done', byCol.get('done').sort((a, b) => (Date.parse(b.history?.mergedAt) || 0) - (Date.parse(a.history?.mergedAt) || 0)).slice(0, 8))
   $('board').innerHTML = COLUMNS.map((c) => `<div class="col ${c.cls || ''}">
     <div class="col-head"><h3>${c.label}</h3><span class="count">${byCol.get(c.id).length || ''}</span></div>
-    ${byCol.get(c.id).map(card).join('') || '<div class="empty">—</div>'}</div>`).join('')
+    ${byCol.get(c.id).map(card).join('') || '<div class="empty">None</div>'}</div>`).join('')
 }
 
 // ---------- render: feed + history ----------
@@ -666,14 +687,14 @@ function renderDrawer() {
   for (const q of t.questions) alerts.push(`<div class="alert"><p><b>${esc(q.id)} · ${esc(q.kind)}</b>: ${esc(q.question)}</p>${q.recommendation ? `<p class="muted">Recommended: ${esc(q.recommendation)}</p>` : ''}<p class="muted">Answer it under “Needs you” at the top, or in chat as <span class="mono">${esc(q.id)}: …</span></p></div>`)
   if (t.job?.escalation && !t.questions.length) alerts.push(`<div class="alert"><p><b>Escalated</b>: ${esc(t.job.escalation)}</p></div>`)
   for (const b of t.job?.blocked || []) alerts.push(`<div class="alert info"><p><b>${esc(b.ac)} blocked</b>: ${esc(b.reason)}</p></div>`)
-  if (t.job?.last_error) alerts.push(`<div class="alert"><p><b>Error</b>: ${esc(t.job.last_error)}</p></div>`)
+  if (t.job?.last_error) alerts.push(`<div class="alert err"><p><b>Error</b>: ${esc(t.job.last_error)}</p></div>`)
   if (t.orch?.waitingOn && t.orch.waitingOn !== 'worker') alerts.push(`<div class="alert info"><p>Waiting on <b>${esc(t.orch.waitingOn)}</b>${t.orch.waitingSince ? ' since ' + clock(t.orch.waitingSince) : ''}</p></div>`)
   const deps = (t.dependsOn?.length ? t.dependsOn : t.blockedBy || []).filter((k) => tickets.get(k)?.status !== 'done')
   if (deps.length && t.status !== 'done') alerts.push(`<div class="alert info"><p>Depends on ${deps.map((k) => {
     const dt = tickets.get(k); return `<button class="key" data-open="${esc(k)}">${esc(k)}</button>${dt ? ` <span class="faint">(${esc(dt.status)})</span>` : ''}` }).join(', ')}</p></div>`)
 
   const p = t.job?.progress
-  const progress = p ? `<div class="d-section"><h4>Progress</h4><div>${esc(p.phase || '')}${p.current ? ' — ' + esc(p.current) : ''}</div>
+  const progress = p ? `<div class="d-section"><h4>Progress</h4><div>${esc(p.phase || '')}${p.current ? ': ' + esc(p.current) : ''}</div>
     ${p.tasksTotal ? `<div class="pbar" style="height:6px"><span style="width:${100 * (p.tasksDone || 0) / p.tasksTotal}%"></span></div><div class="faint mono" style="font-size:11px">${p.tasksDone || 0}/${p.tasksTotal} tasks</div>` : ''}</div>` : ''
 
   const ac = t.job?.acceptance || []

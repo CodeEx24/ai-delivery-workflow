@@ -62,7 +62,9 @@ One pass, then say in one line what you found:
 Report: merge strategy, merge path, checks script found or not, post-merge workflow found or not.
 
 **Local backlog.** When the project uses the local backlog (no PM tool; `docs/tickets/backlog.md`, IDs `T-001…`, format in the `deliver` skill's `references/import-tasks.md`), read/write `docs/tickets/backlog.md` instead of the PM tool: in step 3, on the PR branch, set the
-entry's `Status: Done`, add the PR to `PRs:` and append a Log line, so it lands with the merge
+entry's `Status: Done`, add the PR to `PRs:` and append a Log line (and, when the entry points
+to a local ticket file via `Record:`, set that file's `**Status: 🟢 Done**`, its `PRs:` line, its
+Outcome and a `🟢 merged` Log line too), so it lands with the merge
 (already merged by hand → a tiny docs PR, like the ticket record). Step 5's ticket proof goes
 into the PR close-out comment (screenshots via `gh pr comment --attach` when `gh` supports it,
 else linked from the job folder); step 6 is satisfied by the merged entry.
