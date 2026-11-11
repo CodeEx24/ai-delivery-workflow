@@ -270,6 +270,25 @@ When resumed for a ticket whose `.delivery/jobs/<KEY>-<n>/round-N/*.md` files co
 **Max 2 extra rounds** (rounds 2 and 3). If round 3 still has CHANGES, do not fix again: set
 stage `escalated`, write the one specific question for the owner, and stop.
 
+## Progress for the board
+
+The live delivery board (deliver skill, `references/board.md`) shows each ticket's step from its
+`job.json`. So, with or without `/deliver`:
+
+- **Write `.delivery/jobs/<KEY>-<n>/job.json` at the start of Phase 1** (schema `deliver-job/1`,
+  `stage: "intake"`, `round: 0`, the fields you know: ticket, title, branch, worktree, record),
+  not only at hand-off. Phase 9 then completes it as described in `references/review-loop.md`.
+- **Keep `progress` current**, atomically (temp file, then rename), at each phase boundary and
+  after each plan task:
+  `{ "step": 0|1, "phase": "Phase 6 · build", "tasksDone": 2, "tasksTotal": 5, "current": "Task 3: <title>", "updated_at": "<now>" }`.
+  Step 0 is Phases 1–5 (intake to plan), step 1 is Phases 6–8 (build, checks, PR). Waiting on
+  an owner answer → `stage: "awaiting_owner"` and say what in `current`.
+- Later stages set their own step: `built` → 2, testers → 3, reviewers → 4, approver → 5,
+  `ready_to_merge` → 6.
+
+This is cheap (one small file write) and is what lets the owner see "task 3 of 5" instead of a
+silent worker.
+
 ## Running as an Orca worker (or any parallel worker)
 
 When `/deliver` dispatched you through the `orchestration` skill (a prompt with Task and

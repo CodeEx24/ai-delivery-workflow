@@ -14,6 +14,10 @@ copies what matters into it. The orchestrator writes only *other* files inside a
 <main checkout>/.delivery/
 ├─ orchestrator.json            orchestrator state (this file's main schema)
 ├─ orchestrator.log.md          optional: one line per cycle (time, actions, next wake)
+├─ events.jsonl                 activity feed for the live board (orchestrator appends; board.md)
+├─ wave-plan.json               machine-readable wave plan (plan-waves writes; board.md)
+├─ board.json                   where the live board runs: pid, port, url (board writes)
+├─ inbox/*.json                 answers / feedback typed on the board (board writes, orchestrator consumes → inbox/done/)
 └─ briefs/<KEY>-<n>.md          the brief each worker was started with (kept until cleanup)
 
 <ticket worktree>/.delivery/jobs/<KEY>-<n>/    deleted at cleanup (merge-ticket step 7)
@@ -30,7 +34,9 @@ copies what matters into it. The orchestrator writes only *other* files inside a
 ```
 
 `<KEY>-<n>` is the full ticket key (`ABC-27`); where this skill writes `<KEY>` for a ticket it
-means the same full key. Standalone runs (no `/deliver`) use the same folder in whatever
+means the same full key. With GitHub Issues the key is `GH-<n>` (issue `#12` → `GH-12`) in
+folders, branches (`feat/gh-012/<slug>`), worktree names and state files; `#12` in human text, and
+PR bodies say `Closes #12`. Standalone runs (no `/deliver`) use the same folder in whatever
 checkout the builder works in. Write JSON atomically: write `<file>.tmp`, then rename over
 the original. Timestamps are ISO 8601 with offset.
 
@@ -40,6 +46,7 @@ the original. Timestamps are ISO 8601 with offset.
 {
   "schema": "deliver/1",
   "projectKey": "ABC",
+  "flavor": "deliver | factory",
   "mode": "loop | plain | watcher",
   "tracker": {
     "kind": "jira | linear | github | local",
@@ -63,7 +70,7 @@ the original. Timestamps are ISO 8601 with offset.
     "costScript": "scripts/workflow/cost | null",
     "isNative": true
   },
-  "orca": { "runId": "run_…", "watcherHandle": null },
+  "orca": { "runId": "run_…", "watcherHandle": null, "engine": "orca | subagents" },
   "lock": {
     "holder": "plain-session | loop-session | watcher:<handle>",
     "acquiredAt": "…",
@@ -103,6 +110,13 @@ the original. Timestamps are ISO 8601 with offset.
     "window": { "base": 2, "next": 3 },
     "planApprovedAt": "… | null"
   },
+  "backlog": {
+    "updatedAt": "…",
+    "items": {
+      "ABC-35": { "status": "done | in_progress | ready | blocked | todo | needs_owner", "wave": 3,
+                  "title": "…", "type": "Feature", "url": "https://…", "blockedBy": ["ABC-30"] }
+    }
+  },
   "tickets": {
     "ABC-27": {
       "title": "Today and Inbox screens",
@@ -118,6 +132,7 @@ the original. Timestamps are ISO 8601 with offset.
       "worktreePath": "/path/to/worktrees/abc-027-today-inbox",
       "taskId": "task_…",
       "dispatchId": "dsp_…",
+      "agentId": "… (subagent engine only)",
       "pr": { "number": 31, "url": "https://github.com/owner/repo/pull/31" },
       "ownedPaths": ["src/features/tasks/**", "src/app/(tabs)/today.tsx"],
       "hotspots": ["package.json"],
@@ -157,7 +172,10 @@ Rules:
   `ready-to-merge` while an approved PR waits for the owner's merge (`awaiting_owner_merge`).
 - A ticket leaves `tickets` only after cleanup is verified; it then gets a `history` row.
 - `ownerQuestions` ids are short and stable for the run (`Q1`, `Q2` …) so the owner can
-  answer "Q3: B".
+  answer "Q3: B" in chat or on the live board. `kind` may also be `needs-info` (a question
+  /factory posted on a GitHub issue).
+- `backlog` is rewritten every cycle from the wave-status block (or /factory's queue): every open
+  ticket of the window and later waves. It feeds the live board's Waves strip (`board.md`).
 
 ### Lock
 
@@ -208,9 +226,18 @@ loop by hand sets them the same way.
                   "name": "…", "started_by": "tester-device", "status": "running | stopped" } ],
   "cost": "$3.10 | null",
   "last_error": null,
+  "progress": { "step": 1, "phase": "Phase 6 · build", "tasksDone": 2, "tasksTotal": 5,
+                "current": "Task 3: guard the save handler", "updated_at": "…" },
+  "questions": [ { "q": "…", "options": ["A …", "B …"], "recommendation": "A — because …" } ],
   "updated_at": "…"
 }
 ```
+
+`job.json` exists from the worker's **first minute** (implement-ticket writes it at intake with
+`stage: "intake"`), not only at hand-off, so the live board shows a ticket as soon as it starts.
+`progress` is for the board (step index: 0 intake · 1 build · 2 gate · 3 test · 4 review ·
+5 approve · 6 merge · 7 done). `questions` is used only by the subagent engine, which has no
+`ask` (factory skill, `references/subagent-engine.md`).
 
 | Field | Who decides it | Read by |
 |---|---|---|
@@ -222,6 +249,8 @@ loop by hand sets them the same way.
 | `verdicts`, `acceptance`, `blocked` | Worker, from the round files' first lines and tables | Orchestrator, approver, merge-ticket |
 | `services` | Worker, from tester-device's report (what it started and stopped) | Orchestrator (lane release), merge-ticket cleanup |
 | `decision`, `escalation`, `owner_actions`, `cost` | Worker, from `decision.md`, owner guides and the cost script | Orchestrator, merge-ticket |
+| `progress` | Worker, at each phase and plan task | The live board |
+| `questions` | Worker (subagent engine only) | Orchestrator → `ownerQuestions` |
 
 ### Stage vocabulary
 

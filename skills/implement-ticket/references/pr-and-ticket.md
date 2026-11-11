@@ -51,7 +51,8 @@ gh pr create --draft --title "<title>" --body-file <body-file> --base <default-b
 ```
 
 Title in the repo's PR style, usually the commit subject. If the repo has a PR template, fill
-it. Default body:
+it. **GitHub Issues tracker** (`GH-<n>` keys, including `/factory`): the body must contain the
+line `Closes #<n>` so the merge closes the issue. Default body:
 
 ```markdown
 ## What was built

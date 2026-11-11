@@ -2,7 +2,14 @@
 
 A Claude Code kit that takes a project from tickets to merged, verified code. It installs a workflow file, seven skills and eight subagents into `~/.claude`. Together they plan the backlog into waves, build each ready ticket in its own git worktree, run checks, testers and reviewers on every pull request, ask you only for real decisions, and close out each merge (proof on the ticket and PR, ticket moved to Done, worktree cleaned up). It works with any stack and any PM tool; stack names in the files are only examples.
 
-Private — all rights reserved. Third-party skills are not included; the installer fetches them from their own sources.
+MIT licensed (see [`LICENSE`](LICENSE)); the repository is currently private. Third-party skills are not included; the installer fetches them from their own sources.
+
+**Install in two commands, then `/delivery-init` in each project:** see [`INSTALL.md`](INSTALL.md).
+
+```powershell
+gh repo clone CodeEx24/ai-delivery-workflow "$HOME\.ai-delivery-workflow"
+powershell -ExecutionPolicy Bypass -File "$HOME\.ai-delivery-workflow\install.ps1"
+```
 
 ## What's inside
 
@@ -10,7 +17,12 @@ Private — all rights reserved. Third-party skills are not included; the instal
 |---|---|
 | `workflow/ai-delivery-workflow.md` | The workflow itself. Installed to `~/.claude/workflows/` and imported by each project's `CLAUDE.md`. |
 | `workflow/AI-Delivery-Workflow.pdf` | The same workflow as a readable PDF guide. |
+| `workflow/PLAYBOOK.md` | Which commands to type, by scenario: Jira backlog, one ticket only, GitHub issues, new project. |
 | `skills/deliver/` | `/deliver` — the orchestrator: runs steps 3–7 in a loop (manual-only command). |
+| `skills/delivery-init/` | `/delivery-init` — sets up one project in one step (CLAUDE.md block, `docs/workflow/README.md`, `.gitignore`; settings only on your yes). The installer copies `settings/` into it as templates. |
+| `INSTALL.md` | Machine install, project setup, update, uninstall. |
+| `skills/factory/` | `/factory` — the same orchestrator fed by GitHub issues labeled `factory`; label-tracked steps, talk mode, works without Orca. |
+| `board/` | The live delivery board (Python standard library + one HTML page). Installed to `~/.claude/delivery-board/`. Shows waves, every ticket's step, blockers and questions; answer questions from the page. |
 | `skills/plan-waves/` | `/plan-waves` — orders the backlog into dependency-correct waves. |
 | `skills/wave-status/` | `/wave-status` — what is open, ready, out of sync or waiting on you. |
 | `skills/implement-ticket/` | `/implement-ticket` — builds one ticket up to a draft PR. |
@@ -76,7 +88,7 @@ git pull
 Each run leaves a backup folder `~/.claude/backups/ai-delivery-workflow-<timestamp>/` with the same layout as `~/.claude` (`skills/`, `agents/`, `workflows/`).
 
 - **Roll back to what you had before:** copy the contents of that backup folder back over `~/.claude`.
-- **Remove the kit:** delete the kit's skill folders (`deliver`, `plan-waves`, `wave-status`, `implement-ticket`, `verify-ticket`, `merge-ticket`, `senior-pr-reviewer`), the eight agent files and `~/.claude/workflows/ai-delivery-workflow.md`, then restore anything you want back from the backup. Third-party skills are removed with the skills CLI (`npx skills remove <name> -g`).
+- **Remove the kit:** delete `~/.claude/delivery-board/`, the kit's skill folders (`deliver`, `factory`, `plan-waves`, `wave-status`, `implement-ticket`, `verify-ticket`, `merge-ticket`, `senior-pr-reviewer`), the eight agent files and `~/.claude/workflows/ai-delivery-workflow.md`, then restore anything you want back from the backup. Third-party skills are removed with the skills CLI (`npx skills remove <name> -g`).
 
 ## Quick start
 
@@ -92,7 +104,16 @@ In a project that already has tickets:
 | `/deliver <KEY> --watcher` | Runs the loop in its own Orca chat so this one stays free. |
 | `/deliver <KEY> --cap N` | Fewer tickets in flight for this run (raising it above the project's cap asks you first). |
 
+| `/deliver <KEY> --only ABC-42` | Run the loop for just these tickets. |
+| `/deliver <KEY> --board` | Open the live delivery board. |
+| `/loop /factory run` | Build every open GitHub issue labeled `factory` (labels track each step; questions go on the issue and the board). |
+| `/factory <anything>` | Answer a question (`Q3: B`), give feedback (`#12 …`), reject, or file a new labeled issue. |
+
 New project? Run **`/delivery-blueprint`** first (PRD, tickets, `CLAUDE.md`, docs layout), then `/deliver`.
+
+**Live board:** `python ~/.claude/delivery-board/board.py serve --repo . --open` in the project (the orchestrator starts it automatically). See it with sample data right after installing: `python ~/.claude/delivery-board/board.py serve --demo --open`. Needs Python 3.10+.
+
+**Not sure which commands fit your situation?** [`workflow/PLAYBOOK.md`](workflow/PLAYBOOK.md) walks through a Jira backlog, a single ticket, GitHub issues and a new project, command by command.
 
 You can also run any step on its own: `/plan-waves`, `/wave-status`, `/implement-ticket <KEY>-<n>`, `/verify-ticket <KEY>-<n>`, `/merge-ticket <KEY>-<n>`.
 
