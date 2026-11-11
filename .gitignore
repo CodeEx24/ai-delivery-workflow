@@ -7,3 +7,7 @@ desktop.ini
 
 # Local installer tests
 install-test/
+
+# Python bytecode (board/)
+__pycache__/
+*.pyc

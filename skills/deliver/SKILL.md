@@ -45,6 +45,12 @@ the owner. Everything else happens in workers.
 | `/deliver <KEY> --dry-run` | Bootstrap checks and one cycle **as a plan**: what would be started, advanced, merged, asked. No writes anywhere (not even state files). |
 | `--cap N` | Lower the concurrency cap for this run. A cap *above* the project's documented one (default **2** when none is written) needs the owner's explicit yes. |
 | `--takeover` | Take over from another orchestrator whose lock looks stale (see `references/state-files.md`, "Lock"). |
+| `/deliver <KEY> --only ABC-42[,ABC-43]` | Fill capacity only from these tickets (step 5); everything else in the cycle runs as usual. Blockers, the two-wave window and the cap still apply: a barred ticket is reported with the reason, not started. Stops when these tickets are merged or waiting on the owner. Saved as `policy.only` for the run. |
+| `/deliver <KEY> --board` | Start (or reopen) the live delivery board and print its URL; changes nothing else. See `references/board.md`. |
+| `--engine orca\|subagents` | Worker transport. Default `orca`; `subagents` runs workers as background subagents of this session when Orca is unavailable (`~/.claude/skills/factory/references/subagent-engine.md`). |
+
+GitHub issues labeled `factory` have their own front door, **`/factory`**, which runs this same
+engine with a label-driven queue (see the factory skill).
 
 **Parsing the first argument** (flags may come in any order after it):
 
@@ -159,13 +165,19 @@ Details, detection commands and fixes: **`references/bootstrap.md`**.
    cap, run id, lock, empty tickets / device lane / merge lock. Adopt work already in flight:
    any `.delivery/jobs/*/job.json` in existing Orca worktrees, and open PRs of window tickets,
    become `tickets` entries instead of being started twice.
+5. **Live board.** If it is not running (`.delivery/board.json` missing, or its `api/ping`
+   fails), start `python ~/.claude/delivery-board/board.py serve --repo <main checkout>` with
+   `run_in_background` and print the URL once: "Live board: <url>, showing waves, each ticket's
+   step, blockers and your questions; you can answer there too." No approval needed (local,
+   read-only, 127.0.0.1). Python missing → info gap, continue. Details: `references/board.md`.
 
 ## The cycle (every wake-up)
 
 Full procedure, stage table, device lane and merge protocol: **`references/cycle.md`**.
 
 1. **Sync and read.** Take the lock (refresh `heartbeatAt`). `git pull --ff-only` in the main
-   checkout. Drain the Orca inbox. Run `wave-status`; parse its `wave-status/1` summary block
+   checkout. Drain the Orca inbox, then the board inbox (answers and feedback the owner typed on
+   the board; `references/board.md`). Run `wave-status`; parse its `wave-status/1` summary block
    (window, ready in start order, start_now, in_progress, blocked, out_of_sync, needs_human,
    housekeeping, concurrency). Reconcile it with `orchestrator.json` and each `job.json`.
    **Re-read state from these files every cycle**; never rely on conversation memory, which
@@ -198,7 +210,9 @@ Full procedure, stage table, device lane and merge protocol: **`references/cycle
 7. **After each merge** confirm merge-ticket's close-out actually happened: proof posted, ticket
    Done, other open PRs re-synced, worktree + local branch + working folder gone, Orca worktree
    removed, worker released. Check free disk space. Fix or report what is left.
-8. **Persist and decide.** Write `orchestrator.json` (cycle count, last cycle time, next wake).
+8. **Persist and decide.** Write `orchestrator.json` (cycle count, last cycle time, next wake,
+   and the `backlog` snapshot the board draws its Waves strip from). Every action this cycle
+   took has one line in `.delivery/events.jsonl` (`board.py event`).
    Then either **stop** or **schedule the next wake-up** (below).
 
 ### Stop condition
@@ -288,3 +302,6 @@ the handle, and stop — this session does not cycle. The watcher binds the stor
   lock rules, message subjects between orchestrator and workers.
 - `references/worker-brief.md` — the exact brief sent to each ticket worker, and the
   stage-instruction messages.
+- `references/board.md` — the live delivery board: starting it, the files it reads, the
+  `wave-plan.json` / `events.jsonl` / `progress` / inbox contracts, and the trust rules for
+  answers typed on the board.

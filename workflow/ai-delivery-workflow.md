@@ -14,7 +14,12 @@ Legend: **(human)** owner decision or action · **(agent)** Claude Code skill or
   - `--dry-run` — shows what one cycle would start, advance, merge and ask. Writes nothing.
   - `--cap N` — allows fewer tickets in flight at once for this run. Going above the project's cap (default 2 when none is written) needs your yes.
 - **`/deliver <path-to-file-or-doc>`** — the same, but it starts from a document that lists tasks (spec, notes, backlog, PRD, meeting notes; a local `.md` / `.txt` / `.pdf` / `.docx`, or a URL / Google Doc / Notion page when a connector exists). It turns each task into a ticket (title, type, testable AC, dependencies, size) and shows you the list. After you approve it, it creates the tickets in the project's PM tool, which gives them real IDs. With no PM tool connected, the default is GitHub Issues when the repo is on GitHub and `gh` works; otherwise (offline or private experiments) local IDs `T-001…` in `docs/tickets/backlog.md`. Then it plans waves and runs the flow as above.
+  - `--only <KEY>-<n>[,…]` — start only these tickets (one-ticket runs).
+  - `--board` — open the live delivery board (below).
+- **`/factory run`** — the same engine fed by GitHub issues labeled `factory` instead of a whole backlog. Issue labels track each step (`factory:building`, `factory:needs-info`, `needs-human`, `ready-to-merge`); `/factory <anything>` answers questions, gives feedback, rejects, or files a new labeled issue. Recommended form: **`/loop /factory run`**. Works without Orca (workers become background subagents).
+- **Live delivery board** — `python ~/.claude/delivery-board/board.py serve --repo . --open` (the orchestrator starts it for you). One page for the whole delivery: the wave plan, every ticket's step, round verdicts, acceptance criteria, blockers, your open questions (answerable from the page) and an activity feed, refreshed every 2 s. Try it with `--demo`.
 - **New project?** Start with `/delivery-blueprint`, then `/deliver`.
+- **Which commands for my situation?** See `PLAYBOOK.md` in the kit's `workflow/` folder: Jira backlog, one ticket only, GitHub issues, new project.
 
 ---
 
@@ -203,6 +208,7 @@ The main session runs as a loop (`/loop` or a `/deliver` command, waking itself 
 3. **Advance every running ticket** to its next stage: build → gate → testers → reviewers → approver → explainer → merge. The device lane is handed out one ticket at a time.
 4. **Surface what needs the owner:** escalations and owner-action steps get the `needs-human` label, approved PRs waiting for the owner's merge get `ready-to-merge`, each with a line in the run summary and the matching `docs/actions` guide linked. A worker waiting on the owner for ~1 hour is released (its files stay) and resumed when the answer arrives. A ticket's working folder with no change for 2 days and no live worker is reported as stalled.
 5. **Close out every merge** (step 7): proof and cost posted, other open PRs re-synced, worktree and branch deleted, leftovers removed.
+6. **Keep the live board current:** one activity line per action, the backlog snapshot for the Waves strip, and the answers the owner typed on the board applied like chat answers. The board reads only the state files; ticket workers keep their `job.json` (with task progress) current from the first minute, so a silent worker is visible as "quiet 40m".
 6. **Stop** only when nothing in the window is ready and everything left waits on the owner, and send one summary (tickets merged, cost per ticket, what needs the owner).
 
 ### Two-wave window

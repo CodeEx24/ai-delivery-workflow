@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-11-11 — `/factory` and the live delivery board
+
+Inspired by zazencodes' "software factory v2" (label-driven GitHub issue queue, file-based state, a polling HTML board), rebuilt on this kit's engine instead of a second pipeline.
+
+**New**
+
+- **`/factory`** (manual-only): open GitHub issues labeled `factory` are the queue. Same engine as `/deliver` (worktrees, implement-ticket, gate, testers, reviewers, approver, explainer, merge-ticket). Issue labels track each step (`factory:building`, `factory:needs-info`, `needs-human`, `ready-to-merge`); unclear issues get one marker comment with numbered questions; talk mode (`/factory Q3: B`, `/factory #12 <feedback>`, `reject`, `new: <feature>`); optional waves (`/factory plan`). Issue text is quoted as data; only author / operator / write-access comments count.
+- **Subagent engine** (`skills/factory/references/subagent-engine.md`): runs workers as background subagents when Orca is not available, with testers and reviewers spawned by the orchestrator at depth 1. Also `/deliver --engine subagents`.
+- **Live delivery board** (`board/` → `~/.claude/delivery-board/`): Python standard library server + one HTML page, 127.0.0.1 only. One view of the wave plan, every ticket's step (intake → build → gate → test → review → approve → merge → done), round verdict chips, task progress, acceptance criteria, blockers, real liveness (newest file change, "quiet 40m"), owner questions with answer buttons, a per-ticket feedback box, agent reports and screenshots, and an activity feed. Answers go to `.delivery/inbox/` and are applied on the next cycle within strict trust rules (open questions only; never plan approvals, merges or settings). `--demo` shows sample data. Host-header, origin and per-session token checks; no directory-listing dependency (unlike the original).
+- **`workflow/PLAYBOOK.md`**: commands by scenario — Jira backlog, one ticket only, GitHub issues, new project.
+- **`/deliver --only <keys>`** and **`/deliver --board`**.
+- **`/delivery-init`**: one command to set up a project (marked CLAUDE.md block, `docs/workflow/README.md`, `.gitignore`; settings only on an explicit yes). The installers copy `settings/` into it as templates.
+- **`INSTALL.md`** and an **MIT `LICENSE`**.
+
+**Changed**
+
+- **deliver**: bootstrap starts the board; each cycle drains the board inbox, writes `orchestrator.json.backlog` and one `events.jsonl` line per action. New reference `references/board.md`. `state-files.md` documents `events.jsonl`, `wave-plan.json`, `board.json`, `inbox/`, `flavor`, `backlog`, `orca.engine`, `agentId`, `job.json.progress` / `questions`, and `GH-<n>` keys for GitHub issues.
+- **plan-waves** writes `.delivery/wave-plan.json` (PROPOSED, then APPLIED) beside the plan document.
+- **implement-ticket** writes `job.json` from the first minute and keeps `progress` (phase, task i/n) current; GitHub-issue PRs carry `Closes #<n>`.
+- **Installers** copy `board/` to `~/.claude/delivery-board/` and print the demo command.
+
 ## 2026-11-08 — initial version
 
 First packaged release of the kit. Detailed notes per skill and the full list of owner decisions: [`docs/changelog/2026-11-08/`](docs/changelog/2026-11-08/) (start with `ALIGNMENT.md`).

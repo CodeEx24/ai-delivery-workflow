@@ -254,6 +254,15 @@ with a reconciliation report beside it when Step 1b ran. Mark it **PROPOSED** un
 link every key to the tracker. A local file is not a tracker change, so it needs no go; do
 not commit it unless asked.
 
+**Also write `.delivery/wave-plan.json`** (schema `wave-plan/1`, in the deliver skill's
+`references/board.md`): `status: "proposed"`, every wave with its title, entry / exit criteria and
+tickets (`key`, `title`, `type`, `priority`, `dependsOn`, `critical`, `batch`, `note`, `url`),
+`criticalPath`, `startsFirst`, `problems`, `hotspots`, `cap`, `planDoc`. Write it atomically
+(temp file, then rename); create `.delivery/` if missing (it is gitignored by the workflow).
+The live delivery board draws its Waves strip from it, so the owner can see the plan and its
+dependencies while deciding. If the board is not running, say once that
+`python ~/.claude/delivery-board/board.py serve --repo . --open` shows it.
+
 Then stop, ask whether to apply and which parts, and end with the return block (Step 0).
 
 ## Step 6 — Apply, only on an explicit go
@@ -273,7 +282,8 @@ what is correct; remove the old wave marker when adding a new one); change only 
 covers (never status, assignee, sprint, description, or out-of-scope tickets; never delete a
 ticket, link or label definition); verify link direction on the first link before creating
 the rest; re-read afterwards and report changed / skipped / failed with the real error.
-Finally mark the plan document **APPROVED** (date, who) and offer to sync any other roadmap
+Finally mark the plan document **APPROVED** (date, who), set `.delivery/wave-plan.json` to
+`status: "applied"` with `approvedAt` / `approvedBy`, and offer to sync any other roadmap
 file. Edit, do not commit unless asked. Tracker write recipes are in the references.
 
 ## What this skill will not do

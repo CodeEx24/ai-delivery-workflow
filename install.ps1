@@ -74,6 +74,9 @@ foreach ($agent in Get-ChildItem -LiteralPath (Join-Path $KitDir 'agents') -Filt
     $items += ,@($agent.FullName, "agents\$($agent.Name)")
 }
 $items += ,@((Join-Path $KitDir 'workflow\ai-delivery-workflow.md'), 'workflows\ai-delivery-workflow.md')
+$items += ,@((Join-Path $KitDir 'board'), 'delivery-board')
+# Templates for /delivery-init (after the skills, so they land inside the installed skill).
+$items += ,@((Join-Path $KitDir 'settings'), 'skills\delivery-init\templates')
 
 # 2. Back up whatever already exists at those targets.
 foreach ($item in $items) { Backup-Item (Join-Path $ClaudeHome $item[1]) $item[1] }
@@ -100,9 +103,11 @@ if ($SkipThirdParty) {
 Say ''
 if (-not $DryRun -and (Test-Path -LiteralPath $BackupDir)) { Say "Backup: $BackupDir" }
 Say 'Done. Next steps:'
-Say '  1. In each project, add this line to CLAUDE.md:  @~/.claude/workflows/ai-delivery-workflow.md'
-Say "     plus the '# Compact instructions' section from settings/claude-md-snippet.md"
-Say '  2. Create docs/workflow/README.md from settings/docs-workflow-README.template.md'
-Say '  3. Merge what you want from settings/settings.recommended.json into .claude/settings.json by hand'
+Say '  1. In each project, open Claude Code and run:  /delivery-init'
+Say '     (adds the CLAUDE.md block, docs/workflow/README.md, .gitignore entry; settings only on your yes)'
+Say '  2. Restart open Claude Code sessions so they pick up the new skills'
+Say '  3. Manual alternative: see INSTALL.md (section "Set up a project by hand")'
 Say '  4. Optional tools (Orca, PM tool MCP, gh, Context7, ...): see third-party.md'
 Say '  5. Start:  /loop /deliver <PROJECT-KEY>   (new project: /delivery-blueprint first)'
+Say '     GitHub issues labeled "factory":  /loop /factory run'
+Say '  6. Live board (try it now):  python ~/.claude/delivery-board/board.py serve --demo --open'

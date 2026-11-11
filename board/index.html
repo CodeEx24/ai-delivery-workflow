@@ -1,0 +1,840 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delivery Board</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --card: #ffffff; --card-hover: #f1f3f7; --line: #e2e5ec;
+    --text: #1b1e27; --muted: #5d6475; --faint: #9aa1b2;
+    --accent: #2f6fed; --pass: #138a4b; --warn: #b86a00; --stop: #c62f2f; --done: #6b46c1;
+    --pass-bg: #e6f5ec; --warn-bg: #fdf1e0; --stop-bg: #fbe8e8; --accent-bg: #e8effd; --done-bg: #efe9fb;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14151b; --panel: #1a1c24; --card: #20222c; --card-hover: #262938; --line: #2e3140;
+      --text: #e6e7ec; --muted: #9aa0b4; --faint: #646a80;
+      --accent: #7aa7ff; --pass: #4ade80; --warn: #fbbf5a; --stop: #ff6b6b; --done: #b69cff;
+      --pass-bg: #18301f; --warn-bg: #352a14; --stop-bg: #3a1b1d; --accent-bg: #1c2a47; --done-bg: #2a2142;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14151b; --panel: #1a1c24; --card: #20222c; --card-hover: #262938; --line: #2e3140;
+    --text: #e6e7ec; --muted: #9aa0b4; --faint: #646a80;
+    --accent: #7aa7ff; --pass: #4ade80; --warn: #fbbf5a; --stop: #ff6b6b; --done: #b69cff;
+    --pass-bg: #18301f; --warn-bg: #352a14; --stop-bg: #3a1b1d; --accent-bg: #1c2a47; --done-bg: #2a2142;
+    --shadow: none;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; }
+  button, input, textarea { font: inherit; color: inherit; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .mono { font-family: var(--mono); }
+  .muted { color: var(--muted); }
+  .faint { color: var(--faint); }
+
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding: 18px 24px 10px; }
+  h1 { margin: 0; font-size: 18px; font-weight: 650; letter-spacing: -.01em; }
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill { font-family: var(--mono); font-size: 11.5px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--muted); white-space: nowrap; }
+  .pill b { color: var(--text); font-weight: 600; }
+  .pill.ok { color: var(--pass); border-color: color-mix(in srgb, var(--pass) 40%, var(--line)); }
+  .pill.warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, var(--line)); }
+  .spacer { flex: 1; }
+  .conn { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+  .conn.err { color: var(--stop); }
+  .iconbtn { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 3px 9px; cursor: pointer; font-size: 12px; }
+
+  main { padding: 0 24px 40px; display: grid; gap: 18px; }
+  section.block { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow); min-width: 0; }
+  .block-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .block-head h2 { margin: 0; font-size: 14px; font-weight: 650; }
+  .block-head .sub { font-size: 12px; color: var(--muted); }
+  .banner { padding: 8px 12px; border-radius: 8px; background: var(--stop-bg); color: var(--stop); font-family: var(--mono); font-size: 12px; margin-bottom: 6px; }
+
+  #needs.empty { border-style: dashed; }
+  .needs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; }
+  .need { border: 1px solid var(--line); border-left: 3px solid var(--stop); border-radius: 10px; padding: 10px 12px; background: var(--card); min-width: 0; }
+  .need.merge { border-left-color: var(--pass); }
+  .need.info { border-left-color: var(--warn); }
+  .need-top { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+  .need-q { margin: 6px 0 8px; font-weight: 550; overflow-wrap: anywhere; }
+  .rec { font-size: 12.5px; color: var(--muted); margin-bottom: 8px; }
+  .opts { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .opt { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 4px 10px; cursor: pointer; font-size: 12.5px; text-align: left; }
+  .opt:hover { border-color: var(--accent); }
+  .opt.recommended { border-color: var(--accent); background: var(--accent-bg); }
+  .answer-row { display: flex; gap: 6px; }
+  .answer-row input { flex: 1; min-width: 0; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 5px 9px; }
+  .btn { border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 8px; padding: 5px 12px; cursor: pointer; font-size: 12.5px; white-space: nowrap; }
+  .btn.ghost { background: transparent; color: var(--accent); }
+  .sent { font-size: 12px; color: var(--pass); margin-top: 6px; }
+  .chat-hint { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+  .tag { display: inline-block; font-family: var(--mono); font-size: 10.5px; padding: 1px 6px; border-radius: 5px; background: var(--card-hover); color: var(--muted); white-space: nowrap; }
+  .tag.stop { background: var(--stop-bg); color: var(--stop); }
+  .tag.warn { background: var(--warn-bg); color: var(--warn); }
+  .tag.pass { background: var(--pass-bg); color: var(--pass); }
+  .tag.accent { background: var(--accent-bg); color: var(--accent); }
+  .key { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--text); }
+  button.key { border: 0; background: none; padding: 0; cursor: pointer; }
+  button.key:hover { color: var(--accent); }
+
+  .waves { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 1fr); gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+  .wave { border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: var(--card); min-width: 0; }
+  .wave.window { border-color: var(--accent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent); }
+  .wave-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .wave-head h3 { margin: 0; font-size: 13px; }
+  .wave-title { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .bar { height: 5px; border-radius: 99px; background: var(--card-hover); overflow: hidden; margin-bottom: 8px; }
+  .bar > span { display: block; height: 100%; background: var(--pass); }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tchip { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); border-radius: 7px; padding: 2px 7px; font-family: var(--mono); font-size: 11px; cursor: pointer; background: var(--panel); max-width: 100%; }
+  .tchip:hover { border-color: var(--accent); }
+  .tchip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); flex: none; }
+  .st-done .dot { background: var(--done); }
+  .st-active .dot { background: var(--accent); animation: pulse 1.6s ease-in-out infinite; }
+  .st-you .dot { background: var(--stop); }
+  .st-ready .dot { background: var(--pass); }
+  .st-blocked .dot { background: var(--warn); }
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+
+  .board { display: grid; grid-template-columns: repeat(8, minmax(170px, 1fr)); gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+  .col { min-width: 0; }
+  .col-head { display: flex; align-items: center; gap: 6px; padding: 0 2px 8px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+  .col-head h3 { margin: 0; font-size: 12.5px; font-weight: 650; }
+  .col-head .count { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .col.you h3 { color: var(--stop); }
+  .col.done h3 { color: var(--done); }
+  .empty { color: var(--faint); font-size: 12px; padding: 2px; }
+  .card { display: block; width: 100%; text-align: left; cursor: pointer; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; margin-bottom: 8px; transition: background .15s, transform .15s; }
+  .card:hover { background: var(--card-hover); transform: translateY(-1px); }
+  .card:focus-visible, .tchip:focus-visible, .opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .card.you { border-color: var(--stop); }
+  .card.done { opacity: .75; }
+  .card-top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .key { white-space: nowrap; }
+  .card-top .tag:last-child { margin-left: auto; }
+  .ctitle { font-size: 12.5px; line-height: 1.35; margin: 3px 0 6px; overflow-wrap: anywhere; }
+  .steps { display: flex; gap: 3px; margin: 4px 0 6px; }
+  .steps i { flex: 1; height: 4px; border-radius: 2px; background: var(--card-hover); }
+  .steps i.done { background: var(--pass); }
+  .steps i.cur { background: var(--accent); animation: pulse 1.6s ease-in-out infinite; }
+  .steps i.cur.blk { background: var(--stop); animation: none; }
+  .meta { display: flex; flex-wrap: wrap; gap: 4px 8px; font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
+  .meta .quiet { color: var(--warn); }
+  .meta .stalled { color: var(--stop); }
+  .rounds { display: grid; gap: 3px; margin: 6px 0 2px; }
+  .round { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; }
+  .round .r { font-family: var(--mono); font-size: 10px; color: var(--faint); width: 20px; flex: none; }
+  .vchip { flex: 0 0 auto; text-align: center; font-family: var(--mono); font-size: 9.5px; padding: 1px 4px; border-radius: 4px; border: 1px dashed var(--faint); color: var(--faint); white-space: nowrap; }
+  .vchip.PASS { border: 1px solid transparent; background: var(--pass-bg); color: var(--pass); }
+  .vchip.CHANGES { border: 1px solid transparent; background: var(--warn-bg); color: var(--warn); }
+  .vchip.FAIL, .vchip.BLOCKED { border: 1px solid transparent; background: var(--stop-bg); color: var(--stop); }
+  .why { font-size: 11.5px; color: var(--stop); margin-top: 5px; overflow-wrap: anywhere; }
+  .pbar { height: 4px; border-radius: 2px; background: var(--card-hover); overflow: hidden; margin-top: 5px; }
+  .pbar > span { display: block; height: 100%; background: var(--accent); }
+
+  .feed { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow-y: auto; }
+  .feed li { display: grid; grid-template-columns: 54px 84px 1fr; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+  .feed li:last-child { border-bottom: 0; }
+  .feed .t { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+  .feed .txt { overflow-wrap: anywhere; }
+  .lower { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+  @media (prefers-reduced-motion: reduce) { .st-active .dot, .steps i.cur { animation: none; } }
+
+  .scrim { position: fixed; inset: 0; background: rgba(5, 6, 10, .45); opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(980px, 100vw); background: var(--panel); border-left: 1px solid var(--line); transform: translateX(100%); transition: transform .25s ease; display: grid; grid-template-rows: auto 1fr; }
+  body.open .scrim { opacity: 1; pointer-events: auto; }
+  body.open .drawer { transform: none; }
+  .d-head { padding: 16px 20px 12px; border-bottom: 1px solid var(--line); position: relative; }
+  .d-head h3 { margin: 2px 40px 6px 0; font-size: 16px; line-height: 1.35; }
+  .d-links { display: flex; gap: 12px; flex-wrap: wrap; font-family: var(--mono); font-size: 12px; }
+  .close { position: absolute; top: 12px; right: 14px; width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line); background: none; cursor: pointer; font-size: 18px; color: var(--muted); }
+  .d-body { overflow-y: auto; padding: 14px 20px 40px; display: grid; gap: 16px; align-content: start; }
+  .d-section h4 { margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .stepper { display: flex; overflow-x: auto; }
+  .stepper .s { flex: 1; min-width: 74px; text-align: center; position: relative; font-size: 11.5px; color: var(--faint); padding-top: 20px; }
+  .stepper .s::before { content: ""; position: absolute; top: 6px; left: 50%; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: var(--card-hover); border: 2px solid var(--line); z-index: 1; }
+  .stepper .s::after { content: ""; position: absolute; top: 11px; left: calc(50% + 8px); right: calc(-50% + 8px); height: 2px; background: var(--line); }
+  .stepper .s:last-child::after { display: none; }
+  .stepper .s.done { color: var(--muted); }
+  .stepper .s.done::before { background: var(--pass); border-color: var(--pass); }
+  .stepper .s.done::after { background: var(--pass); }
+  .stepper .s.cur { color: var(--text); font-weight: 600; }
+  .stepper .s.cur::before { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-bg); }
+  .stepper .s.cur.blk::before { background: var(--stop); border-color: var(--stop); box-shadow: 0 0 0 4px var(--stop-bg); }
+  .alert { border: 1px solid var(--stop); background: var(--stop-bg); border-radius: 10px; padding: 10px 12px; font-size: 13px; overflow-wrap: anywhere; }
+  .alert.info { border-color: var(--warn); background: var(--warn-bg); }
+  .alert p { margin: 0 0 4px; }
+  table.t { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  table.t th, table.t td { border-bottom: 1px solid var(--line); padding: 5px 6px; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+  table.t th { color: var(--muted); font-weight: 600; font-size: 11.5px; }
+  .files-wrap { display: grid; grid-template-columns: 210px 1fr; border: 1px solid var(--line); border-radius: 10px; min-height: 260px; overflow: hidden; }
+  .files { border-right: 1px solid var(--line); padding: 8px; overflow-y: auto; max-height: 520px; }
+  .file { display: flex; align-items: center; gap: 7px; width: 100%; text-align: left; border: 0; background: none; border-radius: 6px; padding: 4px 7px; cursor: pointer; font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+  .file:hover { background: var(--card-hover); color: var(--text); }
+  .file.on { background: var(--accent-bg); color: var(--text); }
+  .file .v { width: 6px; height: 6px; border-radius: 50%; background: var(--faint); flex: none; }
+  .v.good { background: var(--pass); } .v.warn { background: var(--warn); } .v.stop { background: var(--stop); }
+  .doc { padding: 12px 16px; overflow: auto; max-height: 520px; min-width: 0; }
+  .doc img { max-width: 100%; border: 1px solid var(--line); border-radius: 8px; }
+  .md { line-height: 1.6; font-size: 13px; }
+  .md h1, .md h2, .md h3 { line-height: 1.3; margin: 1.2em 0 .4em; font-size: 14px; }
+  .md h1 { font-size: 16px; }
+  .md > :first-child { margin-top: 0; }
+  .md p, .md ul, .md ol, .md pre, .md table, .md blockquote { margin: 0 0 .8em; }
+  .md ul, .md ol { padding-left: 1.3em; }
+  .md code { font-family: var(--mono); font-size: 12px; background: var(--card-hover); padding: 1px 4px; border-radius: 4px; }
+  .md pre { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; overflow-x: auto; }
+  .md pre code { background: none; padding: 0; }
+  .md blockquote { border-left: 2px solid var(--line); padding-left: 10px; color: var(--muted); }
+  .md table { border-collapse: collapse; display: block; overflow-x: auto; }
+  .md th, .md td { border: 1px solid var(--line); padding: 4px 8px; }
+  .verdict { display: inline-block; font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 6px; margin-bottom: 10px; }
+  .verdict.good { background: var(--pass-bg); color: var(--pass); }
+  .verdict.warn { background: var(--warn-bg); color: var(--warn); }
+  .verdict.stop { background: var(--stop-bg); color: var(--stop); }
+  textarea { width: 100%; min-height: 70px; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 7px 9px; resize: vertical; }
+  footer { padding: 0 24px 28px; font-family: var(--mono); font-size: 11px; color: var(--faint); display: flex; gap: 18px; flex-wrap: wrap; }
+
+  @media (max-width: 900px) {
+    .lower { grid-template-columns: 1fr; }
+    .files-wrap { grid-template-columns: 1fr; }
+    .files { border-right: 0; border-bottom: 1px solid var(--line); max-height: 160px; }
+  }
+  @media (max-width: 640px) {
+    header { padding: 14px 16px 8px; }
+    main { padding: 0 16px 32px; }
+    footer { padding: 0 16px 24px; }
+    .needs-grid { grid-template-columns: 1fr; }
+    .feed li { grid-template-columns: 50px 1fr; }
+    .feed li .k { display: none; }
+    .d-head, .d-body { padding-left: 16px; padding-right: 16px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">Delivery board</h1>
+  <div class="pills" id="pills"></div>
+  <div class="spacer"></div>
+  <span class="conn" id="conn">connecting…</span>
+  <button class="iconbtn" id="theme" title="Toggle light / dark">◐</button>
+</header>
+<main>
+  <div id="problems"></div>
+  <section class="block" id="needs"></section>
+  <section class="block">
+    <div class="block-head"><h2>Waves</h2><span class="sub" id="wave-sub"></span><span class="spacer"></span>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--done)"></i>done</span>
+        <span><i class="dot" style="background:var(--accent)"></i>in flight</span>
+        <span><i class="dot" style="background:var(--stop)"></i>needs you</span>
+        <span><i class="dot" style="background:var(--pass)"></i>ready</span>
+        <span><i class="dot" style="background:var(--warn)"></i>blocked</span>
+        <span><i class="dot" style="background:var(--faint)"></i>later</span>
+      </div>
+    </div>
+    <div class="waves" id="waves"></div>
+  </section>
+  <section class="block">
+    <div class="block-head"><h2>Pipeline</h2><span class="sub">every ticket in flight, by step · click a card for details</span></div>
+    <div class="board" id="board"></div>
+  </section>
+  <div class="lower">
+    <section class="block">
+      <div class="block-head"><h2>Activity</h2><span class="sub">from .delivery/events.jsonl</span></div>
+      <ul class="feed" id="feed"></ul>
+    </section>
+    <section class="block">
+      <div class="block-head"><h2>Recently merged</h2></div>
+      <div id="history"></div>
+    </section>
+  </div>
+</main>
+<footer>
+  <span>/loop /deliver &lt;KEY&gt;</span><span>/loop /factory run</span><span>/factory &lt;answer or feedback&gt;</span>
+  <span>/wave-status</span><span id="repo"></span>
+</footer>
+
+<div class="scrim" data-close></div>
+<aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="d-title">
+  <div class="d-head">
+    <div class="mono muted" id="d-num" style="font-size:12px"></div>
+    <h3 id="d-title"></h3>
+    <div class="d-links" id="d-links"></div>
+    <button class="close" data-close aria-label="Close">×</button>
+  </div>
+  <div class="d-body" id="d-body"></div>
+</aside>
+
+<script>
+const TOKEN = '__BOARD_TOKEN__'
+const POLL_MS = 2000
+const QUIET_MIN = 30, STALLED_MIN = 120
+
+const STEPS = ['Intake', 'Build', 'Gate', 'Test', 'Review', 'Approve', 'Merge', 'Done']
+const STEP_OF = {
+  queued: -1, dispatched: 0, intake: 0, building: 1, fixing: 1, built: 2, gating: 2, gate_failed: 2,
+  testing: 3, tested: 3, device_wait: 3, reviewing: 4, reviewed: 4, approving: 5,
+  ready_to_merge: 6, awaiting_owner_merge: 6, merging: 6, merged: 7, cleaned: 7,
+}
+const YOU_ORCH = new Set(['awaiting_owner', 'escalated', 'blocked', 'awaiting_owner_merge'])
+const YOU_JOB = new Set(['awaiting_owner', 'escalated', 'blocked', 'failed'])
+const COLUMNS = [
+  { id: 'queued', label: 'Queued' },
+  { id: 'build', label: 'Intake & build', steps: [0, 1] },
+  { id: 'gate', label: 'Gate', steps: [2] },
+  { id: 'test', label: 'Testing', steps: [3] },
+  { id: 'review', label: 'Review', steps: [4] },
+  { id: 'ship', label: 'Approve & merge', steps: [5, 6] },
+  { id: 'you', label: 'Needs you', cls: 'you' },
+  { id: 'done', label: 'Done', cls: 'done' },
+]
+const ROLE_SHORT = { checks: 'gate', 'test-functional': 'func', 'test-device': 'device', 'review-code': 'code',
+  'review-security': 'sec', 'review-ui': 'ui', 'review-ux': 'ux',
+  'tester-functional': 'func', 'tester-device': 'device', 'reviewer-code': 'code', 'reviewer-security': 'sec',
+  'reviewer-ui': 'ui', 'reviewer-ux': 'ux', gate: 'gate' }
+const ANSWERABLE = new Set(['decision', 'spec-approval', 'escalation', 'action', 'needs-info'])
+
+const $ = (id) => document.getElementById(id)
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
+const safeUrl = (u) => (typeof u === 'string' && /^https?:\/\//i.test(u)) ? u : null
+const link = (u, text) => safeUrl(u) ? `<a href="${esc(u)}" target="_blank" rel="noopener">${text}</a>` : `<span>${text}</span>`
+
+let data = null, lastJson = '', tickets = new Map()
+let openKey = null, openFile = null, openFileText = null
+const sentLocal = new Map()  // qid -> answer sent from this page, until the orchestrator marks it answered
+
+// ---------- time ----------
+function ageMin(iso, now) { if (!iso) return null; const t = Date.parse(iso); return isNaN(t) ? null : Math.max(0, (now - t) / 60000) }
+function fmtAge(min) {
+  if (min === null) return '—'
+  if (min < 1) return 'now'
+  if (min < 60) return `${Math.floor(min)}m`
+  if (min < 48 * 60) return `${Math.floor(min / 60)}h${String(Math.floor(min % 60)).padStart(2, '0')}m`
+  return `${Math.floor(min / 1440)}d`
+}
+function clock(iso) { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+function latest(...isos) { let best = null; for (const s of isos) { if (s && !isNaN(Date.parse(s)) && (!best || Date.parse(s) > Date.parse(best))) best = s } return best }
+
+// ---------- model ----------
+function verdictWord(line) {
+  if (!line) return null
+  const m = line.match(/^(?:VERDICT|GATE):\s*(PASS|CHANGES|FAIL|BLOCKED)\b/i)
+  if (m) return m[1].toUpperCase()
+  if (/^APPROVE\b/.test(line)) return 'PASS'
+  if (/^ESCALATE\b/.test(line)) return 'BLOCKED'
+  return null
+}
+
+function roundsOf(t) {
+  const rounds = new Map()
+  const put = (n, role, v) => { if (!rounds.has(n)) rounds.set(n, {}); if (v) rounds.get(n)[role] = v }
+  for (const [rk, vs] of Object.entries(t.job?.verdicts || {})) {
+    const n = Number(String(rk).replace(/\D/g, '')); if (!n) continue
+    for (const [role, v] of Object.entries(vs || {})) put(n, ROLE_SHORT[role] || role, String(v).toUpperCase())
+  }
+  for (const f of t.files || []) {
+    const m = f.path.match(/^round-(\d+)\/(checks|test-functional|test-device|review-[a-z]+)\.md$/)
+    if (m) put(Number(m[1]), ROLE_SHORT[m[2]] || m[2], verdictWord(f.first) || 'PENDING')
+  }
+  const expected = (t.job?.roles?.length ? ['gate', ...t.job.roles] : t.orch?.routing || []).map((r) => ROLE_SHORT[r] || r)
+  const n = Math.max(t.round || 0, ...rounds.keys(), 0)
+  for (let i = 1; i <= n; i++) put(i, '_', null)
+  return { rounds, expected: [...new Set(expected)] }
+}
+
+function stepOf(t) {
+  // The worker often knows more than the orchestrator (orch "dispatched", job "building"): take the furthest.
+  const known = [STEP_OF[t.orchStage], STEP_OF[t.jobStage]].filter((x) => x !== undefined)
+  if (known.length) return Math.max(...known)
+  if (t.job?.progress && Number.isInteger(t.job.progress.step)) return t.job.progress.step
+  if (t.job?.decision) return 5
+  if (Object.keys(t.job?.verdicts || {}).length) return 4
+  if (t.job?.pr || t.orch?.pr) return 2
+  return t.jobStage || t.orchStage ? 1 : -1
+}
+
+function buildTickets(d) {
+  const o = d.orchestrator || {}
+  const map = new Map()
+  const add = (key) => { if (!map.has(key)) map.set(key, { key, questions: [] }); return map.get(key) }
+  for (const w of d.plan?.waves || []) for (const p of w.tickets || []) {
+    Object.assign(add(p.key), { title: p.title, type: p.type, wave: w.n, dependsOn: p.dependsOn || [], critical: !!p.critical, priority: p.priority, url: p.url })
+  }
+  for (const [k, b] of Object.entries(o.backlog?.items || {})) {
+    const t = add(k)
+    t.title ||= b.title; t.wave ??= b.wave; t.type ||= b.type; t.url ||= b.url
+    t.backlogStatus = b.status; t.blockedBy = b.blockedBy || []
+  }
+  for (const [k, ot] of Object.entries(o.tickets || {})) {
+    const t = add(k); t.orch = ot
+    t.title = ot.title || t.title; t.url = ot.url || t.url; t.wave = ot.wave ?? t.wave; t.type = ot.type || t.type
+    t.risk = ot.risk; t.critical = ot.critical || t.critical
+  }
+  for (const h of o.history || []) { const t = add(h.key); t.history = h; t.title ||= h.title }
+  for (const [k, j] of Object.entries(d.jobs || {})) {
+    const t = add(k); t.job = j.job || {}; t.files = j.files || []; t.folder = j.folder; t.lastActivity = j.lastActivity
+    t.title ||= t.job.title; t.type ||= t.job.type; t.risk ||= t.job.risk
+  }
+  for (const q of o.ownerQuestions || []) if (!q.answeredAt && q.key) add(q.key).questions.push(q)
+
+  const now = Date.parse(d.now) || Date.now()
+  for (const t of map.values()) {
+    t.orchStage = t.orch?.stage; t.jobStage = t.job?.stage
+    t.round = t.orch?.round || t.job?.round || 0
+    t.pr = t.orch?.pr || t.job?.pr || (t.history?.pr ? { url: t.history.pr } : null)
+    t.step = stepOf(t)
+    const done = !!t.history || ['merged', 'cleaned'].includes(t.orchStage) || t.jobStage === 'merged' || t.backlogStatus === 'done'
+    const you = !done && (YOU_ORCH.has(t.orchStage) || YOU_JOB.has(t.jobStage) || t.questions.length > 0 || t.backlogStatus === 'needs_owner')
+    const active = !done && !you && !!(t.orch || t.job) && t.step >= 0
+    t.status = done ? 'done' : you ? 'you' : active ? 'active'
+      : t.orchStage === 'queued' || t.backlogStatus === 'ready' ? 'ready'
+      : t.backlogStatus === 'blocked' ? 'blocked'
+      : t.backlogStatus === 'in_progress' ? 'active' : 'todo'
+    t.column = done ? 'done' : you ? 'you' : t.status === 'ready' && t.orch ? 'queued'
+      : active ? (COLUMNS.find((c) => c.steps?.includes(t.step))?.id || 'build') : null
+    t.activity = latest(t.lastActivity, t.job?.updated_at, t.orch?.lastReportAt, t.orch?.stageSince)
+    t.quietMin = ageMin(t.activity, now)
+    t.why = whyBlocked(t)
+  }
+  return map
+}
+
+function whyBlocked(t) {
+  if (t.questions.length) return t.questions[0].question
+  if (t.orchStage === 'awaiting_owner_merge') return 'Approved — ready for your review and merge'
+  if (t.job?.escalation) return t.job.escalation
+  if (t.job?.last_error) return t.job.last_error
+  if (t.job?.blocked?.length) return t.job.blocked.map((b) => `${b.ac}: ${b.reason}`).join(' · ')
+  if (t.orch?.waitingOn && t.orch.waitingOn !== 'worker') return `waiting on ${t.orch.waitingOn}`
+  return null
+}
+
+// ---------- render: header ----------
+function renderHeader(d) {
+  const o = d.orchestrator
+  const now = Date.parse(d.now) || Date.now()
+  const pills = []
+  $('title').textContent = o?.projectKey ? `Delivery board · ${o.projectKey}` : 'Delivery board'
+  document.title = o?.projectKey ? `${o.projectKey} · Delivery Board` : 'Delivery Board'
+  if (!o) {
+    pills.push('<span class="pill">no orchestrator — showing job folders only</span>')
+  } else {
+    const hb = ageMin(o.lock?.heartbeatAt, now)
+    const limit = ((2 * (o.cycle?.lastDelaySec || 600)) / 60) + 10
+    const resume = o.flavor === 'factory' ? '/loop /factory run' : `/loop /deliver ${o.projectKey || '<KEY>'}`
+    pills.push(hb === null ? '<span class="pill">orchestrator: not started</span>'
+      : hb <= limit ? `<span class="pill ok">● orchestrator live · ${fmtAge(hb)} ago</span>`
+      : `<span class="pill warn">orchestrator quiet ${fmtAge(hb)} — run ${esc(resume)}</span>`)
+    pills.push(`<span class="pill">${esc(o.flavor || 'deliver')} · ${esc(o.mode || 'plain')}</span>`)
+    const inflight = Object.values(o.tickets || {}).filter((t) => t.holdsSlot).length
+    const cap = o.policy?.cap ?? 2
+    pills.push(`<span class="pill ${inflight >= cap ? 'warn' : ''}">in flight <b>${inflight}/${cap}</b></span>`)
+    pills.push(`<span class="pill">gate <b>${esc(o.gate?.holder || 'free')}</b></span>`)
+    if (o.policy?.deviceLaneEnabled !== false) {
+      const q = o.deviceLane?.queue?.length || 0
+      pills.push(`<span class="pill">device <b>${esc(o.deviceLane?.holder || 'free')}</b>${q ? ` +${q} queued` : ''}</span>`)
+    }
+    pills.push(`<span class="pill">merge <b>${esc(o.mergeLock?.holder || 'free')}</b></span>`)
+    if (o.cycle?.count) pills.push(`<span class="pill">cycle ${o.cycle.count}${o.cycle.nextWakeAt ? ` · next ${clock(o.cycle.nextWakeAt)}` : ''}</span>`)
+  }
+  $('pills').innerHTML = pills.join('')
+  $('repo').textContent = d.repo
+  $('problems').innerHTML = (d.problems || []).map((p) => `<div class="banner">${esc(p)}</div>`).join('')
+}
+
+// ---------- render: needs you ----------
+function pendingAnswer(d, qid) {
+  const inbox = (d.inbox || []).find((i) => i.kind === 'answer' && i.id === qid)
+  return inbox ? inbox.answer : sentLocal.get(qid) || null
+}
+
+function questionCard(d, q) {
+  const pending = pendingAnswer(d, q.id)
+  const t = tickets.get(q.key)
+  const answerable = ANSWERABLE.has(q.kind)
+  const recLetter = (q.recommendation || '').trim().charAt(0)
+  const opts = (q.options || []).map((opt) => {
+    const letter = String(opt).trim().charAt(0)
+    return `<button class="opt ${letter && letter === recLetter ? 'recommended' : ''}" data-answer="${esc(q.id)}" data-value="${esc(opt)}">${esc(opt)}</button>`
+  }).join('')
+  return `<div class="need" data-q="${esc(q.id)}">
+    <div class="need-top"><span class="tag stop">${esc(q.id)}</span><span class="tag">${esc(q.kind || 'question')}</span>
+      ${q.key ? `<button class="key" data-open="${esc(q.key)}">${esc(q.key)}</button>` : ''}
+      ${t?.title ? `<span class="muted">${esc(t.title)}</span>` : ''}
+      <span class="faint" style="margin-left:auto">${q.askedAt ? 'asked ' + clock(q.askedAt) : ''}</span></div>
+    <div class="need-q">${esc(q.question)}</div>
+    ${q.recommendation ? `<div class="rec">Recommended: ${esc(q.recommendation)}</div>` : ''}
+    ${pending ? `<div class="sent">✓ Sent: “${esc(pending)}”. The orchestrator applies it on its next cycle (say <span class="mono">${esc(q.id)}: …</span> in chat to apply it now).</div>`
+      : answerable ? `${opts ? `<div class="opts">${opts}</div>` : ''}
+        <div class="answer-row"><input id="ans-${esc(q.id)}" placeholder="Type an answer…" aria-label="Answer ${esc(q.id)}">
+        <button class="btn" data-send="${esc(q.id)}">Send</button>
+        <button class="btn ghost" data-copy="${esc(q.id)}" title="Copy for the chat">Copy</button></div>`
+      : `<div class="chat-hint">Answer in the orchestrator chat: <b>${esc(q.id)}: &lt;your answer&gt;</b></div>`}
+  </div>`
+}
+
+function renderNeeds(d) {
+  const el = $('needs')
+  if (el.contains(document.activeElement) && document.activeElement.tagName === 'INPUT') return
+  const o = d.orchestrator || {}
+  const open = (o.ownerQuestions || []).filter((x) => !x.answeredAt)
+  const cards = open.map((q) => questionCard(d, q))
+  const asked = new Set(open.map((x) => x.key))
+  for (const t of tickets.values()) {
+    if (t.status !== 'you' || asked.has(t.key)) continue
+    const merge = t.orchStage === 'awaiting_owner_merge'
+    cards.push(`<div class="need ${merge ? 'merge' : ''}">
+      <div class="need-top"><span class="tag ${merge ? 'pass' : 'stop'}">${merge ? 'ready to merge' : esc((t.orchStage || t.jobStage || '').replace(/_/g, ' '))}</span>
+        <button class="key" data-open="${esc(t.key)}">${esc(t.key)}</button><span class="muted">${esc(t.title || '')}</span></div>
+      <div class="need-q">${esc(t.why || 'Waiting on you')}</div>
+      <div class="d-links">${t.pr?.url ? link(t.pr.url, merge ? `Review &amp; merge PR #${esc(t.pr.number ?? '')}` : `PR #${esc(t.pr.number ?? '')}`) : ''}
+        ${(t.job?.owner_actions || []).map((a) => `<span class="mono">${esc(a)}</span>`).join(' ')}</div>
+    </div>`)
+  }
+  if (d.plan && d.plan.status === 'proposed') {
+    cards.push(`<div class="need info"><div class="need-top"><span class="tag warn">wave plan</span></div>
+      <div class="need-q">A wave plan is waiting for your approval (${(d.plan.waves || []).length} waves).</div>
+      <div class="chat-hint">Review it below, then answer in the chat (“apply the plan”). Plans are never approved from the board.</div></div>`)
+  }
+  for (const g of (o.setup?.gaps || []).filter((x) => x.severity === 'blocking' && x.status === 'open')) {
+    cards.push(`<div class="need info"><div class="need-top"><span class="tag warn">setup</span></div>
+      <div class="need-q">${esc(g.item)}</div><div class="chat-hint">${esc(g.fix || '')}</div></div>`)
+  }
+  for (const i of (d.inbox || []).filter((x) => x.kind === 'feedback')) {
+    cards.push(`<div class="need info"><div class="need-top"><span class="tag accent">feedback sent</span>
+      <button class="key" data-open="${esc(i.key)}">${esc(i.key)}</button></div>
+      <div class="need-q">${esc(i.text)}</div><div class="sent">Waiting for the orchestrator's next cycle.</div></div>`)
+  }
+  el.className = 'block' + (cards.length ? '' : ' empty')
+  el.innerHTML = `<div class="block-head"><h2>Needs you</h2><span class="sub">${cards.length ? `${cards.length} item${cards.length > 1 ? 's' : ''}` : 'nothing. The loop can run on its own.'}</span></div>
+    ${cards.length ? `<div class="needs-grid">${cards.join('')}</div>` : ''}`
+}
+
+// ---------- render: waves ----------
+function renderWaves(d) {
+  const o = d.orchestrator || {}
+  const win = o.waves?.window || {}
+  const groups = new Map()
+  for (const w of d.plan?.waves || []) groups.set(w.n, { n: w.n, title: w.title, keys: (w.tickets || []).map((x) => x.key) })
+  for (const t of tickets.values()) {
+    const n = t.wave ?? 0
+    if (!groups.has(n)) groups.set(n, { n, title: n ? '' : 'Not in a wave', keys: [] })
+    if (!groups.get(n).keys.includes(t.key)) groups.get(n).keys.push(t.key)
+  }
+  const sorted = [...groups.values()].sort((a, b) => (a.n || 999) - (b.n || 999))
+  const planNote = d.plan ? `plan ${esc(d.plan.status || '')}${d.plan.approvedAt ? ' · approved ' + new Date(d.plan.approvedAt).toLocaleDateString() : ''}` : 'no wave-plan.json yet'
+  $('wave-sub').innerHTML = `${planNote}${win.base ? ` · window: wave ${win.base}${win.next ? ' + ' + win.next : ''}` : ''}${d.plan?.criticalPath?.length ? ` · critical path ${d.plan.criticalPath.map(esc).join(' → ')}` : ''}`
+  if (!sorted.length) { $('waves').innerHTML = '<div class="empty">No tickets yet. Run /plan-waves, /deliver or /factory.</div>'; return }
+  $('waves').innerHTML = sorted.map((g) => {
+    const ts = g.keys.map((k) => tickets.get(k)).filter(Boolean)
+    const done = ts.filter((t) => t.status === 'done').length
+    const inWin = g.n && (g.n === win.base || g.n === win.next)
+    return `<div class="wave ${inWin ? 'window' : ''}">
+      <div class="wave-head"><h3>${g.n ? `Wave ${g.n}` : 'Queue'}</h3>${inWin ? `<span class="tag accent">${g.n === win.base ? 'active' : 'next'}</span>` : ''}
+        <span class="faint mono" style="margin-left:auto;font-size:11px">${done}/${ts.length}</span></div>
+      ${g.title ? `<div class="wave-title">${esc(g.title)}</div>` : ''}
+      <div class="bar"><span style="width:${ts.length ? (100 * done / ts.length) : 0}%"></span></div>
+      <div class="chips">${ts.map((t) => {
+        const deps = t.dependsOn?.length ? t.dependsOn : t.blockedBy || []
+        const tip = `${t.key} · ${t.title || ''}${deps.length ? ' · depends on ' + deps.join(', ') : ''} · ${t.status}`
+        return `<button class="tchip st-${t.status}" data-open="${esc(t.key)}" title="${esc(tip)}"><i class="dot"></i>${esc(t.key)}${t.critical ? ' ‼' : ''}</button>`
+      }).join('')}</div>
+    </div>`
+  }).join('')
+}
+
+// ---------- render: pipeline ----------
+function stepsBar(t) {
+  const blk = t.status === 'you'
+  return `<div class="steps" title="${esc(STEPS[t.step] || 'queued')}">${STEPS.map((_, i) =>
+    `<i class="${i < t.step ? 'done' : i === t.step ? 'cur' + (blk ? ' blk' : '') : ''}"></i>`).join('')}</div>`
+}
+
+function roundRows(t, limit = 2) {
+  const { rounds, expected } = roundsOf(t)
+  const ns = [...rounds.keys()].sort((a, b) => a - b).slice(-limit)
+  return ns.map((n) => {
+    const v = rounds.get(n)
+    const roles = [...new Set([...expected, ...Object.keys(v).filter((r) => r !== '_')])]
+    if (!roles.length) return ''
+    return `<div class="round"><span class="r">R${n}</span>${roles.map((r) =>
+      `<span class="vchip ${esc(v[r] || '')}" title="${esc(r)}: ${esc(v[r] || 'pending')}">${esc(r)}</span>`).join('')}</div>`
+  }).join('')
+}
+
+function card(t) {
+  const p = t.job?.progress
+  const quiet = t.status === 'active' && t.quietMin !== null && t.quietMin >= QUIET_MIN
+  const meta = [
+    t.wave ? `W${t.wave}` : '', esc(t.type || ''), t.risk ? `risk ${esc(t.risk)}` : '',
+    t.round ? `r${t.round}` : '',
+    t.quietMin !== null ? `<span class="${quiet ? (t.quietMin >= STALLED_MIN ? 'stalled' : 'quiet') : ''}">${quiet ? 'quiet ' : ''}${fmtAge(t.quietMin)}</span>` : '',
+    t.job?.cost ? esc(t.job.cost) : '',
+  ].filter(Boolean)
+  const stageLabel = (t.orchStage === 'dispatched' && t.jobStage) || t.orchStage || t.jobStage || (t.history ? 'merged' : '')
+  return `<button class="card ${t.status === 'you' ? 'you' : ''} ${t.status === 'done' ? 'done' : ''}" data-open="${esc(t.key)}">
+    <div class="card-top"><span class="key">${esc(t.key)}</span>${t.critical ? '<span class="tag stop">critical</span>' : ''}<span class="tag">${esc(stageLabel.replace(/_/g, ' '))}</span></div>
+    <div class="ctitle">${esc(t.title || '')}</div>
+    ${t.status !== 'done' ? stepsBar(t) : ''}
+    ${p?.current ? `<div class="faint" style="font-size:11px">${esc(p.phase ? p.phase + ' · ' : '')}${esc(p.current)}</div>` : ''}
+    ${p?.tasksTotal ? `<div class="pbar" title="${p.tasksDone || 0}/${p.tasksTotal} tasks"><span style="width:${100 * (p.tasksDone || 0) / p.tasksTotal}%"></span></div>` : ''}
+    <div class="rounds">${roundRows(t)}</div>
+    <div class="meta">${meta.map((m) => `<span>${m}</span>`).join('')}</div>
+    ${t.why && t.status === 'you' ? `<div class="why">${esc(t.why)}</div>` : ''}
+  </button>`
+}
+
+function renderBoard() {
+  const byCol = new Map(COLUMNS.map((c) => [c.id, []]))
+  for (const t of tickets.values()) if (t.column && byCol.has(t.column)) byCol.get(t.column).push(t)
+  byCol.set('done', byCol.get('done').sort((a, b) => (Date.parse(b.history?.mergedAt) || 0) - (Date.parse(a.history?.mergedAt) || 0)).slice(0, 8))
+  $('board').innerHTML = COLUMNS.map((c) => `<div class="col ${c.cls || ''}">
+    <div class="col-head"><h3>${c.label}</h3><span class="count">${byCol.get(c.id).length || ''}</span></div>
+    ${byCol.get(c.id).map(card).join('') || '<div class="empty">—</div>'}</div>`).join('')
+}
+
+// ---------- render: feed + history ----------
+function eventItems(events, key) {
+  return events.filter((e) => !key || e.ticket === key).slice(-80).reverse().map((e) =>
+    `<li><span class="t">${clock(e.ts)}</span><span class="k">${e.ticket ? `<button class="key" data-open="${esc(e.ticket)}">${esc(e.ticket)}</button>` : `<span class="tag">${esc(e.kind)}</span>`}</span>
+     <span class="txt">${e.ticket ? `<span class="tag">${esc(e.kind)}</span> ` : ''}${esc(e.text)}</span></li>`).join('')
+}
+function renderFeed(d) {
+  $('feed').innerHTML = eventItems(d.events || []) || '<li><span></span><span></span><span class="faint">No events yet.</span></li>'
+  const h = (d.orchestrator?.history || []).slice(-8).reverse()
+  $('history').innerHTML = h.length ? `<table class="t"><tr><th>Ticket</th><th>PR</th><th>Rounds</th><th>Cost</th></tr>${h.map((x) =>
+    `<tr><td><button class="key" data-open="${esc(x.key)}">${esc(x.key)}</button></td><td>${link(x.pr, 'PR')}</td><td>${esc(x.rounds ?? '')}</td><td>${esc(x.cost ?? '')}</td></tr>`).join('')}</table>`
+    : '<div class="empty">Nothing merged in this run yet.</div>'
+}
+
+// ---------- drawer ----------
+function tone(first) {
+  const v = verdictWord(first || '')
+  if (/^(STATUS:\s*READY|DECISION:\s*ACCEPT)/.test(first || '') || v === 'PASS') return 'good'
+  if (v === 'CHANGES') return 'warn'
+  if (v === 'FAIL' || v === 'BLOCKED') return 'stop'
+  return ''
+}
+const FILE_ORDER = ['plan.md', 'decision.md', 'walkthrough.md', 'job.json']
+function sortFiles(files) {
+  const rank = (p) => {
+    const i = FILE_ORDER.indexOf(p); if (i >= 0) return [0, i, p]
+    const m = p.match(/^round-(\d+)\//); if (m) return [2, Number(m[1]), p]
+    return [1, 0, p]
+  }
+  return [...files].sort((a, b) => { const x = rank(a.path), y = rank(b.path); return x[0] - y[0] || x[1] - y[1] || x[2].localeCompare(y[2]) })
+}
+
+async function loadFile(key, path) {
+  const f = (tickets.get(key)?.files || []).find((x) => x.path === path)
+  if (!f) return null
+  const url = `/api/file?ticket=${encodeURIComponent(key)}&path=${encodeURIComponent(path)}`
+  if (f.kind === 'image') return { image: url }
+  const res = await fetch(url, { cache: 'no-store' })
+  return { text: res.ok ? await res.text() : `(${res.status}) could not read ${path}` }
+}
+
+function renderDrawer() {
+  const t = tickets.get(openKey)
+  if (!t) { $('d-body').innerHTML = '<p class="muted">This ticket is no longer on the board.</p>'; return }
+  $('d-num').textContent = [t.key, t.type, t.risk && `risk ${t.risk}`, t.wave && `wave ${t.wave}`, t.round && `round ${t.round}`,
+    (t.orchStage || t.jobStage || '').replace(/_/g, ' ')].filter(Boolean).join(' · ')
+  $('d-title').textContent = t.title || t.key
+  $('d-links').innerHTML = [t.url && link(t.url, 'ticket'), t.pr?.url && link(t.pr.url, `PR #${esc(t.pr.number ?? '')}`),
+    t.orch?.branch || t.job?.branch ? `<span class="faint">${esc(t.orch?.branch || t.job?.branch)}</span>` : '',
+    t.job?.record ? `<span class="faint">${esc(t.job.record)}</span>` : ''].filter(Boolean).join('')
+
+  const blk = t.status === 'you'
+  const stepper = `<div class="stepper">${STEPS.map((s, i) =>
+    `<div class="s ${i < t.step || t.status === 'done' ? 'done' : i === t.step ? 'cur' + (blk ? ' blk' : '') : ''}">${s}</div>`).join('')}</div>`
+
+  const alerts = []
+  for (const q of t.questions) alerts.push(`<div class="alert"><p><b>${esc(q.id)} · ${esc(q.kind)}</b>: ${esc(q.question)}</p>${q.recommendation ? `<p class="muted">Recommended: ${esc(q.recommendation)}</p>` : ''}<p class="muted">Answer it under “Needs you” at the top, or in chat as <span class="mono">${esc(q.id)}: …</span></p></div>`)
+  if (t.job?.escalation && !t.questions.length) alerts.push(`<div class="alert"><p><b>Escalated</b>: ${esc(t.job.escalation)}</p></div>`)
+  for (const b of t.job?.blocked || []) alerts.push(`<div class="alert info"><p><b>${esc(b.ac)} blocked</b>: ${esc(b.reason)}</p></div>`)
+  if (t.job?.last_error) alerts.push(`<div class="alert"><p><b>Error</b>: ${esc(t.job.last_error)}</p></div>`)
+  if (t.orch?.waitingOn && t.orch.waitingOn !== 'worker') alerts.push(`<div class="alert info"><p>Waiting on <b>${esc(t.orch.waitingOn)}</b>${t.orch.waitingSince ? ' since ' + clock(t.orch.waitingSince) : ''}</p></div>`)
+  const deps = (t.dependsOn?.length ? t.dependsOn : t.blockedBy || []).filter((k) => tickets.get(k)?.status !== 'done')
+  if (deps.length && t.status !== 'done') alerts.push(`<div class="alert info"><p>Depends on ${deps.map((k) => {
+    const dt = tickets.get(k); return `<button class="key" data-open="${esc(k)}">${esc(k)}</button>${dt ? ` <span class="faint">(${esc(dt.status)})</span>` : ''}` }).join(', ')}</p></div>`)
+
+  const p = t.job?.progress
+  const progress = p ? `<div class="d-section"><h4>Progress</h4><div>${esc(p.phase || '')}${p.current ? ' — ' + esc(p.current) : ''}</div>
+    ${p.tasksTotal ? `<div class="pbar" style="height:6px"><span style="width:${100 * (p.tasksDone || 0) / p.tasksTotal}%"></span></div><div class="faint mono" style="font-size:11px">${p.tasksDone || 0}/${p.tasksTotal} tasks</div>` : ''}</div>` : ''
+
+  const ac = t.job?.acceptance || []
+  const acTable = ac.length ? `<div class="d-section"><h4>Acceptance criteria</h4><table class="t"><tr><th>AC</th><th>Criterion</th><th>Status</th><th>Evidence</th></tr>${ac.map((a) => {
+    const cls = { met: 'pass', partial: 'warn', not_met: 'stop', blocked: 'stop' }[a.status] || ''
+    return `<tr><td class="mono">${esc(a.id)}</td><td>${esc(a.text)}</td><td><span class="tag ${cls}">${esc(a.status || 'pending')}</span></td><td class="mono" style="font-size:11px">${esc(a.evidence || '')}</td></tr>` }).join('')}</table></div>` : ''
+
+  const rounds = roundRows(t, 10)
+  const files = sortFiles(t.files || [])
+  if (!openFile || !files.some((f) => f.path === openFile)) openFile = files.find((f) => /decision|review|checks|test/.test(f.path))?.path || files[0]?.path || null
+  const fileList = files.map((f) => `<button class="file ${f.path === openFile ? 'on' : ''}" data-file="${esc(f.path)}"><span class="v ${tone(f.first)}"></span>${esc(f.path)}</button>`).join('')
+  const evs = eventItems(data.events || [], t.key)
+  const actions = (t.job?.owner_actions || []).map((a) => `<li class="mono">${esc(a)}</li>`).join('')
+
+  $('d-body').innerHTML = `
+    <div class="d-section">${stepper}</div>
+    ${alerts.length ? `<div class="d-section"><h4>Blockers &amp; questions</h4><div style="display:grid;gap:8px">${alerts.join('')}</div></div>` : ''}
+    ${progress}
+    ${rounds ? `<div class="d-section"><h4>Rounds</h4><div class="rounds">${rounds}</div></div>` : ''}
+    ${acTable}
+    ${actions ? `<div class="d-section"><h4>Owner setup guides</h4><ul>${actions}</ul></div>` : ''}
+    <div class="d-section"><h4>Files ${t.folder ? `<span class="faint mono" style="text-transform:none;letter-spacing:0">${esc(t.folder)}</span>` : ''}</h4>
+      ${files.length ? `<div class="files-wrap"><nav class="files">${fileList}</nav><article class="doc" id="d-doc"><p class="faint">Loading…</p></article></div>` : '<div class="empty">No job folder yet (it appears when the worker starts).</div>'}</div>
+    ${evs ? `<div class="d-section"><h4>Activity</h4><ul class="feed">${evs}</ul></div>` : ''}
+    ${t.status !== 'done' ? `<div class="d-section"><h4>Send feedback to this ticket</h4>
+      <textarea id="fb-text" placeholder="e.g. Use the existing DatePicker instead of a new one. Picked up on the orchestrator's next cycle."></textarea>
+      <div style="margin-top:6px;display:flex;gap:6px"><button class="btn" data-feedback="${esc(t.key)}">Send feedback</button><span class="faint" id="fb-status" style="font-size:12px;align-self:center"></span></div></div>` : ''}`
+  openFileText = null
+  showFile()
+}
+
+async function showFile() {
+  const el = document.getElementById('d-doc')
+  if (!el || !openFile) return
+  const res = await loadFile(openKey, openFile)
+  if (!res) return
+  if (res.image) { el.innerHTML = `<img src="${esc(res.image)}" alt="${esc(openFile)}">`; return }
+  if (res.text === openFileText) return
+  openFileText = res.text
+  el.innerHTML = openFile.endsWith('.json') ? `<pre class="md"><code>${esc(res.text)}</code></pre>` : `<div class="md">${markdown(res.text)}</div>`
+}
+
+function openDrawer(key) { openKey = key; openFile = null; document.body.classList.add('open'); renderDrawer() }
+function closeDrawer() { openKey = null; document.body.classList.remove('open') }
+
+// ---------- markdown (small; escapes everything first) ----------
+function inline(s) {
+  const codes = []
+  s = esc(s).replace(/`([^`]+)`/g, (_, c) => `\u0000${codes.push(c) - 1}\u0000`)
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<em>$2</em>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+  return s.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code>${codes[i]}</code>`)
+}
+function markdown(src) {
+  const lines = src.replace(/\r/g, '').split('\n')
+  let i = 0, html = ''
+  const t = tone((lines[0] || '').trim())
+  if (t) { html += `<div class="verdict ${t}">${esc(lines[0].trim())}</div>`; i = 1 }
+  const isList = (l) => /^\s*([-*+]|\d+\.)\s+/.test(l)
+  while (i < lines.length) {
+    const line = lines[i]
+    if (!line.trim()) { i++; continue }
+    if (line.startsWith('```')) { const b = []; i++; while (i < lines.length && !lines[i].startsWith('```')) b.push(lines[i++]); i++; html += `<pre><code>${esc(b.join('\n'))}</code></pre>`; continue }
+    const h = line.match(/^(#{1,6})\s+(.*)$/)
+    if (h) { const n = Math.min(h[1].length, 3); html += `<h${n}>${inline(h[2])}</h${n}>`; i++; continue }
+    if (/^\s*>/.test(line)) { const b = []; while (i < lines.length && /^\s*>/.test(lines[i])) b.push(lines[i++].replace(/^\s*>\s?/, '')); html += `<blockquote>${markdown(b.join('\n'))}</blockquote>`; continue }
+    if (line.startsWith('|')) {
+      const rows = []; while (i < lines.length && lines[i].startsWith('|')) rows.push(lines[i++])
+      const cells = (r) => r.replace(/^\||\|$/g, '').split('|').map((c) => inline(c.trim()))
+      html += '<table>' + rows.filter((r) => !/^\|[\s:|-]+\|$/.test(r)).map((r, n) => `<tr>${cells(r).map((c) => n ? `<td>${c}</td>` : `<th>${c}</th>`).join('')}</tr>`).join('') + '</table>'
+      continue
+    }
+    if (isList(line)) {
+      const ordered = /^\s*\d+\./.test(line), items = []
+      while (i < lines.length && isList(lines[i])) items.push(lines[i++].replace(/^\s*([-*+]|\d+\.)\s+/, '').replace(/^\[([ xX])\]\s+/, (_, x) => x === ' ' ? '☐ ' : '☑ '))
+      html += `<${ordered ? 'ol' : 'ul'}>${items.map((x) => `<li>${inline(x)}</li>`).join('')}</${ordered ? 'ol' : 'ul'}>`
+      continue
+    }
+    const para = []
+    while (i < lines.length && lines[i].trim() && !/^(#{1,6}\s|```|\s*>|\|)/.test(lines[i]) && !isList(lines[i])) para.push(lines[i++])
+    html += `<p>${inline(para.join(' '))}</p>`
+  }
+  return html
+}
+
+// ---------- actions ----------
+async function post(path, body) {
+  const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Board-Token': TOKEN }, body: JSON.stringify(body) })
+  const out = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(out.error || `HTTP ${res.status}`)
+  return out
+}
+async function sendAnswer(qid, value) {
+  if (!value) return
+  try { await post('/api/answer', { id: qid, answer: value }); sentLocal.set(qid, value); document.activeElement?.blur?.(); lastJson = ''; poll() }
+  catch (err) { alertInline(qid, err.message) }
+}
+function alertInline(qid, msg) {
+  const el = [...document.querySelectorAll('[data-q]')].find((n) => n.dataset.q === qid)
+  if (!el) return
+  let w = el.querySelector('.why'); if (!w) { w = document.createElement('div'); w.className = 'why'; el.appendChild(w) }
+  w.textContent = msg
+}
+
+document.addEventListener('click', async (e) => {
+  if (e.target.closest('a')) return
+  const ans = e.target.closest('[data-answer]')
+  if (ans) return sendAnswer(ans.dataset.answer, ans.dataset.value)
+  const send = e.target.closest('[data-send]')
+  if (send) return sendAnswer(send.dataset.send, document.getElementById('ans-' + send.dataset.send)?.value.trim())
+  const copy = e.target.closest('[data-copy]')
+  if (copy) {
+    const v = document.getElementById('ans-' + copy.dataset.copy)?.value.trim() || '<answer>'
+    try { await navigator.clipboard.writeText(`${copy.dataset.copy}: ${v}`); copy.textContent = 'Copied' } catch { copy.textContent = 'Copy failed' }
+    return
+  }
+  const fb = e.target.closest('[data-feedback]')
+  if (fb) {
+    const text = $('fb-text')?.value.trim(); if (!text) return
+    try { await post('/api/feedback', { key: fb.dataset.feedback, text }); $('fb-text').value = ''; $('fb-status').textContent = 'Sent. Picked up on the next cycle.' }
+    catch (err) { $('fb-status').textContent = err.message }
+    return
+  }
+  const file = e.target.closest('[data-file]')
+  if (file) { openFile = file.dataset.file; openFileText = null; document.querySelectorAll('.file').forEach((b) => b.classList.toggle('on', b.dataset.file === openFile)); return showFile() }
+  const open = e.target.closest('[data-open]')
+  if (open) return openDrawer(open.dataset.open)
+  if (e.target.closest('[data-close]')) closeDrawer()
+})
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeDrawer()
+  if (e.key === 'Enter' && e.target.id?.startsWith('ans-')) sendAnswer(e.target.id.slice(4), e.target.value.trim())
+})
+$('theme').addEventListener('click', () => {
+  const root = document.documentElement
+  const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches
+  root.dataset.theme = dark ? 'light' : 'dark'
+  try { localStorage.setItem('board-theme', root.dataset.theme) } catch {}
+})
+try { const th = localStorage.getItem('board-theme'); if (th) document.documentElement.dataset.theme = th } catch {}
+
+// ---------- loop ----------
+async function poll() {
+  try {
+    const res = await fetch('/api/status', { cache: 'no-store' })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const text = await res.text()
+    $('conn').className = 'conn'; $('conn').textContent = `live · ${new Date().toLocaleTimeString()}`
+    const changed = text !== lastJson
+    if (!changed) return
+    lastJson = text; data = JSON.parse(text)
+    for (const q of [...sentLocal.keys()]) if (!(data.orchestrator?.ownerQuestions || []).some((x) => x.id === q && !x.answeredAt)) sentLocal.delete(q)
+    tickets = buildTickets(data)
+    renderHeader(data); renderNeeds(data); renderWaves(data); renderBoard(); renderFeed(data)
+    if (openKey && !document.activeElement?.matches?.('textarea')) renderDrawer()
+  } catch (err) {
+    $('conn').className = 'conn err'; $('conn').textContent = `board server unreachable. Is board.py running? (${err.message})`
+  }
+}
+poll()
+setInterval(poll, POLL_MS)
+</script>
+</body>
+</html>

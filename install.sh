@@ -66,6 +66,9 @@ for file in "$KIT_DIR"/agents/*.md; do
   SOURCES+=("$file"); TARGETS+=("agents/$(basename "$file")")
 done
 SOURCES+=("$KIT_DIR/workflow/ai-delivery-workflow.md"); TARGETS+=("workflows/ai-delivery-workflow.md")
+SOURCES+=("$KIT_DIR/board"); TARGETS+=("delivery-board")
+# Templates for /delivery-init (after the skills, so they land inside the installed skill).
+SOURCES+=("$KIT_DIR/settings"); TARGETS+=("skills/delivery-init/templates")
 
 # 2. Back up whatever already exists at those targets.
 for i in "${!TARGETS[@]}"; do backup_item "${TARGETS[$i]}"; done
@@ -91,10 +94,12 @@ echo
 [ "$DRY_RUN" -eq 0 ] && [ -d "$BACKUP_DIR" ] && echo "Backup: $BACKUP_DIR"
 cat <<'EOF'
 Done. Next steps:
-  1. In each project, add this line to CLAUDE.md:  @~/.claude/workflows/ai-delivery-workflow.md
-     plus the '# Compact instructions' section from settings/claude-md-snippet.md
-  2. Create docs/workflow/README.md from settings/docs-workflow-README.template.md
-  3. Merge what you want from settings/settings.recommended.json into .claude/settings.json by hand
+  1. In each project, open Claude Code and run:  /delivery-init
+     (adds the CLAUDE.md block, docs/workflow/README.md, .gitignore entry; settings only on your yes)
+  2. Restart open Claude Code sessions so they pick up the new skills
+  3. Manual alternative: see INSTALL.md (section "Set up a project by hand")
   4. Optional tools (Orca, PM tool MCP, gh, Context7, ...): see third-party.md
   5. Start:  /loop /deliver <PROJECT-KEY>   (new project: /delivery-blueprint first)
+     GitHub issues labeled "factory":  /loop /factory run
+  6. Live board (try it now):  python3 ~/.claude/delivery-board/board.py serve --demo --open
 EOF

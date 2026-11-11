@@ -13,10 +13,15 @@ little. Keep your own output short: one line per action, the detail lives in fil
    nothing. Handle each message by type: `worker_done` → step 3 event; `question` → step 6;
    `escalation` with `stopReason` → the worker stopped without reporting: `worker-show`,
    steer with `send`, or report. Never `check --wait`, never a watch script.
+   Then the **board inbox**: `python ~/.claude/delivery-board/board.py inbox --repo <main> --take`.
+   `answer` items are handled as owner answers (step 6), `feedback` items as escalation answers
+   or owner notes, within the trust rules in `board.md`. Echo each one in the cycle output.
 4. **Board.** Run `wave-status` and parse the fenced `wave-status/1` block (stable keys). Use
    its `ready` order, `start_now`, `in_progress`, `blocked`, `out_of_sync`, `needs_human`,
    `housekeeping`, `concurrency`. If `pr_crosscheck.ran` is false, say so; do not merge or
-   close out anything this cycle on board data alone.
+   close out anything this cycle on board data alone. Rewrite `orchestrator.json.backlog` from
+   the block (every open ticket of the window and the waves after it, with status, wave and
+   blockers) so the live board's Waves strip is current (`board.md`).
 5. **Reconcile** `orchestrator.json` with each ticket's `job.json` (read from its worktree)
    and the board. Disagreements are findings: e.g. job `ready_to_merge` but PR closed → stop
    that ticket, report.
@@ -157,7 +162,9 @@ no `CHANGES_REQUESTED`; CI not red; `mergeLock.holder` is null.
 ## 5. Fill capacity
 
 `free = policy.cap − count(holdsSlot)`. While `free > 0`, take the next key of `ready` (wave-
-status order: critical bugs first, then window order, unblocks-most, priority) and check:
+status order: critical bugs first, then window order, unblocks-most, priority; with
+`policy.only` set, only those keys, and a listed key that is not in `ready` is reported with
+the reason) and check:
 
 1. **Blockers:** re-read the ticket's "is blocked by" links in the tracker now — every one Done.
    A blocker whose PR merged but ticket is not closed → close it out first (step 2), not around it.
@@ -218,6 +225,13 @@ to `history` (PR URL, merge SHA, rounds, cost, leftovers) and remove it from `ti
 
 Write `orchestrator.json`; append one line to `.delivery/orchestrator.log.md`:
 `2026-11-08 14:20 · c12 · gate ABC-27 r2 PASS → TEST · merged ABC-25 (#29) · started ABC-31 · Q3 relayed · next 600s`.
+
+**Events for the board.** Each action in the cycle output also gets one line in
+`.delivery/events.jsonl`, written as it happens (not batched at the end), through
+`python ~/.claude/delivery-board/board.py event --repo <main> --kind <kind> --ticket <KEY> --text "<line>"`:
+`dispatch` (worker started), `gate` (result), `verdict` (a round's testers / reviewers settled),
+`stage` (stage change), `question` (relayed), `answer` (applied), `escalate`, `merge`, `error`,
+and one `cycle` line here (`cycle 12 · in flight 3/3 · next 600s`, no ticket).
 
 Then check the stop condition (SKILL.md) and either send the summary and stop, or schedule the
 next wake-up.
