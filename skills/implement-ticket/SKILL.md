@@ -67,6 +67,17 @@ location) so a wrong reading surfaces before any code is written.
 
 Fetch the issue rather than trusting the branch name or a paraphrase.
 
+**No ticket, only a description** ("implement: add CSV export to the tasks page")? Run the
+`new-ticket` skill first: it drafts the ticket, gets the owner's yes, and creates it in the PM
+tool or as a local `docs/tickets/T-<nnn>.md`. Then continue here with the new key.
+
+**Local ticket file with a colour status** (`docs/tickets/T-<nnn>.md` made by `new-ticket`):
+that file is also the ticket record. Do not write a second record in Phase 4; fill its Design
+and Decisions sections instead. On your branch, set `**Status: 🟡 In progress**` and the
+`Branch:` line at the start of Phase 1, `**Status: 🟡 In review**` with the PR link at Phase 8,
+and `**Status: 🔴 Blocked — <reason>**` when you escalate. Append a Log line for each change.
+Never edit it on the default branch.
+
 - **Jira** (Atlassian MCP): cloud id via `getAccessibleAtlassianResources`, then
   `getJiraIssue`. **Local backlog.** When the project uses the local backlog (no PM tool; `docs/tickets/backlog.md`, IDs `T-001…`, format in the `deliver` skill's `references/import-tasks.md`), read the ticket's entry from that file instead (blockers Done = their entries say
   `Status: Done`) and **write nothing to it**: In Progress / In Review are derived from your

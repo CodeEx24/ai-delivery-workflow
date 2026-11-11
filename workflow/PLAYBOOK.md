@@ -167,6 +167,35 @@ follow Scenario C.
 
 ---
 
+## Scenario E — only a description, no ticket yet
+
+Someone says "add CSV export to the tasks page" and nothing exists in any tracker.
+
+| Step | You type | What happens | You decide |
+|---|---|---|---|
+| 1 | `/new-ticket "Add CSV export to the tasks page"` | Finds the tracker, reads the repo, drafts the ticket: title, type, description, testable acceptance criteria (Given / When / Then), out of scope, risk, size, assumptions. Asks only what blocks it | Answer the blocking question(s), if any |
+| 2 | *(review the draft)* | Shows exactly what will be created and where | "yes", or edits |
+| 3a | *(PM tool connected)* | Creates it in Jira / Linear / GitHub Issues and gives you the key and link | — |
+| 3b | *(no PM tool)* | Writes `docs/tickets/T-013.md` (description, AC, PR link, log, **Status: 🔴 To do**) and indexes it in `docs/tickets/backlog.md` | Commit it straight to `main`, or as a small docs PR |
+| 4 | "build it now" (or `/new-ticket "…" --build`) | Runs implement-ticket: branch, file turns **🟡 In progress**, then **🟡 In review** with the PR link when the draft PR opens | Design questions, if any |
+| 5 | "run the review loop for T-013", or `/loop /deliver T --only T-013` | Gate → testers → reviewers → approver; escalation turns it **🔴 Blocked — <reason>** | Answer escalations |
+| 6 | Merge the PR, then `/merge-ticket T-013` | The file turns **🟢 Done** with the merge date and outcome | Merge |
+
+Status key in the file: 🔴 To do / blocked · 🟡 In progress / in review · 🟢 Done · ⚪ Won't do.
+On `main` you only ever see 🔴 or 🟢 (workers never edit `main`); the live 🟡 state is on the
+ticket's branch, its PR and the live board.
+
+Shortcuts:
+
+```text
+/new-ticket "Fix: login redirects to / instead of the page I came from" --type bug
+/new-ticket "Add CSV export" --build            draft → approve → build right away
+/new-ticket "Add CSV export" --loop             draft → approve → full loop for just this ticket
+/implement-ticket "Add CSV export"              also works: it calls /new-ticket first
+```
+
+---
+
 ## Daily cheat sheet
 
 | I want to… | Type |
@@ -179,3 +208,4 @@ follow Scenario C.
 | Resume | `/loop /deliver ABC` or `/loop /factory run` |
 | Close out a PR I merged by hand | `/merge-ticket ABC-42` |
 | Re-plan after scope changed | `/plan-waves` ("re-plan the waves") |
+| Turn a sentence into a ticket | `/new-ticket "<description>"` |
