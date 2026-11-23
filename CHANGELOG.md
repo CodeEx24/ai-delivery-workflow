@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-23 (fix) — QA issues and /fix-ticket
+
+- **`/qa` on failure:** posts a `🐞 Issues Found` comment with step-by-step failures and severity emoji, then moves the ticket using the project's `QA failed status` lines. It leaves the status alone if none is set, and never moves a ticket to Done.
+- **`/fix-ticket`:** reads QA's findings and the live PR state. It fixes an open PR on its branch, or creates a standards-named fix branch, worktree and PR when the work is merged. It reproduces first, adds a regression test, reruns every scenario and never merges.
+
 ## 2026-11-23 (qa) — QA workflow for deployed tickets
 
 - **`/qa`**: tests a deployed ticket, your assigned tickets, everything ready for testing, or a release. It builds a scenario matrix, screenshots every step, reuses the `verify-ticket` browser drivers and checks, writes an evidence report and updates the tracker. A person signs off: it never moves a ticket to Done.

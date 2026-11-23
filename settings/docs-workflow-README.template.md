@@ -52,3 +52,5 @@ A `type:<name>` label wins over the issue type. Critical bugs carry `severity:cr
 ## QA
 
 - **QA testing status:** `<the tracker status that means "ready for QA", e.g. In QA>` (used by `/qa <KEY> --ready` and `--mine`). Environments and access: `docs/workflow/qa.config.json` (`/qa-config`). QA logins: gitignored `.env.qa.local`. Evidence: `.delivery/qa/`. A person signs off; `/qa` never moves a ticket to Done.
+- **QA failed status (merged):** `<status for a failed ticket whose PR is merged, e.g. Ready for QA>`
+- **QA failed status (open PR):** `<status for a failed ticket whose PR is still open, e.g. In Progress>`

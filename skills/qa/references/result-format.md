@@ -165,6 +165,40 @@ is the result.
 Waiting for a person to sign off. QA does not move tickets to Done.
 ```
 
+## Issues Found comment
+
+Post this as a second comment on every `❌ QA FAILED` run, so a developer can see the problem
+without opening the report. Use the tracker's own markup. Give every failure its numbered steps.
+Possible security issues name the area and bug only, with no exploit detail.
+
+```markdown
+🐞 Issues Found · QA run 20261123-101500
+
+**Bug status:** 🔴 2 open · Tested on: staging · `abc1234` · role: owner
+**Ticket moved to:** <status> | not moved: <reason>
+
+### 🟠 S2 · ABC-140 · Filter resets after refresh
+Scenario: AC3-P1 · AC3 "<verbatim criterion>"
+
+| # | Step | Expected | Actual | Screenshot |
+|---|---|---|---|---|
+| 1 | Open Quotes | List is shown | List is shown | AC3-P1-step-01.png |
+| 2 | Filter by Draft | Only drafts | Only drafts | AC3-P1-step-02.png |
+| 3 | Refresh the page | Filter stays | ❌ Filter is cleared | AC3-P1-step-03-FAIL.png |
+
+Error: <sanitized console or network error, or none observed>
+
+**Fix it:** `/fix-ticket ABC-123`
+**Retest after the fix:** `/qa ABC-123 --retest`
+```
+
+| Severity | Emoji |
+|---|---|
+| S1 Critical | 🔴 |
+| S2 High | 🟠 |
+| S3 Medium | 🟡 |
+| S4 Low | 🔵 |
+
 ## Labels
 
 | Result | Label |
@@ -175,6 +209,7 @@ Waiting for a person to sign off. QA does not move tickets to Done.
 | `🚫 QA BLOCKED` | `qa:blocked` |
 | Any `💡` item | also `qa:improvement` |
 | Evidence did not all reach the tracker | also `qa:evidence-missing` |
+| `/fix-ticket` has a fix in review | also `qa:fix-ready`, removed by a passing retest |
 
 Remove the other three result labels whenever you add one. Remove `qa:evidence-missing` only after
 the missing files are attached and `qa_evidence.py evidence` reports `complete`. Keep emoji out of
