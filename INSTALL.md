@@ -114,7 +114,7 @@ if the release notes in `CHANGELOG.md` say the project files changed.
 
 Delete `~/.claude/delivery-board/`, the kit's folders in `~/.claude/skills/` (`deliver`, `factory`,
 `delivery-init`, `plan-waves`, `wave-status`, `implement-ticket`, `verify-ticket`, `qa`,
-`qa-config`, `report-bug-ticket`, `merge-ticket`, `senior-pr-reviewer`), the eight agent files in
+`qa-config`, `report-bug-ticket`, `fix-ticket`, `merge-ticket`, `senior-pr-reviewer`), the eight agent files in
 `~/.claude/agents/`, and `~/.claude/workflows/ai-delivery-workflow.md`. Restore anything you want
 from `~/.claude/backups/ai-delivery-workflow-<timestamp>/`. Third-party skills:
 `npx skills remove <name> -g`. In a project, remove the marked block from `CLAUDE.md`. Personal QA

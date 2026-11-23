@@ -172,8 +172,22 @@ Every report records environment, URL, deployed SHA, account role, browser, date
    `references/e2e-and-reporting.md` upload order (API, then a signed-in browser). `.delivery/qa/`
    is local, so the tracker is the shared copy. If anything cannot be uploaded, **say so plainly**:
    mark it `Evidence incomplete`, list what is missing and add `qa:evidence-missing`.
-4. **Do not change the ticket's status to Done**, or put emoji in its title. Moving it back to a
-   "failed QA" status happens only if `docs/workflow/README.md` defines one.
+4. **On `❌ QA FAILED`, after Step 9, post the `🐞 Issues Found` comment** from
+   `references/result-format.md`, with the numbered steps for every failure. Idempotent: search for
+   `Issues Found · QA run <run-id>` and edit it. Do this wherever QA ran: staging, preview, or a
+   local checkout of the PR branch.
+5. **On `❌ QA FAILED`, move the ticket back** using `docs/workflow/README.md`:
+
+   | PR state (`gh pr view`) | Status line used |
+   |---|---|
+   | Merged | `QA failed status (merged)` |
+   | Open, or no PR | `QA failed status (open PR)` |
+
+   Read the available transitions first, then re-read the ticket to confirm. If the line is
+   missing or the transition is not available, leave the status alone and say so in the comment
+   and the final report. Never guess a status. Blocked, passed and `--dry-run` runs do not move it.
+6. **Never move a ticket to Done**, or put emoji in its title. On a passing retest, remove
+   `qa:fix-ready`.
 
 Local tracker: append the result to the ticket file's Log. GitHub: use `gh issue comment` and
 `gh issue edit --add-label/--remove-label`. Create a missing label only after the operator's yes,
@@ -185,8 +199,10 @@ For each confirmed defect, invoke **`report-bug-ticket`** with the description, 
 `--screenshots`, `--severity`, and `--yes` only if `/qa` got `--yes`. It finds duplicates and
 regressions, so never create bug tickets directly. Link what it returns in the report.
 
-Finish with the result line, counts, report path, bugs raised, leftovers, and who needs to sign
-off.
+Then finish Step 8's items 4 and 5, so the comment can list the bug keys.
+
+Finish with the result line, counts, report path, bugs raised, leftovers, the new ticket status,
+and who needs to sign off. On a failure, also print: `Next: /fix-ticket <KEY-n>`.
 
 ## Will not
 

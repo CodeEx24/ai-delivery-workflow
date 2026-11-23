@@ -240,6 +240,7 @@ Then run `/qa-config check`. To use `/qa ABC --ready`, set the `QA testing statu
 | Add test types | `/qa ABC-123 --focus ui,a11y,api` |
 | Test a PR's preview | `/qa ABC-123 --pr 42` |
 | Report a bug by hand | `/report-bug-ticket "Export drops rows" --ticket ABC-123` |
+| Fix what QA found | `/fix-ticket ABC-123` (add `--dry-run` to preview, or use `/fix-ticket ABC --mine`) |
 | Retest after a fix | `/qa ABC-123 --retest --env local` (add `--from-run <run-id>` to pick the run) |
 
 ### Results
@@ -254,6 +255,8 @@ Then run `/qa-config check`. To use `/qa ABC --ready`, set the `QA testing statu
 Improvements are flagged `💡` and labeled `qa:improvement`. Evidence is saved in `.delivery/qa/<KEY-n>/<run-id>/` and attached to the tracker, which is the shared copy. If an upload fails, the bug says `Evidence incomplete` and gets `qa:evidence-missing`.
 
 Every QA bug has an **Engineering handoff**, so an AI on another machine can reproduce, fix and retest it. A retest reports what is fixed, still failing, newly failing and not run. Anything required that did not run makes it BLOCKED.
+
+When QA fails, `/qa` posts a `🐞 Issues Found` comment with each failure's steps and moves the ticket back using the `QA failed status` lines in `docs/workflow/README.md`. Run `/fix-ticket ABC-123` to fix it. If the PR is open, the fix goes on that PR. If it is merged, the command creates a new fix branch, worktree and PR linked to the ticket.
 
 ### Where QA may test
 
