@@ -63,7 +63,7 @@ On the first run, it checks the project and asks you to approve the wave plan if
 
 | I want to | Command |
 |---|---|
-| Run the whole backlog | `/loop /deliver <KEY>` |
+| Choose what to run from a prompt (mine, specific tickets, or all available) | `/loop /deliver <KEY>` |
 | Run everything assigned to me, and keep watching | `/loop /deliver <KEY> --mine` |
 | Run only certain tickets | `/loop /deliver <KEY> --only <KEY>-12,<KEY>-13` |
 | Run one cycle | `/deliver <KEY>` |

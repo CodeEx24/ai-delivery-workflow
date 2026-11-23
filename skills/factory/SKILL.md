@@ -59,6 +59,9 @@ settings or permissions, report faithfully.
 
 Details and every `gh` command: **`references/github-queue.md`**.
 
+The factory's queue is its scope, so deliver's ticket-scope question (`references/scope.md`) is
+never asked here, and its limits on other people's tickets do not replace the factory's label rules.
+
 1. **Project.** `tracker.kind = "github"`, `projectKey` = `GH`, `flavor: "factory"`,
    `tracker.queueLabel` = `factory` (or `--label`). Needs `gh auth status` OK and a GitHub
    remote. The repo is the current main checkout; the operator is `gh api user --jq .login`.

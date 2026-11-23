@@ -95,6 +95,7 @@ the original. Timestamps are ISO 8601 with offset.
     "gateConcurrency": 1,
     "deviceLaneEnabled": true,
     "diskWarnGb": 15,
+    "scope": { "mode": "mine | specific | all | null", "keys": ["ABC-42"], "confirmedAt": "…", "source": "prompt | flag | file" },
     "mine": { "enabled": false, "keys": ["ABC-42"], "refreshedAt": "…", "idleSince": null },
     "approvedAt": "…"
   },

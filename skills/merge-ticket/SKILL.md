@@ -199,8 +199,8 @@ if this run added it).
 
 ## Step 7 — Re-sync the other open PRs, then clean up
 
-**Scope under `/deliver --mine`:** re-sync only open PRs authored by the operator. List other
-people's PRs as skipped and never push to their branches.
+**Scope under `/deliver`** (mine, specific tickets or all available): re-sync only open PRs
+authored by the operator. List other people's PRs as skipped and never push to their branches.
 
 **Re-sync every other open PR** (the merge just moved `main` under them). For each:
 merge `origin/main` into it in **its own worktree**, re-run the checks script (main's copy),

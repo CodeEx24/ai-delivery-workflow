@@ -97,7 +97,7 @@ In a project that already has tickets:
 
 | Command | What it does |
 |---|---|
-| `/deliver <PROJECT-KEY>` | Checks the project setup, plans waves if there are none (you approve), then builds, tests, reviews and merges ready tickets. |
+| `/deliver <PROJECT-KEY>` | Asks which tickets to run (yours is the recommended default, or specific tickets, or all available with a warning), checks the setup, then builds, tests, reviews and merges them. |
 | `/loop /deliver <PROJECT-KEY>` | **Recommended.** Same, but keeps going without you prompting each cycle. |
 | `/deliver <path-to-doc>` | Starts from a spec, PRD or notes: turns it into tickets (you approve the list), then runs as above. |
 | `/deliver <KEY> --dry-run` | Shows what one cycle would do. Writes nothing. |
