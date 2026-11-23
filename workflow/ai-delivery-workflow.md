@@ -258,6 +258,7 @@ Every ticket has one type, set in the PM tool as a `type:<name>` label (or the i
 
 - **Severity sets urgency for bugs.** A critical bug (data loss, security, app unusable) may jump the two-wave window: the orchestrator starts it next, ahead of other ready tickets. Only a tracker-marked one counts: label it `severity:critical` (Highest / Blocker priority also counts). Everything else waits its turn like any ticket.
 - **A bug found in an open PR** is fixed on that PR's branch in its review loop, not as a new ticket.
+- **A bug from QA (`qa:found`)** carries an Engineering handoff and its evidence on the tracker. The builder reproduces it before changing code (or stops with `cannot reproduce` and evidence) and adds a regression test. The device tester reruns the source ticket's full scenario set (`~/.claude/skills/qa/references/retest.md`), and the approver requires a passing result on the final product code.
 - **Unknown cause?** Investigate first with a debugging skill (or a short Spike), then file the Bug with what was found.
 - **Risk is separate from type.** A small bug in authentication is still high risk and gets the security reviewer.
 

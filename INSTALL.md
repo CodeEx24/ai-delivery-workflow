@@ -113,11 +113,31 @@ if the release notes in `CHANGELOG.md` say the project files changed.
 ## Uninstall
 
 Delete `~/.claude/delivery-board/`, the kit's folders in `~/.claude/skills/` (`deliver`, `factory`,
-`delivery-init`, `plan-waves`, `wave-status`, `implement-ticket`, `verify-ticket`,
-`merge-ticket`, `senior-pr-reviewer`), the eight agent files in `~/.claude/agents/`, and
-`~/.claude/workflows/ai-delivery-workflow.md`. Restore anything you want from
-`~/.claude/backups/ai-delivery-workflow-<timestamp>/`. Third-party skills:
-`npx skills remove <name> -g`. In a project, remove the marked block from `CLAUDE.md`.
+`delivery-init`, `plan-waves`, `wave-status`, `implement-ticket`, `verify-ticket`, `qa`,
+`qa-config`, `report-bug-ticket`, `merge-ticket`, `senior-pr-reviewer`), the eight agent files in
+`~/.claude/agents/`, and `~/.claude/workflows/ai-delivery-workflow.md`. Restore anything you want
+from `~/.claude/backups/ai-delivery-workflow-<timestamp>/`. Third-party skills:
+`npx skills remove <name> -g`. In a project, remove the marked block from `CLAUDE.md`. Personal QA
+settings are in `~/.claude/qa.machine.json`.
+
+## Set up QA (optional, per project)
+
+The installer includes `/qa`, `/qa-config` and `/report-bug-ticket`. In a project:
+
+```text
+/qa-config init --project ABC --staging-url https://staging.example.com
+```
+
+This creates `docs/workflow/qa.config.json` (commit it) and adds `.env.qa.local` to `.gitignore`.
+Put the QA account's login in `.env.qa.local` yourself, never in chat:
+
+```text
+QA_OWNER_EMAIL=qa-owner@example.com
+QA_OWNER_PASSWORD=<the QA account's password>
+```
+
+Run `/qa-config check`, then add a `QA testing status` line to `docs/workflow/README.md` if you
+want `/qa ABC --ready`. A linked worktree uses the main worktree's `.env.qa.local`.
 
 ## If the repo becomes public later
 

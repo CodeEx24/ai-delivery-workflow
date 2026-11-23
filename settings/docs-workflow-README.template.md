@@ -48,3 +48,7 @@ A `type:<name>` label wins over the issue type. Critical bugs carry `severity:cr
 - Wave plan: `docs/waves/wave-plan.md`.
 - Working state: `.delivery/` (gitignored).
 - Labels: `needs-human`, `ready-to-merge`, `wave-N`, `type:<name>`, `severity:critical`.
+
+## QA
+
+- **QA testing status:** `<the tracker status that means "ready for QA", e.g. In QA>` (used by `/qa <KEY> --ready` and `--mine`). Environments and access: `docs/workflow/qa.config.json` (`/qa-config`). QA logins: gitignored `.env.qa.local`. Evidence: `.delivery/qa/`. A person signs off; `/qa` never moves a ticket to Done.

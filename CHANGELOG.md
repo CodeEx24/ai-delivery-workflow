@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-11-23 (qa) — QA workflow for deployed tickets
+
+- **`/qa`**: tests a deployed ticket, your assigned tickets, everything ready for testing, or a release. It builds a scenario matrix, screenshots every step, reuses the `verify-ticket` browser drivers and checks, writes an evidence report and updates the tracker. A person signs off: it never moves a ticket to Done.
+- **`/qa-config`**: sets where QA may test, with access levels per environment, exact host matching, GitHub deployment checks and QA account variable names. Secrets stay in the gitignored `.env.qa.local` and are never printed. Personal settings cannot widen access.
+- **`/report-bug-ticket`**: files one clean bug after searching open and recently closed tickets, adding evidence to an existing bug or linking a regression instead of creating a duplicate.
+- **Engineering handoff:** every QA bug carries what another machine needs to reproduce, fix and retest it, with evidence attached to the tracker after a secret scan. Failed uploads are marked `Evidence incomplete` and labeled `qa:evidence-missing`.
+- **`/qa <KEY-n> --retest`:** re-verifies failed scenarios, reruns all of them plus regressions, and reports fixed, still failing, newly failing and not run. Anything required that did not run is BLOCKED.
+- **Bug fixes from QA:** builders reproduce first and add a regression test. The device tester runs the full retest, and the approver requires it to pass on the final product code.
+
 ## 2026-11-23 (settings) — personal machine settings
 
 - **`/delivery-config --me cap=4`**: each developer can set how many tickets run on their own computer without changing the team's setting. Stored in `~/.claude/delivery.machine.json`, outside the repo.

@@ -82,7 +82,7 @@ Workflow section 3 table, applied to `risk`, `type` and `routing` flags:
 |---|---|---|
 | gate | gate | always (high risk: the checks script's database tests + rollback check must run — confirm in `checks.md`) |
 | tester-functional | testers | always (Chore: checks "no behaviour change"; Spike: no) |
-| tester-device | testers | `app_testable` (not Spike), and the device lane is enabled for this ticket |
+| tester-device | testers | `app_testable` (not Spike), and the device lane is enabled for this ticket. A `qa:found` bug needs it for its full retest: if the lane is disabled, the approver escalates |
 | reviewer-code | reviewers | always — `haiku` for low risk, else `sonnet` (Spike: reads findings only) |
 | reviewer-security | reviewers | high risk always (`opus`); medium if `security_surface`; Chore touching auth/deps with security impact |
 | reviewer-ui | reviewers | `ui_changed` (reads the round's screenshots when tester-device ran) |
