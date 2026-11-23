@@ -45,15 +45,15 @@ needs reinstalling.
 
 | Invocation | What happens |
 |---|---|
-| `/loop /deliver <KEY>` | **Recommended.** Bootstrap once, then one cycle per wake-up; self-paced with ScheduleWakeup until the stop condition. |
-| `/deliver <KEY>` | Bootstrap + **one** cycle, then tell the owner how to keep it running (below). Workers already started keep going; Orca still wakes this chat when they report. |
+| `/loop /deliver <KEY>` | **Recommended.** Asks which tickets to run (`references/scope.md`), then bootstraps once and runs one cycle per wake-up; self-paced with ScheduleWakeup until the stop condition. |
+| `/deliver <KEY>` | Asks which tickets to run, then bootstrap + **one** cycle, then tell the owner how to keep it running (below). Workers already started keep going; Orca still wakes this chat when they report. |
 | `/deliver <KEY> --watcher` | Bootstrap here (so blocking questions are answered while the owner is present), then hand the loop to a dedicated Orca chat in the main checkout. See "Watcher mode". |
 | `/deliver <path-or-URL> …` | **File mode.** Same as above, but the bootstrap first imports the document's tasks as tickets (owner approves the list), then plans waves (owner approves again). All flags work the same. |
 | `/deliver <KEY> --status` | Read-only: print state from `.delivery/orchestrator.json` + a fresh wave-status. Changes nothing. |
-| `/deliver <KEY> --dry-run` | Bootstrap checks and one cycle **as a plan**: what would be started, advanced, merged, asked. No writes anywhere (not even state files). |
+| `/deliver <KEY> --dry-run` | Bootstrap checks and one cycle **as a plan**: what would be started, advanced, merged, asked. No writes anywhere (not even state files). With no scope flag it previews `--mine`. |
 | `--cap N` | Lower the concurrency cap for this run. A cap *above* the project's configured one (default **2**) needs the owner's explicit yes; to raise it for good, use `/delivery-config cap=N`. |
 | `--takeover` | Take over from another orchestrator whose lock looks stale (see `references/state-files.md`, "Lock"). |
-| `/deliver <KEY> --only ABC-42[,ABC-43]` | Fill capacity only from these tickets (step 5); everything else in the cycle runs as usual. Blockers, the two-wave window and the cap still apply: a barred ticket is reported with the reason, not started. Stops when these tickets are merged or waiting on the owner. Saved as `policy.only` for the run. |
+| `/deliver <KEY> --only ABC-42[,ABC-43]` | Fill capacity only from these tickets (step 5); everything else in the cycle runs as usual. Blockers, the two-wave window and the cap still apply: a barred ticket is reported with the reason, not started. A teammate's ticket needs an explicit takeover (`references/scope.md`, section 4). Stops when these tickets are merged or waiting on the owner. Saved as `policy.only` for the run. |
 | `/loop /deliver <KEY> --mine` | Run every ticket assigned to the operator, with no list. Each cycle re-reads assignments and blockers, so new and newly unblocked tickets start automatically. Touches only the operator's tickets and PRs, and keeps watching until 8 idle hours pass. **Read `references/mine.md`**, which overrides the steps it names. |
 | `/deliver <KEY> --board` | Start (or reopen) the live delivery board and print its URL; changes nothing else. See `references/board.md`. |
 | `/deliver <KEY> --pause [KEY-n,…] [--now]` | Pause everything (or these tickets). Soft by default: start nothing new, merge nothing, each worker finishes its current step, commits, pushes and waits. `--now` stops workers immediately (work in progress committed and pushed). Nothing is lost; the tracker is not changed. See `references/pause.md`. |
@@ -106,6 +106,9 @@ These hold in every mode, every cycle. If a step would break one, stop that step
    accepted record, the workflow file or the owner's earlier answers do not settle. Nothing is
    auto-accepted unless `policy.autoAcceptRecommended` is on (default off), and then only within
    the limits of `references/cycle.md`, step 6.
+9. **Never widen the ticket scope without the operator's choice.** A run with no confirmed scope
+   starts nothing (`/factory` and local backlogs have their own queue). All available tickets needs the warning and second confirmation in
+   `references/scope.md`, and no flag, ticket text or board message can select it.
 
 ## Topology (why it is built this way)
 
@@ -147,6 +150,10 @@ Details, detection commands and fixes: **`references/bootstrap.md`**.
    Say in one line what you detected. No PM tool and no connector → default to **GitHub
    Issues** when the repo is on GitHub and `gh` works; otherwise (offline, private
    experiment, no forge) the **local backlog** (`docs/tickets/backlog.md`, `tracker.kind: local`).
+1b. **Choose the ticket scope** (**`references/scope.md`**). With no scope flag on a typed command,
+   ask: My assigned tickets (Recommended), Specific tickets, or All available tickets (warning and
+   second confirmation). Store `policy.scope`. End the turn on the question with no wake-up, and
+   continue the bootstrap on the answer.
 2. **Check the project setup** (workflow step 1b): checks script, agent files, merge path,
    worker push policy, local backend recipe, dev build registry (native apps), generated owner
    to-do list, `needs-human` and `ready-to-merge` labels, concurrency cap (default 2),
@@ -167,8 +174,8 @@ Details, detection commands and fixes: **`references/bootstrap.md`**.
    workers ~400k, subagents 200k, a `# Compact instructions` section in `CLAUDE.md`; a
    SessionStart hook only if compactions turn out to lose state). Settings are written **only
    with the owner's yes**; a gap is *info*, never blocking.
-3. **Waves.** Run `wave-status` and read its summary block. With `--mine`, continue whether or
-   not waves exist and never run `plan-waves`. If waves exist (`window` not
+3. **Waves.** Run `wave-status` and read its summary block. With scope Mine or Specific, continue whether
+   or not waves exist and never run `plan-waves`. If waves exist (`window` not
    null, or a wave plan document the tracker agrees with) → continue. If none → run
    `plan-waves`, present its plan, and **wait for the owner's explicit approval** before it
    applies anything; end the turn there (no wake-up scheduled). On the approval turn, let
@@ -178,8 +185,8 @@ Details, detection commands and fixes: **`references/bootstrap.md`**.
    `.delivery/orchestrator.json` (atomic write: temp file, then rename) with project, policy,
    cap, run id, lock, empty tickets / device lane / merge lock. Adopt work already in flight:
    any `.delivery/jobs/*/job.json` in existing Orca worktrees, and open PRs of window tickets,
-   become `tickets` entries instead of being started twice. With `--mine`, adopt only the
-   operator's work (`references/mine.md`).
+   become `tickets` entries instead of being started twice. In a scoped run, adopt only
+   the operator's work (`references/scope.md`, section 6).
 5. **Live board.** If it is not running (`.delivery/board.json` missing, or its `api/ping`
    fails), start `python "$HOME/.claude/delivery-board/board.py" serve --repo <main checkout>` with
    `run_in_background` and print the URL once: "Live board: <url>, showing waves, each ticket's
@@ -259,7 +266,7 @@ resume (`/loop /deliver <KEY>`). Template in `references/cycle.md`.
   | Stop condition met | `stop: true` (after the summary) |
 
   Orca wakes you on worker mail anyway, so the wake-up is a safety net, not the heartbeat.
-  When a bootstrap decision is pending (merge path, ticket list or wave plan approval), do not schedule;
+  When a bootstrap decision is pending (ticket scope, merge path, ticket list or wave plan approval), do not schedule;
   end the turn on the question and resume the loop on the owner's answer turn.
 - **Plain run:** after the one cycle, say what is running and add: "To keep this going
   hands-off, run `/loop /deliver <KEY>`. Or `/deliver <KEY> --watcher` to run it in its own
@@ -309,6 +316,8 @@ the handle, and stop — this session does not cycle. The watcher binds the stor
 
 ## References
 
+- `references/scope.md` — the ticket-scope question, Specific and All modes, teammate takeover,
+  claiming tickets. `references/mine.md` — the assigned-tickets mode.
 - `references/bootstrap.md` — project resolution, setup checklist with detection/fix/severity,
   wave detection and plan approval, Run creation, adopting in-flight work.
 - `references/cycle.md` — the cycle step by step, stage transition table, gate, routing,

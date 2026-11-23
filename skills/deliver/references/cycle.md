@@ -6,6 +6,8 @@ little. Keep your own output short: one line per action, the detail lives in fil
 
 ## 1. Sync and read
 
+0. **Scope.** Read `policy.scope`. No confirmed scope → start nothing and ask (`scope.md`).
+   `/factory` runs and local backlogs have no scope and skip this step.
 1. **Lock.** Refresh `lock.heartbeatAt`; if another fresh holder exists, stop (state-files.md).
 2. **Main checkout.** `git status --porcelain` must be empty; `git pull --ff-only`. Dirty or
    diverged → do not cycle; report. (`main`'s checks script and agent files are read from here.)
@@ -35,7 +37,7 @@ little. Keep your own output short: one line per action, the detail lives in fil
 
 ## 2. Housekeeping first
 
-With `--mine`, act only on the operator's tickets and PRs. Report the rest (`mine.md`, section 4).
+In every scope, act only on the operator's tickets and PRs. Report the rest (`scope.md`, section 6).
 
 | Board finding | Action |
 |---|---|
@@ -185,6 +187,8 @@ the reason) and check:
 4. **No collision:** owned paths and hotspots don't overlap a running ticket's; migration
    hotspot: one in-flight branch at a time.
 5. **Machine:** free disk above `policy.diskWarnGb`.
+6. **Claim:** in Specific and All scopes, re-read the assignee and claim the ticket (`scope.md`,
+   section 5). Assigned to someone else without a recorded takeover → skip.
 
 Pass → write the brief (`worker-brief.md`), `worker-start`, record the ticket (`dispatched`,
 `holdsSlot: true`), comment on the Orca worktree card. Fail → skip with the reason in the

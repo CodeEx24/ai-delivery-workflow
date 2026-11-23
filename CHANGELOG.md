@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-23 (latest) — ticket scope prompt
+
+- **Plain `/deliver <KEY>` now asks what to run** instead of starting the whole backlog: **My assigned tickets (Recommended)**, **Specific tickets** (paste the numbers), or **All available tickets**, which shows a warning and needs a second confirmation.
+- **All available** means your tickets plus unassigned ones. Each unassigned ticket is assigned to you just before it starts. Teammates' tickets are skipped.
+- **Specific tickets** can include a teammate's ticket only after an explicit takeover confirmation, and never one they are already building.
+- `--mine` and `--only` still skip the question. `/factory`, status, board and pause commands are unaffected.
+
 ## 2026-11-23 (later) — `/deliver --mine`
 
 - **`/loop /deliver <KEY> --mine`**: runs every ticket assigned to the person running it, with no ticket list. Each cycle re-reads assignments and blockers, so new and newly unblocked tickets start automatically. The loop keeps watching while work is blocked and stops after 8 idle hours.
