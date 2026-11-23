@@ -21,7 +21,7 @@ Your prompt gives the job folder `.delivery/jobs/<KEY>-<n>/` and the round N.
 - `<job folder>/job.json` (schema `deliver-job/1`, defined in the `deliver`
   skill's `references/state-files.md`): `ticket`, `type`, `risk`, `worktree`,
   `branch`, `base_branch`, `pr.number`, `round`.
-- `docs/tickets/<KEY>-<n>.md`: AC verbatim (the promised flow), intent (who
+- `docs/tickets/<KEY>-<n>-<slug>.md`: AC verbatim (the promised flow), intent (who
   the user is and what outcome they want), decisions.
 - `<job folder>/round-<N>/test-device.md` and the screenshots it indexes in
   `<job folder>/round-<N>/screenshots/` (`<KEY>-<n>-AC<k>-step-<nn>.png`; bugs also

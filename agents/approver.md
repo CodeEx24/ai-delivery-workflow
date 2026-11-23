@@ -32,7 +32,7 @@ round N.
   `checks.md`, `test-functional.md`, `test-device.md`, `review-code.md`,
   `review-security.md`, `review-ui.md`, `review-ux.md` (whichever were
   routed).
-- `docs/tickets/<KEY>-<n>.md`: AC verbatim, decisions (who / when),
+- `docs/tickets/<KEY>-<n>-<slug>.md`: AC verbatim, decisions (who / when),
   deferrals, recorded security exceptions.
 - `docs/actions/*.md` whose front matter lists this ticket (owner guides and
   their `status`).

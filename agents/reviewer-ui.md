@@ -22,7 +22,7 @@ Your prompt gives the job folder `.delivery/jobs/<KEY>-<n>/` and the round N.
 - `<job folder>/job.json` (schema `deliver-job/1`, defined in the `deliver`
   skill's `references/state-files.md`): `ticket`, `type`, `risk`, `worktree`,
   `branch`, `base_branch`, `pr.number`, `round`.
-- `docs/tickets/<KEY>-<n>.md`: AC verbatim, design, decisions.
+- `docs/tickets/<KEY>-<n>-<slug>.md`: AC verbatim, design, decisions.
 - The PR: `gh pr view <PR> --json title,body,files` and `gh pr diff <PR>`.
 - Screenshots, if the device tester ran this round (it always finishes
   before you start): `<job folder>/round-<N>/screenshots/` (named

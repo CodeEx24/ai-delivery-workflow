@@ -25,7 +25,7 @@ Your prompt gives the job folder `.delivery/jobs/<KEY>-<n>/` and the round N.
   `branch`, `base_branch`, `pr.number`, `round`.
 - `<job folder>/plan.md` and `<job folder>/round-<N>/checks.md` (gate result,
   including database / policy tests and the rollback check on high risk).
-- `docs/tickets/<KEY>-<n>.md`: AC verbatim, design, decisions (including any
+- `docs/tickets/<KEY>-<n>-<slug>.md`: AC verbatim, design, decisions (including any
   owner-approved security exception, with who / when).
 - The PR: `gh pr view <PR> --json title,body,files,comments` and
   `gh pr diff <PR>`.

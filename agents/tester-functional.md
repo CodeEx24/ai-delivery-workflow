@@ -21,7 +21,7 @@ Your prompt gives the job folder `.delivery/jobs/<KEY>-<n>/` and the round N.
   `references/state-files.md`): `ticket`, `type`, `risk`, `worktree`, `branch`,
   `base_branch`, `pr.number`, `round`.
 - `<job folder>/plan.md` and `<job folder>/round-<N>/checks.md`.
-- `docs/tickets/<KEY>-<n>.md`: the AC **verbatim**, design, decisions,
+- `docs/tickets/<KEY>-<n>-<slug>.md`: the AC **verbatim**, design, decisions,
   deferrals. The AC are your test plan; do not paraphrase them.
 - The PR: `gh pr view <PR> --json title,body` and `gh pr diff <PR>`.
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-23 (newest) — ticket records as long-term memory
+
+- **New record name:** `docs/tickets/<KEY>-<n>-<slug>.md`. Existing records keep their names and are still found.
+- **Links at the top:** ticket, every PR, related tickets, feature guide and other references.
+- **New sections:** Summary for future agents, What changed, Future work and Notes for future agents. Decisions now record why.
+- **Agents read past records:** before designing, `/implement-ticket` looks up related records and the feature guide, and raises a conflict instead of silently reversing a decision.
+- **Close-out is required before `ready-to-merge`,** so records no longer stay at `In progress` after an owner merge.
+
 ## 2026-11-23 (latest) — ticket scope prompt
 
 - **Plain `/deliver <KEY>` now asks what to run** instead of starting the whole backlog: **My assigned tickets (Recommended)**, **Specific tickets** (paste the numbers), or **All available tickets**, which shows a warning and needs a second confirmation.

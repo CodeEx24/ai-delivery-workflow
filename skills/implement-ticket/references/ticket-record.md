@@ -10,7 +10,7 @@ below otherwise.
 
 | What | Where |
 |---|---|
-| Ticket record: intent, AC verbatim, design, decisions, deviations, outcome; spike findings | `docs/tickets/<KEY>-<n>.md` (committed) |
+| Ticket record: links, spec, AC verbatim, design, decisions, what changed, future work, notes for future agents; spike findings | `docs/tickets/<KEY>-<n>-<slug>.md` (committed) |
 | Task plan, stage file, review rounds, screenshots before upload | `.delivery/jobs/<KEY>-<n>/` (gitignored, deleted at cleanup) |
 | What was built and how to test | The draft PR description |
 | AC results, screenshots, owner decisions, final status | The ticket in the tracker (posted by the loop / merge) |
@@ -22,11 +22,21 @@ verification file.
 
 ## The ticket record
 
-**One file by default:** `docs/tickets/<KEY>-<n>.md`. Use the **folder form**
-`docs/tickets/<KEY>-<n>/` with `README.md` as the record only for large, high-risk tickets
+**One file by default:** `docs/tickets/<KEY>-<n>-<slug>.md`. Use the **folder form**
+`docs/tickets/<KEY>-<n>-<slug>/` with `README.md` as the record only for large, high-risk tickets
 whose record would pass roughly 300 lines or that have separate artifacts (a data contract,
 migration plan, security analysis, diagrams: `data-model.md`, `migration.md`,
 `security.md`…).
+
+**Name:** `<slug>` is 3–6 lowercase words from the title, the same as the branch slug, for example
+`docs/tickets/ABC-123-quote-status-filter.md`.
+
+**Finding a record:** look for `docs/tickets/<KEY>-<n>-*.md`, then `docs/tickets/<KEY>-<n>-*/README.md`,
+then the older `docs/tickets/<KEY>-<n>.md` and `docs/tickets/<KEY>-<n>/README.md`. Never match on
+`<KEY>-<n>*` alone, because `ABC-12*` also matches `ABC-123`. Do not rename existing records.
+
+**Keep it safe to reuse:** no secrets, tokens, real customer data or production values. Name
+environment variables, never their values.
 
 If the repo has a template (`docs/tickets/_TEMPLATE.md` or similar), copy it. Otherwise:
 
@@ -36,9 +46,14 @@ If the repo has a template (`docs/tickets/_TEMPLATE.md` or similar), copy it. Ot
 Ticket: <tracker link>
 PRs: (pending)
 Related: blocked by <KEY>-<n> · follow-up <KEY>-<n> · deferred to <KEY>-<n>
+Feature guide: (filled at merge)
+References: designs, specs, docs, ADRs, earlier ticket records read for this work, or none
 Type: Feature | Bug | Chore | Spike · Risk: Low | Medium | High · Status: In progress
 
-## Intent
+## Summary for future agents
+Filled at merge, 3–5 lines: what exists now, and the one thing to know before changing it.
+
+## Intent (spec)
 What problem, for whom, desired outcome. Assumptions (source: ticket / code / guess).
 
 ## Acceptance criteria
@@ -48,10 +63,19 @@ Copied verbatim from the ticket. Any confirmed testable rewording beside the ori
 Approach, data and API changes, files that matter, edge cases, security / privacy / cost.
 
 ## Decisions
-| decision | options | choice | who / when |
+| decision | options | choice | why | who / when |
+
+## What changed
+Filled at merge: behaviour, key files, data and migrations, APIs, config and env var names.
 
 ## Outcome
-Filled at merge: deviations, known limitations, follow-ups, feature guide link.
+Filled at merge: deviations from the design, and deferred criteria with the owner's decision.
+
+## Future work
+Known limitations, follow-up tickets with keys, options rejected for now and when to revisit.
+
+## Notes for future agents
+Gotchas, what not to undo and why, related records, what to read first.
 ```
 
 **Per type, add:**
@@ -64,7 +88,8 @@ Filled at merge: deviations, known limitations, follow-ups, feature guide link.
 **Links block rules (mandatory):**
 
 - The block sits at the top: the tracker link, **every PR** for the ticket (main PR and any
-  follow-up fix PRs), related tickets (blockers, follow-ups, deferrals).
+  follow-up fix PRs), related tickets (blockers, follow-ups, deferrals), the feature guide and
+  other useful references.
 - Write `PRs: (pending)` until the draft PR exists, then replace it with the link in the same
   build (Phase 8) and push. Add every later PR on the same ticket.
 - The project's ticket-record check fails if the ticket link is missing, or the PR link once
@@ -84,7 +109,7 @@ could build from the plan alone.
 
 ```markdown
 # Plan — <KEY>-<n>
-Branch: <branch> · Worktree: <path> · Record: docs/tickets/<KEY>-<n>.md
+Branch: <branch> · Worktree: <path> · Record: docs/tickets/<KEY>-<n>-<slug>.md
 
 ## Goal
 ## File map            path → role in the change (owned paths, for parallel work)

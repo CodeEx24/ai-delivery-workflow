@@ -70,7 +70,7 @@ redraft and show again.
 - **GitHub Issues:** body to a file, then `gh issue create --title "…" --label type:<name>
   --body-file <file>`; add `--label factory` only if the owner wants `/factory` to pick it up.
 
-Report the key and URL. The ticket record (`docs/tickets/<KEY>-<n>.md`) is written later by
+Report the key and URL. The ticket record (`docs/tickets/<KEY>-<n>-<slug>.md`) is written later by
 implement-ticket, as usual.
 
 ### Without a PM tool — local ticket file

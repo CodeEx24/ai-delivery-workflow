@@ -32,7 +32,7 @@ defined (in a doc, message, or attached file); this skill turns them into artifa
   reviewed PR, docs).
 - **Documentation discipline.** Generated repos treat CLAUDE.md as durable, project-wide
   knowledge only — updated at epic completion or when a decision becomes stable/reusable,
-  never per ticket. Day-to-day detail goes to `docs/tickets/<KEY>-###.md`. Bake a
+  never per ticket. Day-to-day detail goes to `docs/tickets/<KEY>-###-<slug>.md`. Bake a
   **reuse-first** rule into CLAUDE.md/AGENTS.md (evaluate shared component / utility /
   existing pattern before creating new) to prevent duplicate implementations.
 - **Verify before delivering** (Step 5). Never hand over unverified counts or broken refs.
@@ -86,7 +86,7 @@ Use the exact schemas in `references/formats.md`:
   branch/commit rules, a **Skills section** listing best-practice skills to consult when
   building a feature, a **Reuse-first** rule, a **Documentation & knowledge management**
   section (CLAUDE.md updated only at epic completion / stable decisions; per-ticket detail
-  in `docs/tickets/<KEY>-###.md`), and short DoR/DoD. AGENTS.md mirrors the non-negotiables
+  in `docs/tickets/<KEY>-###-<slug>.md`), and short DoR/DoD. AGENTS.md mirrors the non-negotiables
   (incl. reuse-first + "don't bloat CLAUDE.md") so all agents comply.
 - **Ticket-doc scaffold** — create the `docs/tickets/` folder and a `_TEMPLATE.md` with the
   fixed sections (Overview · Implementation details · API changes · Database changes ·
