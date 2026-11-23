@@ -26,7 +26,7 @@ Your prompt gives the job folder `.delivery/jobs/<KEY>-<n>/`.
   `base_branch`, `pr.number`.
 - The final `round-<N>/` reports: `test-functional.md` (AC → test → file),
   `test-device.md` (ticket comment URL with the screenshots), reviews.
-- `docs/tickets/<KEY>-<n>.md`: intent, AC, design, decisions.
+- `docs/tickets/<KEY>-<n>-<slug>.md`: intent, AC, design, decisions.
 - The PR: `gh pr view <PR> --json title,body,url,files,headRefOid` and
   `gh pr diff <PR>`; the changed files in full where needed.
 - The existing feature guide `docs/features/<area>.md`, if any, and any
@@ -174,7 +174,7 @@ updating, edit the sections this ticket changed and append the ticket to the
 `Tickets:` line; don't paste the PR walkthrough into it.
 
 Then add the guide link to the **Outcome** section of
-`docs/tickets/<KEY>-<n>.md` (leave everything else in the record untouched).
+`docs/tickets/<KEY>-<n>-<slug>.md` (leave everything else in the record untouched).
 
 Commit both files with explicit paths and the repo's convention (e.g.
 `docs(<area>): feature guide for <KEY>-<n>`), `git pull --rebase`,

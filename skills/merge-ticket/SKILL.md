@@ -121,15 +121,23 @@ Another ticket may have merged since the review loop passed, so the green it ear
 
 ## Step 3 — Close the ticket record (before the merge, so it lands with it)
 
-If the project keeps a ticket record (`docs/tickets/<KEY>-<n>.md`, or `docs/tickets/<KEY>-<n>/README.md`
+If the project keeps a ticket record (`docs/tickets/<KEY>-<n>-<slug>.md`, or `docs/tickets/<KEY>-<n>-<slug>/README.md`
 for large tickets), update it **on the PR branch** so the squash carries it:
 
 - **Links block:** the ticket link and **every PR** for the ticket (from step 1); add any missing.
   Related tickets (blockers, follow-ups, deferred-to) present.
-- **Status:** `Merged`.
-- **Outcome section:** deviations from the design, known limitations, follow-up tickets
-  (with keys), deferred criteria (with the owner's decision and the follow-up key), and the
-  feature guide link (`docs/features/<area>.md`, written by the explainer).
+  Fill `Feature guide:` (`docs/features/<area>.md`, written by the explainer) and `References:`.
+- **Status:** `Merged`. The squash carries it, so it becomes true when the PR merges.
+- **Summary for future agents:** what exists now and the one thing to know before changing it.
+- **What changed:** behaviour, key files, data and migrations, APIs, config and env var names.
+- **Outcome:** deviations from the design and deferred criteria (with the owner's decision and
+  the follow-up key).
+- **Future work:** known limitations, follow-up tickets (with keys), options rejected for now.
+- **Notes for future agents:** gotchas, what not to undo and why, what to read first.
+
+**Owner merges:** do all of this before adding `ready-to-merge`. A PR whose record still says
+`In progress` is not ready. Older records without these sections are left as they are unless
+the ticket touches them.
 
 Facts only, from the working folder, PR and ticket — never invent an outcome. Commit
 (`docs(<scope>): close out ticket record (<KEY>-<n>)` or the repo's equivalent), re-run the

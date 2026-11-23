@@ -41,7 +41,7 @@ A `type:<name>` label wins over the issue type. Critical bugs carry `severity:cr
 
 ## Where things go
 
-- Ticket records: `docs/tickets/<KEY>-<n>.md` (links block first).
+- Ticket records: `docs/tickets/<KEY>-<n>-<slug>.md` (links block first).
 - Owner setup steps: `docs/actions/<name>.md` (front matter; `docs/actions/README.md` is generated).
 - Environment recipes: `docs/setup/local-backend.md`, `docs/setup/dev-builds.md`.
 - Feature guides: `docs/features/<area>.md`.

@@ -122,7 +122,7 @@ best practices, architectural patterns/decisions, validation & sanitization stan
 coding conventions, shared workflows, reusable UI/API patterns, anti-duplication rules.
 Cadence: update only when an Epic completes or a decision becomes stable/reusable.
 Reuse-first: evaluate reuse before building (shared component? utility? existing pattern?
-standardize it?). Per-ticket detail lives in docs/tickets/<KEY>-###.md, never in CLAUDE.md.
+standardize it?). Per-ticket detail lives in docs/tickets/<KEY>-###-<slug>.md, never in CLAUDE.md.
 Ticket doc template: Overview · Implementation details · API changes · Database changes ·
 Dependencies on other tickets · Known limitations · Testing notes · Follow-up tasks.
 

@@ -117,7 +117,7 @@ Each ready ticket gets its own worktree and branch (e.g. `feat/<key>-<n>/<slug>`
 
 1. Read the ticket, note its **type** (Feature, Bug, Chore, Spike; section 5), copy the acceptance criteria (AC) **word for word**, check blockers, set the risk tier, move the ticket to In Progress. The type decides how the next steps adapt.
 2. Explore the code; ask the owner only the real design forks, each with a recommendation. **(human)**
-3. Write the **ticket record** `docs/tickets/<KEY>-<n>.md` (section 7): intent, AC, design, decisions. For medium/high risk the owner accepts it before code. The task-by-task plan goes in the working folder (`.delivery/jobs/<KEY>-<n>/plan.md`); it isn't needed after merge. **(human)**
+3. Write the **ticket record** `docs/tickets/<KEY>-<n>-<slug>.md` (section 7): intent, AC, design, decisions. For medium/high risk the owner accepts it before code. The task-by-task plan goes in the working folder (`.delivery/jobs/<KEY>-<n>/plan.md`); it isn't needed after merge. **(human)**
 4. Build task by task; independent parts go to helper agents with disjoint file ownership (no shared files, no git commands).
 5. **Every human setup step becomes an owner guide** in `docs/actions/<name>.md` with front matter, then regenerate the to-do list: purpose, prerequisites, numbered steps, expected result, verify, checklist, if-it-fails; secret *names*, never values. Typical examples: create the database project, push a migration, set an API key, deploy a function, configure a third-party service, update a legal page.
 6. Run the checks script in local mode (no `--report`; the builder hook does this automatically), commit, push, and open a **draft PR** whose description says what was built, the main files, decisions and how to test (this replaces a separate build note). Write the stage file (`job.json`, stage `built`) and hand off to step 5.
@@ -280,7 +280,7 @@ The repo keeps only what a future developer or agent needs to understand **why t
 
 | What | Where | Why there |
 |---|---|---|
-| **Ticket record**: intent, AC (verbatim), design, decisions (who / when), deviations, known limitations, follow-ups; for spikes the findings and recommendation | `docs/tickets/<KEY>-<n>.md` (one file, committed) | Long-lived context next to the code; read by future tickets and agents |
+| **Ticket record**: intent, AC (verbatim), design, decisions (who / when), deviations, known limitations, follow-ups; for spikes the findings and recommendation | `docs/tickets/<KEY>-<n>-<slug>.md` (one file, committed) | Long-lived context next to the code; read by future tickets and agents |
 | AC results table, step-by-step screenshots, owner decisions and deferrals, escalation questions, final status | **The ticket** in the PM tool (attachments + comments) | What the owner reads and audits |
 | What was built and how to test (draft PR description), gate results, test and review verdicts (one summary comment per round), approver decision, CI, cost of the ticket's agents | **The PR** on GitHub | The technical trail, kept with the diff |
 | Acceptance tests and E2E flows written by the testers | The codebase (test folders, e.g. `.maestro/`, `e2e/`) | They are code: they run in CI and guard against regressions |
@@ -289,7 +289,7 @@ The repo keeps only what a future developer or agent needs to understand **why t
 | **PR walkthrough**: what the change does, how to try it, data flow, key functions, review order | **The PR description** on GitHub (drafted in the working folder, posted with `gh pr edit --body-file`) | It explains one change at one point in time, next to the diff; stays with the PR after merge |
 | **Feature guide**: how a feature area works today | `docs/features/<area>.md` (committed, updated by every ticket that touches the area) | The current map of the code for future developers and agents |
 
-**One file by default, a folder only when it earns it.** A single record means one read gives a future developer or agent the intent, criteria, design, decisions and outcome together, with nothing repeated across files that can drift apart. Use a folder `docs/tickets/<KEY>-<n>/` (with `README.md` as the record) only for large, high-risk tickets whose record would pass roughly 300 lines or that have separate artifacts, such as a data contract, a migration plan, a security analysis or diagrams (`data-model.md`, `migration.md`, `security.md`…).
+**One file by default, a folder only when it earns it.** A single record means one read gives a future developer or agent the intent, criteria, design, decisions and outcome together, with nothing repeated across files that can drift apart. Use a folder `docs/tickets/<KEY>-<n>-<slug>/` (with `README.md` as the record) only for large, high-risk tickets whose record would pass roughly 300 lines or that have separate artifacts, such as a data contract, a migration plan, a security analysis or diagrams (`data-model.md`, `migration.md`, `security.md`…).
 
 **Links are mandatory.** Every record starts with a link block: the ticket in the PM tool, **every PR** for the ticket (including follow-up fix PRs), and related tickets (blockers, follow-ups, deferrals). The PR link is added when the draft PR opens and checked again at merge; the ticket record check fails if the ticket link or the PR link is missing once a PR exists.
 
@@ -301,14 +301,22 @@ The repo keeps only what a future developer or agent needs to understand **why t
 Ticket: <PM tool link>
 PRs: <PR link> (main) · <PR link> (follow-up fix)
 Related: blocked by <KEY>-<n> · follow-up <KEY>-<n> · deferred to <KEY>-<n>
+Feature guide: docs/features/<area>.md
+References: designs, specs, docs, ADRs, earlier ticket records
 Type: Feature | Bug | Chore | Spike · Risk: Low | Medium | High · Status: In progress | Merged
 
-## Intent                 what problem, for whom, desired outcome
-## Acceptance criteria    copied verbatim from the ticket
-## Design                 approach, data and API changes, files that matter
-## Decisions              | decision | options | choice | who / when |
-## Outcome                deviations, known limitations, follow-ups, feature guide link (filled at merge)
+## Summary for future agents   what exists now, and the one thing to know (filled at merge)
+## Intent (spec)               what problem, for whom, desired outcome
+## Acceptance criteria         copied verbatim from the ticket
+## Design                      approach, data and API changes, files that matter
+## Decisions                   | decision | options | choice | why | who / when |
+## What changed                behaviour, key files, data, APIs, config (filled at merge)
+## Outcome                     deviations and deferred criteria (filled at merge)
+## Future work                 limitations, follow-ups, options rejected for now (filled at merge)
+## Notes for future agents     gotchas, what not to undo and why, what to read first
 ```
+
+**Before designing a ticket, read the records for related work** (`docs/tickets/`, by linked ticket, feature area, file path and keyword) and the feature guide. Follow earlier decisions, or raise a conflict as an owner question. The current code wins where an old record disagrees with it.
 
 ---
 

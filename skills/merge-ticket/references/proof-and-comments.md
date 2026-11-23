@@ -31,7 +31,7 @@ gh pr list --search "<KEY>-<n>" --state all --json number,state,url   # all PRs 
 
 ## Closing the ticket record
 
-File: `docs/tickets/<KEY>-<n>.md` (or `docs/tickets/<KEY>-<n>/README.md`). Edit only these parts:
+File: `docs/tickets/<KEY>-<n>-<slug>.md` (or `docs/tickets/<KEY>-<n>-<slug>/README.md`). Edit only these parts:
 
 ```
 Ticket: <PM tool link>                                  ← present and correct
@@ -116,7 +116,7 @@ h3. Decisions and deferrals
 
 h3. Final status
 
-Done. Ticket record: {{docs/tickets/<KEY>-<n>.md}} · Feature guide: {{docs/features/<area>.md}}
+Done. Ticket record: {{docs/tickets/<KEY>-<n>-<slug>.md}} · Feature guide: {{docs/features/<area>.md}}
 ```
 
 Variants:

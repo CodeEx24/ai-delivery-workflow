@@ -34,7 +34,7 @@ Your prompt gives the job folder `.delivery/jobs/<KEY>-<n>/` and the round N.
   `worktree`, `branch`, `base_branch`, `pr.number`, `round`, and
   `device_lane`. **Do not start unless `device_lane.granted` is true for
   this round**; only one ticket uses the simulator / device at a time.
-- `docs/tickets/<KEY>-<n>.md`: AC verbatim, decisions, deferrals.
+- `docs/tickets/<KEY>-<n>-<slug>.md`: AC verbatim, decisions, deferrals.
 - `<job folder>/round-<N>/test-functional.md` if already written (which AC
   are not automatable and need you most).
 - Repo setup docs: `CLAUDE.md` / `AGENTS.md`, `docs/workflow/README.md`

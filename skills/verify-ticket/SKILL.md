@@ -64,7 +64,7 @@ backend recipe, E2E tool):
 ## Step 1 — Get the acceptance criteria
 
 Resolve the ticket (the ref given; else the key in the branch name or the branch's PR). Read the
-**ticket record** `docs/tickets/<KEY>-<n>.md` if it exists (AC verbatim) and the ticket itself
+**ticket record** `docs/tickets/<KEY>-<n>-<slug>.md` if it exists (AC verbatim) and the ticket itself
 (Jira/Linear connector, `gh issue view`), including comments — late changes live there. Write
 the criteria **verbatim** as AC1, AC2, … A paraphrase quietly turns "updates without a reload"
 into "is correct". No explicit AC → derive a list, show it, say it is derived.

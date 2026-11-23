@@ -30,7 +30,7 @@ Everything else comes from files:
   ran before you this round and may have committed tests or an E2E flow.
 - `<job folder>/plan.md`: the builder's task plan.
 - `<job folder>/round-<N>/checks.md`: the gate result for this round.
-- `docs/tickets/<KEY>-<n>.md` (or `docs/tickets/<KEY>-<n>/README.md`): the
+- `docs/tickets/<KEY>-<n>-<slug>.md` (or `docs/tickets/<KEY>-<n>-<slug>/README.md`): the
   ticket record with the acceptance criteria (AC) verbatim, design and
   decisions. **The AC are what the change is judged against.**
 - The PR: `gh pr view <PR> --json title,body,files,comments,reviews` and

@@ -35,7 +35,7 @@ Use the schema in the `deliver` skill's `references/state-files.md` exactly, wit
 | `stage`, `round` | `"built"`, `1` |
 | `branch`, `base_branch`, `worktree` | the ticket branch, the default branch, this checkout's absolute path |
 | `pr` | `{ "number": <n>, "url": "<draft PR url>" }` |
-| `record` | `docs/tickets/<KEY>-<n>.md` |
+| `record` | `docs/tickets/<KEY>-<n>-<slug>.md` |
 | `routing` | `ui_changed`, `app_testable`, `security_surface`, `backend_schema`, `needs_login` — honest booleans |
 | `owner_actions` | the `docs/actions/` guides you wrote |
 | `dispatch` | the Orca dispatch id, or `null` |

@@ -58,7 +58,7 @@ line `Closes #<n>` so the merge closes the issue. Default body:
 ## What was built
 <2–4 sentences in the reviewer's terms: what changed and why.>
 
-Ticket: <tracker link> · Record: docs/tickets/<KEY>-<n>.md
+Ticket: <tracker link> · Record: docs/tickets/<KEY>-<n>-<slug>.md
 Type: <type> · Risk: <risk>
 
 ## Main files
@@ -90,7 +90,7 @@ link as soon as it exists.
 
 ## 5. Link the PR in the ticket record
 
-Replace `PRs: (pending)` in `docs/tickets/<KEY>-<n>.md` (or the record's README in folder
+Replace `PRs: (pending)` in `docs/tickets/<KEY>-<n>-<slug>.md` (or the record's README in folder
 form) with the PR link, commit (`docs(<scope>): link PR in ticket record`), push. The
 ticket-record check fails once a PR exists without it. Every later PR on the same ticket is
 appended to that line.
@@ -100,7 +100,7 @@ appended to that line.
 Comment once, then transition:
 
 > **Built — draft PR ready for review.** <one-line summary>
-> **PR:** <link> · **Branch:** `<branch>` · **Record:** `docs/tickets/<KEY>-<n>.md`
+> **PR:** <link> · **Branch:** `<branch>` · **Record:** `docs/tickets/<KEY>-<n>-<slug>.md`
 > **Owner actions:** <guides, or none>
 
 - **Jira:** `addCommentToJiraIssue`, then `getTransitionsForJiraIssue` and

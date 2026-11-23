@@ -127,6 +127,10 @@ branch that names this ticket, stay on it.
 
 Find every surface the change touches before deciding anything:
 
+- **Past decisions.** Search `docs/tickets/` by linked ticket, feature area, file path and
+  keyword, and read `docs/features/<area>.md`. Follow earlier decisions, or raise a conflict in
+  Phase 3 instead of silently reversing one. The current code wins where an old record disagrees
+  with it. List the records you used under `References:` in the new record.
 - The entry point (route, screen, command, endpoint, job) and the nearest sibling feature
   that already does something similar — matching a pattern beats inventing one.
 - The data path end to end: schema/model, data layer, migrations, serialization, cache, sync.
@@ -163,11 +167,13 @@ low-risk ticket with nothing to decide: say "no design forks" and go to Phase 4.
 Wait for the answers. Restate each decision in one line; if an answer opens a new fork, ask
 it now.
 
-**Write the ticket record** — one file, `docs/tickets/<KEY>-<n>.md` by default (the repo's
+**Write the ticket record** — one file, `docs/tickets/<KEY>-<n>-<slug>.md` by default (the repo's
 workflow doc wins if it says otherwise). Template, the mandatory links block (ticket link,
 every PR, related tickets), per-type content and the folder form for large high-risk tickets
-are in **`references/ticket-record.md`**. It holds intent, AC verbatim, design, the decisions
-table (who / when) and an empty Outcome section. No PR exists yet: write `PRs: (pending)`.
+are in **`references/ticket-record.md`**. It holds the links block, spec, AC verbatim, design,
+the decisions table (why, who / when), and the sections filled at merge. `<slug>` is 3–6
+lowercase words from the title, the same as the branch slug. No PR exists yet: write
+`PRs: (pending)`.
 
 **Acceptance (medium / high risk):** summarize the record with its assumptions and open
 points, ask the owner to accept or change it, and **end your turn**. No plan or code in the
