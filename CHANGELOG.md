@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-23 (settings) — personal machine settings
+
+- **`/delivery-config --me cap=4`**: each developer can set how many tickets run on their own computer without changing the team's setting. Stored in `~/.claude/delivery.machine.json`, outside the repo.
+- **Personal settings:** `cap`, `loopMinutes`, `idleReleaseMin`, `engine` and `diskWarnGb`. Merging, review rounds, auto-accept, pushing and browser testing stay team rules and cannot be overridden personally.
+- **Clearer `/delivery-config`:** shows every setting, where its value comes from, allowed values, this computer's CPU, memory and suggested cap, and the exact commands to change them.
+
 ## 2026-11-23 (standards) — standards gate before approval
 
 - **Automatic checks:** when a repo has `.engineering/`, the gate runs its kit, PR, secret, quality-ratchet and changed-file format checks, from the main checkout's copy.

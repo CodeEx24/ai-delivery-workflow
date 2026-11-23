@@ -36,9 +36,10 @@ the owner. Everything else happens in workers.
 **Settings.** At bootstrap and at the start of every cycle, run
 `python "$HOME/.claude/skills/delivery-config/config.py" --repo <main checkout> show --json` and
 copy `values` into `orchestrator.json.policy` (`mergePath` = `effectiveMergePath`,
-`deviceLaneEnabled` = `deviceLane`). Order of precedence: this run's flags, then
-`docs/workflow/delivery.config.json`, then values written in `docs/workflow/README.md`, then the
-defaults. Print any `warnings`. Script missing → use the README and defaults, and say the kit
+`deviceLaneEnabled` = `deviceLane`). Order of precedence: this run's flags, then the developer's
+machine settings (`~/.claude/delivery.machine.json`, for `cap`, `loopMinutes`, `idleReleaseMin`,
+`engine` and `diskWarnGb` only), then `docs/workflow/delivery.config.json`, then values written in
+`docs/workflow/README.md`, then the defaults. Print any `warnings`. Script missing → use the README and defaults, and say the kit
 needs reinstalling.
 
 ## Arguments and modes
@@ -51,7 +52,7 @@ needs reinstalling.
 | `/deliver <path-or-URL> …` | **File mode.** Same as above, but the bootstrap first imports the document's tasks as tickets (owner approves the list), then plans waves (owner approves again). All flags work the same. |
 | `/deliver <KEY> --status` | Read-only: print state from `.delivery/orchestrator.json` + a fresh wave-status. Changes nothing. |
 | `/deliver <KEY> --dry-run` | Bootstrap checks and one cycle **as a plan**: what would be started, advanced, merged, asked. No writes anywhere (not even state files). With no scope flag it previews `--mine`. |
-| `--cap N` | Lower the concurrency cap for this run. A cap *above* the project's configured one (default **2**) needs the owner's explicit yes; to raise it for good, use `/delivery-config cap=N`. |
+| `--cap N` | Lower the concurrency cap for this run. A cap *above* the effective one (machine setting, else the project's, default **2**) needs the owner's explicit yes. To raise it on this computer, use `/delivery-config --me cap=N`; for the whole team, `/delivery-config cap=N`. |
 | `--takeover` | Take over from another orchestrator whose lock looks stale (see `references/state-files.md`, "Lock"). |
 | `/deliver <KEY> --only ABC-42[,ABC-43]` | Fill capacity only from these tickets (step 5); everything else in the cycle runs as usual. Blockers, the two-wave window and the cap still apply: a barred ticket is reported with the reason, not started. A teammate's ticket needs an explicit takeover (`references/scope.md`, section 4). Stops when these tickets are merged or waiting on the owner. Saved as `policy.only` for the run. |
 | `/loop /deliver <KEY> --mine` | Run every ticket assigned to the operator, with no list. Each cycle re-reads assignments and blockers, so new and newly unblocked tickets start automatically. Touches only the operator's tickets and PRs, and keeps watching until 8 idle hours pass. **Read `references/mine.md`**, which overrides the steps it names. |

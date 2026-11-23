@@ -12,7 +12,7 @@ Legend: **(human)** owner decision or action · **(agent)** Claude Code skill or
   - `--watcher` — runs the loop in its own Orca chat, so this chat stays free.
   - `--status` — read-only: what is running, waiting and ready. Changes nothing.
   - `--dry-run` — shows what one cycle would start, advance, merge and ask. Writes nothing.
-  - `--cap N` — allows fewer tickets in flight at once for this run. Going above the project's cap (default 2 when none is written) needs your yes.
+  - `--cap N` — allows fewer tickets in flight at once for this run. Going above your effective cap (your machine setting, else the project's, default 2) needs your yes. To set your own limit: `/delivery-config --me cap=N`.
 - **`/deliver <path-to-file-or-doc>`** — the same, but it starts from a document that lists tasks (spec, notes, backlog, PRD, meeting notes; a local `.md` / `.txt` / `.pdf` / `.docx`, or a URL / Google Doc / Notion page when a connector exists). It turns each task into a ticket (title, type, testable AC, dependencies, size) and shows you the list. After you approve it, it creates the tickets in the project's PM tool, which gives them real IDs. With no PM tool connected, the default is GitHub Issues when the repo is on GitHub and `gh` works; otherwise (offline or private experiments) local IDs `T-001…` in `docs/tickets/backlog.md`. Then it plans waves and runs the flow as above.
   - `--only <KEY>-<n>[,…]` — start only these tickets (one-ticket runs).
   - `--board` — open the live delivery board (below).
