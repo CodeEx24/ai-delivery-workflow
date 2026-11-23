@@ -82,7 +82,7 @@ the original. Timestamps are ISO 8601 with offset.
   },
   "policy": {
     "cap": 2,
-    "capSource": "docs/workflow/delivery.config.json | docs/workflow/README.md | default (2) | --cap",
+    "capSource": "machine | docs/workflow/delivery.config.json | docs/workflow/README.md | default (2) | --cap",
     "mergePath": "owner (default) | agent (only if the merge command is allowed for agents)",
     "autoAcceptRecommended": false,
     "loopMinutes": "auto | 1-60",

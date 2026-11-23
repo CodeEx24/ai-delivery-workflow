@@ -95,14 +95,27 @@ The board's ticket drawer also has a **Change report** link.
 
 ## 3. Settings
 
-Each project keeps its settings in `docs/workflow/delivery.config.json`. Commit that file so every worktree uses the same values. A running loop picks up changes on its next cycle.
+There are two levels of settings. A running loop picks up changes on its next cycle.
+
+| Level | Stored in | Affects | Shared? |
+|---|---|---|---|
+| **Your machine** | `~/.claude/delivery.machine.json` | Only you, in every project | No |
+| **Team rules** | `docs/workflow/delivery.config.json` | Everyone on the project | Yes, commit it |
+
+Your machine settings win over the project's. Only `cap`, `loopMinutes`, `idleReleaseMin`, `engine` and `diskWarnGb` can be personal. Merging, review rounds, auto-accept, pushing and browser testing stay team rules.
 
 ```text
-/delivery-config                       show all settings
-/delivery-config cap=3                 change one
-/delivery-config cap=3 maxRounds=4     change several
-/delivery-config reset cap             put one back to its default
-/delivery-config reset --all           put all back to defaults
+/delivery-config                       show all settings, this computer's suggested cap, and how to change them
+
+/delivery-config --me cap=4            just for me: run 4 tickets at once
+/delivery-config --me engine=subagents just for me: run workers without Orca
+/delivery-config reset --me cap        remove my personal value
+/delivery-config reset --me --all      remove all my personal values
+
+/delivery-config cap=3                 team default for everyone
+/delivery-config cap=3 maxRounds=4     change several team settings
+/delivery-config reset cap             put a team setting back to its default
+/delivery-config reset --all           put all team settings back to defaults
 ```
 
 | Setting | Default | Options | What it controls |

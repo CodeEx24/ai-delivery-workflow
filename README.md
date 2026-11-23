@@ -103,7 +103,8 @@ In a project that already has tickets:
 | `/deliver <KEY> --dry-run` | Shows what one cycle would do. Writes nothing. |
 | `/deliver <KEY> --status` | Read-only: what is running, waiting and ready. |
 | `/deliver <KEY> --watcher` | Runs the loop in its own Orca chat so this one stays free. |
-| `/deliver <KEY> --cap N` | Fewer tickets in flight for this run (raising it above the project's cap asks you first). |
+| `/deliver <KEY> --cap N` | Fewer tickets in flight for this run (raising it above your effective cap asks you first). |
+| `/delivery-config --me cap=N` | Set how many tickets run at once on your computer only, without changing the team's setting. |
 
 | `/loop /deliver <KEY> --mine` | Run every ticket assigned to you. Picks up new assignments and newly unblocked tickets, and keeps watching until 8 idle hours pass. |
 | `/deliver <KEY> --only ABC-42` | Run the loop for just these tickets. |

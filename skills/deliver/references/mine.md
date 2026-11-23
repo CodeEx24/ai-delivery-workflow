@@ -6,6 +6,11 @@ All hard rules still apply.
 
 `--mine` cannot be combined with `--only` or file mode. If both are given, ask which one to use.
 
+**Preview:** `/deliver <KEY> --mine --dry-run` runs one read-only cycle. It reads the operator's
+assignments, blockers and PRs, then lists what would start, continue, wait or need them. It writes
+no state files, starts no worker or board, claims nothing, and changes nothing in the tracker, Git
+or GitHub. It runs once, so do not put `/loop` in front of it.
+
 ## 1. Who is the operator
 
 Use the identity of the operator's own tracker connection:
