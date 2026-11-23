@@ -41,6 +41,9 @@ where it differs.
   "reproduced by `<test name>`".
 - **Review loop:** the functional tester checks the regression test and nearby edge cases;
   the device tester takes before / after screenshots if the bug is visible in the app.
+- **QA bugs (`qa:found`):** read the Engineering handoff and attachments first, reproduce the
+  failure before changing code (or stop and report `cannot reproduce` with evidence), add the
+  regression test, and pass the full retest in `~/.claude/skills/qa/references/retest.md`.
 - **Severity:** a critical bug (data loss, security, app unusable) may jump the wave window —
   the orchestrator's call, not yours.
 - **A bug in an open PR** is fixed on that PR's branch in its review loop, not as a new

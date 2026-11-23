@@ -208,7 +208,72 @@ Also move the rule back to `ask`.
 | One careful ticket at a time | `/delivery-config cap=1 maxRounds=2` |
 | Mostly hands-off | `/delivery-config cap=3 autoAcceptRecommended=on mergePath=agent`, plus the permission above |
 
-## 4. Troubleshooting
+## 4. QA
+
+`/verify-ticket` proves a ticket works before merge. `/qa` tests what is **deployed**, goes wider than the acceptance criteria, and leaves evidence for a person to sign off. It never moves a ticket to Done.
+
+### Set it up once per project
+
+```text
+/qa-config init --project ABC --staging-url https://staging.example.com
+```
+
+Commit `docs/workflow/qa.config.json`. Put the QA account's login in the gitignored `.env.qa.local`, never in chat:
+
+```text
+QA_OWNER_EMAIL=qa-owner@example.com
+QA_OWNER_PASSWORD=<the QA account's password>
+```
+
+Then run `/qa-config check`. To use `/qa ABC --ready`, set the `QA testing status` line in `docs/workflow/README.md`.
+
+### Run it
+
+| I want to | Command |
+|---|---|
+| See the test plan without changing anything | `/qa ABC-123 --dry-run` |
+| Test one ticket | `/qa ABC-123` |
+| Test my tickets in the testing status | `/qa ABC --mine` |
+| Test all tickets in the testing status | `/qa ABC --ready` |
+| Test a release | `/qa ABC --release` |
+| Choose how deep | `/qa ABC-123 --depth smoke`, `standard` or `full` |
+| Add test types | `/qa ABC-123 --focus ui,a11y,api` |
+| Test a PR's preview | `/qa ABC-123 --pr 42` |
+| Report a bug by hand | `/report-bug-ticket "Export drops rows" --ticket ABC-123` |
+| Retest after a fix | `/qa ABC-123 --retest --env local` (add `--from-run <run-id>` to pick the run) |
+
+### Results
+
+| Result | Label | Meaning |
+|---|---|---|
+| `✅ QA PASSED` | `qa:passed` | Everything planned passed on a verified build |
+| `⚠️ QA PASSED WITH NOTES` | `qa:passed-with-notes` | No criterion failed, with minor findings |
+| `❌ QA FAILED` | `qa:failed` | A criterion failed or a serious defect was found |
+| `🚫 QA BLOCKED` | `qa:blocked` | Something could not be verified. It is not a pass |
+
+Improvements are flagged `💡` and labeled `qa:improvement`. Evidence is saved in `.delivery/qa/<KEY-n>/<run-id>/` and attached to the tracker, which is the shared copy. If an upload fails, the bug says `Evidence incomplete` and gets `qa:evidence-missing`.
+
+Every QA bug has an **Engineering handoff**, so an AI on another machine can reproduce, fix and retest it. A retest reports what is fixed, still failing, newly failing and not run. Anything required that did not run makes it BLOCKED.
+
+### Where QA may test
+
+| Access | What QA may do |
+|---|---|
+| `full` | Any journey with QA accounts |
+| `qa-data-only` | Write only QA-marked data |
+| `smoke-read-only` | Look, but never write |
+| `blocked` | Refuse |
+
+Production can only be `smoke-read-only` or `blocked`, and always asks first. An unknown URL also asks first and stays read-only. Stress tests run only with `--focus stress`, your confirmation and an isolated environment, never on production.
+
+Your personal settings can change only your local URLs, default environment, browser and headed mode:
+
+```text
+/qa-config --me local.url=http://localhost:3100
+/qa-config --me defaultEnv=local browser=firefox headed=on
+```
+
+## 5. Troubleshooting
 
 | Problem | Fix |
 |---|---|
@@ -217,3 +282,4 @@ Also move the rule back to `ask`.
 | New settings or skills aren't used | Re-run the installer and restart the orchestrator and board |
 | An agent didn't merge | Run `/delivery-config` and read **Who merges right now** |
 | A ticket is stuck | Run `/deliver <KEY> --status`, then check **Needs you** on the board |
+| `/qa` says BLOCKED | Read the reason, then run `/qa-config check`. A fix that isn't deployed yet is a common cause |

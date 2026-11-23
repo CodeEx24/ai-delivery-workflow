@@ -88,6 +88,7 @@ Project ready for the delivery workflow.
   GitHub issues:              label them `factory`  →  /loop /factory run
   New product from a spec:    /delivery-blueprint first
   See or change settings:     /delivery-config
+  QA deployed tickets:        /qa-config init --project <KEY> --staging-url <url>  →  /qa <KEY>-<n>
 The first /deliver or /factory run checks the rest (checks script, agents, labels) and offers fixes.
 ```
 

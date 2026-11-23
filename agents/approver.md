@@ -75,6 +75,12 @@ Glob absolute paths under the worktree.
    block is PASS, `review-code.md` has a `## Standards` section, a routed `review-security.md`
    has one too, and no MUST violation is open. A missing section is not a pass: reply
    `WAIT — missing: <file> Standards section`.
+7. **A Bug labeled `qa:found` passed its full retest**
+   (`~/.claude/skills/qa/references/retest.md`): the newest `round-*/qa-retest.json` has `result`
+   `PASSED` or `PASSED WITH NOTES`, and no product code changed after its `testedSha`
+   (`git diff --name-only <testedSha>..HEAD`; tests and docs may). Missing, `FAILED`, `BLOCKED` or
+   stale is not a pass: send it back for a retest or escalate. No owner deferral can replace a
+   previously failed scenario.
 
 **Always ESCALATE when** (the default list; a project tailors it in its own
 copy of this agent or in `docs/workflow/README.md`, which wins):

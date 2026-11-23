@@ -98,6 +98,7 @@ window still apply: if ABC-42 is blocked, it says by what instead of starting it
 | 3b | `/verify-ticket ABC-42` *(optional, any time)* | Walks every AC in the real app with step-by-step screenshots |
 | 4 | Review and merge the PR on GitHub | You merge |
 | 5 | `/merge-ticket ABC-42` | Re-checks, posts proof on Jira + PR, moves ABC-42 to Done, cleans the worktree and branch. Safe to run after you merged by hand |
+| 5b | `/qa ABC-42` *(optional, once deployed)* | Tests the deployed build with a scenario matrix and step screenshots, posts `✅ / ⚠️ / ❌ / 🚫` on the ticket and raises bugs through `/report-bug-ticket`. Needs `/qa-config init` once. A person signs off; QA never moves a ticket to Done |
 
 Escalation (approver says ESCALATE, or round 3 still has CHANGES): the PR stays open with one
 question. Answer it in the chat ("for ABC-42: defer AC4 to a follow-up"), then say "resume
