@@ -271,6 +271,7 @@ Every ticket has one type, set in the PM tool as a `type:<name>` label (or the i
 <local migration check>                 # if the app has a local database
 <database tests> + <rollback check>     # if the change touches the backend schema
 <ticket record check>                   # record exists: links block (ticket + PRs), AC, decisions
+<standards gate>                        # if .engineering/ exists: skills/deliver/references/standards-gate.md
 # CI on the PR runs the same, plus any bundle / secret scans
 ```
 

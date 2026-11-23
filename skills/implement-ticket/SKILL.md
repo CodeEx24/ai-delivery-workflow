@@ -234,6 +234,10 @@ and CI, in CI order. Discovery, failure recipes and gates that cannot run here:
 **`references/verify-gates.md`**. Everything green, or the gap named explicitly. Paste real
 output for failures; never describe a run you did not do.
 
+**Standards.** If the repo has `.engineering/STANDARDS.md`, read it before you build and run the
+checks in `~/.claude/skills/deliver/references/standards-gate.md` before opening the PR, so the
+gate does not have to send the work back.
+
 **Quick self-check — read your own diff** (`git diff`, `git status` for untracked files) for
 what checks cannot see: debug logging, commented-out code, stray `any` / `unwrap` / skipped
 tests, unresolved TODOs, a secret or internal hostname, files outside the ticket's scope, a

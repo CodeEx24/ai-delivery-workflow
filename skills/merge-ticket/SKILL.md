@@ -112,7 +112,9 @@ Another ticket may have merged since the review loop passed, so the green it ear
 3. **Run the checks script from `main`'s copy** (so a branch cannot weaken the checks it is
    judged by), against the re-synced branch, in local mode (no `--report`: the result goes in
    your report and the PR close-out, not into a round file). `references/merge-checks.md` has
-   the recipe. Without a checks script, run the commands `CLAUDE.md` lists.
+   the recipe. Without a checks script, run the commands `CLAUDE.md` lists. If the repo has
+   `.engineering/check.mjs`, also run `~/.claude/skills/deliver/references/standards-gate.md`,
+   because the re-sync may have changed the result.
 4. **Red → refuse to merge.** Report the failing step with the log tail. Do not offer to merge
    past it unless the user explicitly overrides in those words.
 5. Push the re-synced branch and wait for **CI green** on the new head (`gh pr checks <n>

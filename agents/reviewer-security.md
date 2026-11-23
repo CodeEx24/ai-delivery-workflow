@@ -49,6 +49,9 @@ Glob absolute paths under the worktree.
    policies; secrets never reach the client bundle; AI calls only through a
    server gateway with auth, rate limit, quota and output validation; AI never
    changes data without user confirmation). A violated invariant is blocking.
+   If the repo has `.engineering/STANDARDS.md`, also check the changed code against its
+   `SEC`, `DATA` and `QA-4` rules, following
+   `~/.claude/skills/deliver/references/standards-gate.md`, section 3.
 2. The ticket record and `plan.md`.
 3. `git diff <base>...HEAD`, then every changed file in full, then the code it
    calls into. Walk each data path end to end: input → validation →
@@ -169,6 +172,13 @@ VERDICT: PASS | CHANGES
 - Attack / failure: <who, doing what> → <what they gain or what breaks>
 - Fix: <the concrete change>
 - Verified: <command and result> | read-only
+
+## Standards
+- Rules checked: <SEC, DATA and QA-4 rule IDs>, or "Standards not installed"
+- Not applicable: <rule groups and why>
+- MUST violations: <rule ID and finding number>, or None
+- SHOULD notes: <rule ID and note>, or None
+- Exceptions used: <rule and scope>, or None
 
 ## Previous findings
 Round 2+: each earlier finding → fixed / not fixed. Omit in round 1.
