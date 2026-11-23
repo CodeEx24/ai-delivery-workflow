@@ -49,6 +49,9 @@ Track the steps in your todo list so the human can see where you are.
 
 One pass, then say in one line what you found:
 
+- `python "$HOME/.claude/skills/delivery-config/config.py" --repo . show --json` — when
+  `docs/workflow/delivery.config.json` exists, its `effectiveMergePath` and `mergeStrategy` win
+  over the prose sources below.
 - `CLAUDE.md` / `AGENTS.md` / `docs/workflow/README.md` — merge strategy (usually squash), the
   **merge path** (agent merges with an allowed command, or *owner approves by merging*), the
   checks script (e.g. `scripts/workflow/checks.sh` / `.ps1`), the cost script (default name
@@ -205,6 +208,10 @@ mechanically → abort, report the PR and files, leave it for its builder. Recip
 
 **Clean up this ticket** (only after step 5 succeeded — the working folder holds the evidence):
 
+0. **Change report first**, while the worktree and working folder still exist:
+   `python "$HOME/.claude/delivery-board/board.py" report --repo <main checkout> --ticket <KEY>`.
+   It copies `report.html` and its screenshots to `<main checkout>/.delivery/reports/<KEY>/`
+   (gitignored), so the owner keeps it after cleanup. Failure here is reported, not fatal.
 1. **Worktree:** confirm it is clean (`git status --porcelain` empty) and has nothing unpushed;
    anything left → stop and report, never discard. Prefer the tool that manages it (e.g. the
    Orca CLI for Orca worktrees) over raw `git worktree remove`. Stop any process still running

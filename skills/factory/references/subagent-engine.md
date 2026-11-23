@@ -53,9 +53,11 @@ Agent tool call (load deferred tools with ToolSearch if needed):
 You are a background subagent worker (not an Orca worker) started by the orchestrator.
 Your checkout is {{WORKTREE_PATH}}: cd there first; never edit the main checkout.
 - You cannot ask the owner anything and have no Orca. When a question needs the owner (design
-  fork, record acceptance, scope outside owned paths): write it into job.json
-  `questions: [{ "q": "...", "options": ["A ...", "B ..."], "recommendation": "A — because ..." }]`,
-  set `stage: "awaiting_owner"`, and end your turn with the one-line report.
+  fork, record acceptance, scope outside owned paths): follow
+  `~/.claude/skills/implement-ticket/references/owner-questions.md`:
+  one entry per decision in job.json `questions` (`{ "id": "<KEY>-q<n>", "kind": "...", "q": "...",
+  "options": ["A - ...", "B - ..."], "recommendation": "A - because ..." }`), never several forks
+  in one entry; set `stage: "awaiting_owner"`, and end your turn with the one-line report.
 - "worker_done" means: end your turn with one line `REPORT <KEY> <stage> r<N> — <summary>`.
   Everything else goes in job.json and your files.
 - Keep job.json `progress` current (phase, task i/n) so the owner's board shows where you are.

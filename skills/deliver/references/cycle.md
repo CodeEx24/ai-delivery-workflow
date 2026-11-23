@@ -13,9 +13,15 @@ little. Keep your own output short: one line per action, the detail lives in fil
    nothing. Handle each message by type: `worker_done` → step 3 event; `question` → step 6;
    `escalation` with `stopReason` → the worker stopped without reporting: `worker-show`,
    steer with `send`, or report. Never `check --wait`, never a watch script.
-   Then the **board inbox**: `python ~/.claude/delivery-board/board.py inbox --repo <main> --take`.
+   Then the **board inbox**: `python "$HOME/.claude/delivery-board/board.py" inbox --repo <main> --take`.
+   Never write `~/` in this command (PowerShell does not expand it). If the command fails, say
+   so in the cycle output and list `.delivery/inbox/*.json` by hand; never skip the inbox silently.
    `answer` items are handled as owner answers (step 6), `feedback` items as escalation answers
    or owner notes, within the trust rules in `board.md`. Echo each one in the cycle output.
+   `control` items (`pause` / `resume`, from `board.py pause|resume`) are applied first, as in
+   `pause.md`.
+   **Paused?** If `orchestrator.json.pause.active`, every later step follows the "while paused"
+   table in `pause.md` (no new starts, no merges, no stage instructions to paused tickets).
 4. **Board.** Run `wave-status` and parse the fenced `wave-status/1` block (stable keys). Use
    its `ready` order, `start_now`, `in_progress`, `blocked`, `out_of_sync`, `needs_human`,
    `housekeeping`, `concurrency`. If `pr_crosscheck.ran` is false, say so; do not merge or
@@ -58,9 +64,9 @@ Every round runs in the order of `state-files.md`, "Round order": **gate → tes
 | `approving` / `ready_to_merge` | `worker_done phase ready_to_merge` | Verify `decision.md` first line is `APPROVE`, the walkthrough is in the PR body, PR head = branch head. Queue the merge (step 3b). merge-ticket marks the draft ready. |
 | any / `blocked`, `failed` | `worker_done --outcome failed` | Report with `last_error`; label `needs-human` only if the owner must act; `holdsSlot: false`. |
 
-**Round limit.** `round` counts review rounds (round 1 + at most 2 extra = `policy.maxRounds`
-3). CHANGES on round 3, or a third gate failure in a row → send `FIX r3` with the line "round
-limit reached — do not fix; escalate with one specific question". The brief tells the worker
+**Round limit.** `round` counts review rounds, up to `policy.maxRounds` (default 3: round 1 + 2
+extra). CHANGES on the last round, or that many gate failures in a row → send `FIX r<N>` with the
+line "round limit reached — do not fix; escalate with one specific question". The brief tells the worker
 to set `escalated` instead of fixing. Never skip to `APPROVE` to get past the limit.
 
 ### Routing (decided by the orchestrator, from `job.json`)
@@ -131,7 +137,8 @@ no `CHANGES_REQUESTED`; CI not red; `mergeLock.holder` is null.
    (the pre-merge re-gate), merges per the merge path, verifies the deploy,
    posts the proof (AC results + screenshots on the ticket; verdicts, decision, CI and cost on
    the PR), moves the ticket to Done, re-syncs the other open PRs, and cleans up.
-   - **Agent merge path** (only if the owner allowed the merge command for agents): it merges.
+   - **Agent merge path** (`policy.mergePath` is `agent`, which `delivery-config` reports only
+     when the merge command is allowed for agents): it merges with `policy.mergeStrategy`.
      Expect `MERGED` and a merge SHA in its report.
    - **Owner merge path (the default):** it stops at the hand-over and labels the ticket
      `ready-to-merge` (not `needs-human`). Stage `awaiting_owner_merge`, release the merge lock,
@@ -185,7 +192,22 @@ cycle line. Never take a ticket from outside `ready`.
   file, the project docs, or an earlier owner answer — `reply --id <message_id>`, and say so in
   the cycle line. `SCOPE` requests: grant only if no running ticket owns the path; otherwise
   tell the worker to wait or escalate.
-- **Relay** the rest. One batch per cycle, at most ~4 new questions, newest context first:
+- **One question, one entry.** Follow `~/.claude/skills/implement-ticket/references/owner-questions.md`.
+  Every cycle, sweep every job folder's `job.json.questions` for open entries not yet in
+  `ownerQuestions` (match on `jobQuestion`), and add each as its **own** entry with
+  `jobQuestion: "<KEY>-q<n>"`, its own options and recommendation. Never merge several into one
+  entry or summarize them as "Sub-questions: …". A worker `ask` that bundles forks without
+  `job.json.questions`: split it yourself, one entry per fork, and remind the worker of the guide.
+- **Auto-accept (only when `policy.autoAcceptRecommended` is on; default off).** Answer an open
+  question with its recommended option when **all** hold: its `kind` is `decision` or
+  `spec-approval`; it has a `recommendation` naming one listed option; the ticket is not high
+  risk; and it does not touch auth, permissions, data access rules, secrets, billing, personal
+  data, deletion, production, or migrations on live data. **Always relay** escalations, round-limit
+  and `BLOCKED` questions, `scope`, `needs-info` and `action` questions, deferred acceptance
+  criteria, ticket lists, wave plans, setup decisions, and any merge. Record
+  `answer`, `answeredAt` and `answeredBy: "auto"` on the entry, log an `answer` event
+  ("auto-accepted <KEY>-q<n>: <option>"), and list it in the cycle output and the stop summary.
+- **Relay** the rest. Every open question every cycle (no cap), grouped by ticket, newest context first:
 
   ```
   ## Questions for you (reply like "Q3: A")
@@ -195,7 +217,11 @@ cycle line. Never take a ticket from outside `ready`.
       Recommended: accept.
   ```
   Use AskUserQuestion only when nothing else can move until the answer (e.g. stop condition
-  would otherwise be reached); otherwise post the batch and keep cycling.
+  would otherwise be reached), and then put up to 4 open questions in it, never just one while
+  others wait; otherwise post the list and keep cycling.
+- **Answer the worker once its questions are all answered** (or the owner says "go with your
+  recommendations"): one `reply` listing every `<KEY>-q<n>: answer`. Board answers carry
+  `jobQuestion`; map them to that entry.
 - **Map answers** from the owner's messages ("Q3: A", "accept ABC-27", free text) to
   `ownerQuestions`, `reply` to the worker's message id, record `answeredAt`/`answer`. Unclear
   answer → ask back once, briefly.
@@ -228,7 +254,7 @@ Write `orchestrator.json`; append one line to `.delivery/orchestrator.log.md`:
 
 **Events for the board.** Each action in the cycle output also gets one line in
 `.delivery/events.jsonl`, written as it happens (not batched at the end), through
-`python ~/.claude/delivery-board/board.py event --repo <main> --kind <kind> --ticket <KEY> --text "<line>"`:
+`python "$HOME/.claude/delivery-board/board.py" event --repo <main> --kind <kind> --ticket <KEY> --text "<line>"`:
 `dispatch` (worker started), `gate` (result), `verdict` (a round's testers / reviewers settled),
 `stage` (stage change), `question` (relayed), `answer` (applied), `escalate`, `merge`, `error`,
 and one `cycle` line here (`cycle 12 · in flight 3/3 · next 600s`, no ticket).

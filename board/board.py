@@ -12,7 +12,10 @@ Standard library only. Python 3.10+. Works on Windows, macOS and Linux.
   python board.py event  --repo <main checkout> --kind stage --ticket ABC-27 --text "gate r2 PASS"
   python board.py inbox  --repo <main checkout> [--take]   # list (or consume) board answers
   python board.py stop   --repo <main checkout>
+  python board.py pause  --repo <main checkout> [--ticket KEY] [--now] [--reason "..."]
+  python board.py resume --repo <main checkout> [--ticket KEY]
   python board.py serve  --demo                             # sample data, no project needed
+  python board.py report --repo <main checkout> --ticket ABC-27 [--open]   # HTML change report
 
 Files read (schemas: skills/deliver/references/state-files.md and board.md):
   .delivery/orchestrator.json        orchestrator state (tickets, questions, lanes, backlog)
@@ -49,6 +52,10 @@ IMAGE_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
 MAX_FILES_PER_JOB = 400
 EVENT_TAIL = 300
 ANSWERABLE_KINDS = ("decision", "spec-approval", "escalation", "action", "needs-info")
+# The change report is a static page: inline styles and script, Mermaid from jsDelivr, local images.
+REPORT_CSP = ("default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; "
+              "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self'; "
+              "frame-ancestors 'none'")
 
 
 def now_iso() -> str:
@@ -170,8 +177,30 @@ def collect_jobs(repo: Path, orch: dict | None, worktrees: Worktrees, problems: 
     jobs = {}
     for key, folder in job_folders(repo, orch, worktrees).items():
         job = read_json(folder / "job.json", problems) or {}
-        jobs[key] = {"folder": str(folder), "job": job, **scan_job_folder(folder)}
+        jobs[key] = {"folder": str(folder), "job": job, "hasReport": (folder / "report.html").is_file(),
+                     **scan_job_folder(folder)}
     return jobs
+
+
+def archived_reports(repo: Path) -> list[str]:
+    """Tickets whose change report was archived to .delivery/reports/<KEY>/ (survives merge cleanup)."""
+    root = repo / ".delivery" / "reports"
+    if not root.is_dir():
+        return []
+    return sorted(p.name for p in root.iterdir() if (p / "report.html").is_file())
+
+
+def open_job_questions(repo: Path, orch: dict | None, worktrees: Worktrees) -> dict[str, dict]:
+    """Open questions workers wrote into job.json, keyed by their id (`<KEY>-q<n>`)."""
+    out: dict[str, dict] = {}
+    for key, folder in job_folders(repo, orch, worktrees).items():
+        job = read_json(folder / "job.json", []) or {}
+        for i, q in enumerate(job.get("questions") or [], 1):
+            if not isinstance(q, dict) or q.get("answeredAt") or q.get("answer"):
+                continue
+            qid = str(q.get("id") or f"{key}-q{i}")
+            out[qid] = {**q, "id": qid, "key": key}
+    return out
 
 
 def tail_events(path: Path, problems: list[str]) -> list[dict]:
@@ -219,6 +248,7 @@ def aggregate(repo: Path, worktrees: Worktrees) -> dict:
         "jobs": collect_jobs(repo, orch, worktrees, problems),
         "events": tail_events(d / "events.jsonl", problems),
         "inbox": list_inbox(repo),
+        "reports": archived_reports(repo),
         "problems": problems,
     }
 
@@ -289,7 +319,39 @@ def make_handler(board: Board):
                 return self._json(200, data)
             if url.path == "/api/file":
                 return self._file(parse_qs(url.query))
+            if url.path.startswith("/report/"):
+                return self._report(url.path[len("/report/"):])
             return self._error(HTTPStatus.NOT_FOUND, "not found")
+
+        def _report(self, rest: str):
+            # /report/<KEY>/            -> report.html
+            # /report/<KEY>/<rel path>  -> a screenshot the report links to
+            from urllib.parse import unquote
+            key, _, rel = unquote(rest).partition("/")
+            rel = rel or "report.html"
+            roots = []
+            folder = board.job_folder(key) if key else None
+            if folder is not None and (folder / "report.html").is_file():
+                roots.append(folder)
+            archive = board.repo / ".delivery" / "reports" / key
+            if key and (archive / "report.html").is_file():
+                roots.append(archive)
+            for root in roots:
+                root = root.resolve()
+                target = (root / rel).resolve()
+                try:
+                    inside = os.path.commonpath([str(root), str(target)]) == str(root)
+                except ValueError:
+                    inside = False
+                suffix = target.suffix.lower()
+                if not inside or not target.is_file():
+                    continue
+                if suffix == ".html" and target.name == "report.html":
+                    return self._send(200, target.read_bytes(), "text/html; charset=utf-8",
+                                      {"Content-Security-Policy": REPORT_CSP})
+                if suffix in IMAGE_TYPES:
+                    return self._send(200, target.read_bytes(), IMAGE_TYPES[suffix])
+            return self._error(404, "no report for this ticket yet")
 
         def _file(self, q: dict):
             key = (q.get("ticket") or [""])[0]
@@ -350,7 +412,12 @@ def make_handler(board: Board):
             open_q = {q.get("id"): q for q in orch.get("ownerQuestions") or [] if not q.get("answeredAt")}
             q = open_q.get(qid)
             if q is None:
-                return self._error(409, f"{qid} is not an open question")
+                # A worker's question the orchestrator has not relayed yet (job.json.questions).
+                jq = open_job_questions(board.repo, orch, board.worktrees).get(qid)
+                if jq is None:
+                    return self._error(409, f"{qid} is not an open question")
+                return self._drop("answer", {"id": qid, "key": jq["key"], "answer": answer,
+                                             "jobQuestion": qid})
             if q.get("kind") not in ANSWERABLE_KINDS:
                 return self._error(409, f"{qid} ({q.get('kind')}) must be answered in the chat")
             return self._drop("answer", {"id": qid, "key": q.get("key"), "answer": answer})
@@ -417,6 +484,18 @@ def cmd_event(repo: Path, kind: str, ticket: str | None, text: str, actor: str) 
         fh.write(line + "\n")
 
 
+def cmd_control(repo: Path, action: str, ticket: str | None, now: bool, reason: str | None) -> None:
+    """Ask the running orchestrator to pause or resume (applied at the start of its next cycle)."""
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+    item = {"kind": "control", "action": action, "via": "board.py", "at": now_iso(),
+            "ticket": ticket or None, "mode": "now" if now else "soft", "reason": reason or None}
+    write_json_atomic(repo / ".delivery" / "inbox" / f"control-{action}-{stamp}.json", item)
+    scope = ticket or "everything"
+    mode = f" ({item['mode']})" if action == "pause" else ""
+    print(f"{action} requested for {scope}{mode}; the orchestrator applies it on its next cycle. "
+          f"For an immediate effect, type /deliver <KEY> --{action} in the orchestrator's chat.")
+
+
 def cmd_inbox(repo: Path, take: bool) -> None:
     items = list_inbox(repo)
     if take and items:
@@ -425,6 +504,25 @@ def cmd_inbox(repo: Path, take: bool) -> None:
         for item in items:
             os.replace(repo / ".delivery" / "inbox" / item["file"], done / item["file"])
     print(json.dumps(items, indent=2))
+
+
+def cmd_report(repo: Path, ticket: str, archive: bool, open_it: bool) -> None:
+    sys.path.insert(0, str(HERE))
+    import report  # noqa: E402  (sibling module)
+    orch = read_json(repo / ".delivery" / "orchestrator.json", [])
+    folder = job_folders(repo, orch, Worktrees(repo)).get(ticket)
+    if folder is None:
+        archived = repo / ".delivery" / "reports" / ticket / "report.html"
+        if archived.is_file():
+            print(f"{archived}  (job folder is gone; this is the archived copy)")
+            if open_it:
+                webbrowser.open(archived.resolve().as_uri())
+            return
+        sys.exit(f"no job folder for {ticket}")
+    path = report.write_report(folder, repo if archive else None)
+    print(path)
+    if open_it:
+        webbrowser.open(path.resolve().as_uri())
 
 
 def cmd_stop(repo: Path) -> None:
@@ -474,6 +572,21 @@ def main() -> None:
 
     add_repo(sub.add_parser("stop", help="stop the running board"))
 
+    for action in ("pause", "resume"):
+        p_ctl = sub.add_parser(action, help=f"ask the running orchestrator to {action} (next cycle)")
+        add_repo(p_ctl)
+        p_ctl.add_argument("--ticket", default=None, help="only this ticket (default: everything)")
+        if action == "pause":
+            p_ctl.add_argument("--now", action="store_true", help="stop workers at once instead of after their step")
+            p_ctl.add_argument("--reason", default=None)
+
+    p_report = sub.add_parser("report", help="build a ticket's HTML change report (never committed)")
+    add_repo(p_report)
+    p_report.add_argument("--ticket", required=True)
+    p_report.add_argument("--no-archive", action="store_true",
+                          help="do not copy it to .delivery/reports/<KEY>/ in the main checkout")
+    p_report.add_argument("--open", action="store_true", help="open the report in the browser")
+
     args = parser.parse_args(sys.argv[1:] or ["serve"])
     if args.cmd in (None, "serve"):
         repo = Path(getattr(args, "repo", "."))
@@ -493,6 +606,10 @@ def main() -> None:
         cmd_inbox(repo, args.take)
     elif args.cmd == "stop":
         cmd_stop(repo)
+    elif args.cmd in ("pause", "resume"):
+        cmd_control(repo, args.cmd, args.ticket, getattr(args, "now", False), getattr(args, "reason", None))
+    elif args.cmd == "report":
+        cmd_report(repo, args.ticket, not args.no_archive, args.open)
 
 
 if __name__ == "__main__":

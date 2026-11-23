@@ -101,5 +101,5 @@ Done. Next steps:
   4. Optional tools (Orca, PM tool MCP, gh, Context7, ...): see third-party.md
   5. Start:  /loop /deliver <PROJECT-KEY>   (new project: /delivery-blueprint first)
      GitHub issues labeled "factory":  /loop /factory run
-  6. Live board (try it now):  python3 ~/.claude/delivery-board/board.py serve --demo --open
+  6. Live board (try it now):  python3 "$HOME/.claude/delivery-board/board.py" serve --demo --open
 EOF

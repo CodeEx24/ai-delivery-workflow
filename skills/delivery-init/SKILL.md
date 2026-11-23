@@ -70,7 +70,8 @@ changes. Then wait for a yes. `--dry-run` stops here.
    `<test-runner>` placeholders with the real commands from Step 1 (drop those that do not
    apply), keep `gh pr merge` under `ask` unless the owner chose "agent merges", add `env` only
    if the key is absent. Show the resulting diff before writing. No yes → print the entries to
-   add and stop.
+   add and stop. If the owner chose "agent merges", also run
+   `python "$HOME/.claude/skills/delivery-config/config.py" --repo . set mergePath=agent`.
 5. **`--factory`** (or tracker = GitHub): list the labels `/factory` uses and offer to create
    them now (`gh label create …`, see the factory skill's `references/github-queue.md`).
 
@@ -81,11 +82,12 @@ Do not commit. Report the files changed and suggest committing `CLAUDE.md`,
 
 ```
 Project ready for the delivery workflow.
-  Live board (sample data):   python ~/.claude/delivery-board/board.py serve --demo --open
+  Live board (sample data):   python "$HOME/.claude/delivery-board/board.py" serve --demo --open
   Jira / Linear backlog:      /wave-status  →  /plan-waves (if no waves)  →  /loop /deliver <KEY>
   One ticket:                 /loop /deliver <KEY> --only <KEY>-<n>    (or /implement-ticket <KEY>-<n>)
   GitHub issues:              label them `factory`  →  /loop /factory run
   New product from a spec:    /delivery-blueprint first
+  See or change settings:     /delivery-config
 The first /deliver or /factory run checks the rest (checks script, agents, labels) and offers fixes.
 ```
 

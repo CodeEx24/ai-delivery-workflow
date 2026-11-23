@@ -261,7 +261,7 @@ tickets (`key`, `title`, `type`, `priority`, `dependsOn`, `critical`, `batch`, `
 (temp file, then rename); create `.delivery/` if missing (it is gitignored by the workflow).
 The live delivery board draws its Waves strip from it, so the owner can see the plan and its
 dependencies while deciding. If the board is not running, say once that
-`python ~/.claude/delivery-board/board.py serve --repo . --open` shows it.
+`python "$HOME/.claude/delivery-board/board.py" serve --repo . --open` shows it.
 
 Then stop, ask whether to apply and which parts, and end with the return block (Step 0).
 

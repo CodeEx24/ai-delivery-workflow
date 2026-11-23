@@ -69,8 +69,11 @@ product code, never change ticket status, never merge.
 3. **Walk each AC like a user.** Before acting, write the steps and the
    observable result that would make it true. Then perform it through the
    UI and capture **every step**:
-   `<job folder>/round-<N>/screenshots/<KEY>-<n>-AC<k>-step-<nn>.png` (`step-01`,
-   `step-02`, …). For a **Bug**, capture the broken behaviour on the base
+   `<job folder>/round-<N>/screenshots/<KEY>-<n>-AC<k>-step-<nn>-<what it shows>.png`
+   (`step-01-empty-form`, `step-02-saved`, …). Add `-FAIL` to the step that proves a
+   criterion is **not** met (`…-step-04-wrong-total-FAIL.png`): the owner's change
+   report outlines it in red. Keep every round's screenshots; failed rounds are
+   evidence too. For a **Bug**, capture the broken behaviour on the base
    first (`-before-step-<nn>`) when the repo documents a way to run the base
    build, then the fixed behaviour (`-after-step-<nn>`). Also check
    persistence (restart the app after a mutation), offline behaviour if the

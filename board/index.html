@@ -408,9 +408,12 @@ function buildTickets(d) {
   for (const h of o.history || []) { const t = add(h.key); t.history = h; t.title ||= h.title }
   for (const [k, j] of Object.entries(d.jobs || {})) {
     const t = add(k); t.job = j.job || {}; t.files = j.files || []; t.folder = j.folder; t.lastActivity = j.lastActivity
+    t.hasReport = !!j.hasReport
     t.title ||= t.job.title; t.type ||= t.job.type; t.risk ||= t.job.risk
   }
   for (const q of o.ownerQuestions || []) if (!q.answeredAt && q.key) add(q.key).questions.push(q)
+  for (const q of unrelayedJobQuestions(d)) add(q.key).questions.push(q)
+  for (const k of d.reports || []) if (map.has(k)) map.get(k).hasReport = true
 
   const now = Date.parse(d.now) || Date.now()
   for (const t of map.values()) {
@@ -457,7 +460,14 @@ function renderHeader(d) {
     const hb = ageMin(o.lock?.heartbeatAt, now)
     const limit = ((2 * (o.cycle?.lastDelaySec || 600)) / 60) + 10
     const resume = o.flavor === 'factory' ? '/loop /factory run' : `/loop /deliver ${o.projectKey || '<KEY>'}`
-    pills.push(hb === null ? '<span class="pill">orchestrator: not started</span>'
+    const p = o.pause
+    if (p?.active) {
+      const scope = p.scope === 'tickets' ? (p.tickets || []).join(', ') : 'everything'
+      const cmd = o.flavor === 'factory' ? '/factory resume' : `/loop /deliver ${o.projectKey || '<KEY>'} --resume`
+      pills.push(`<span class="pill warn">⏸ paused: ${esc(scope)}${p.since ? ' since ' + clock(p.since) : ''}${p.reason ? ' (' + esc(p.reason) + ')' : ''}. Resume: ${esc(cmd)}</span>`)
+    }
+    // A full pause ends the loop on purpose, so "quiet" is expected then, not a warning.
+    if (!(p?.active && p.scope !== 'tickets')) pills.push(hb === null ? '<span class="pill">orchestrator: not started</span>'
       : hb <= limit ? `<span class="pill ok">● orchestrator live · ${fmtAge(hb)} ago</span>`
       : `<span class="pill warn">orchestrator quiet ${fmtAge(hb)}, run ${esc(resume)}</span>`)
     pills.push(`<span class="pill">${esc(o.flavor || 'deliver')} · ${esc(o.mode || 'plain')}</span>`)
@@ -478,6 +488,29 @@ function renderHeader(d) {
 }
 
 // ---------- render: needs you ----------
+// Questions workers wrote into job.json that the orchestrator has not put in ownerQuestions yet.
+// They show (and are answerable) right away, so no question waits on the orchestrator's relay.
+function unrelayedJobQuestions(d) {
+  const owner = d.orchestrator?.ownerQuestions || []
+  const linked = new Set(owner.map((x) => x.jobQuestion).filter(Boolean))
+  const msgs = new Set(owner.map((x) => x.messageId).filter(Boolean))
+  const out = []
+  for (const [key, j] of Object.entries(d.jobs || {})) {
+    (j.job?.questions || []).forEach((q, i) => {
+      if (!q || typeof q !== 'object' || q.answeredAt || q.answer) return
+      const id = String(q.id || `${key}-q${i + 1}`)
+      if (linked.has(id) || (q.messageId && msgs.has(q.messageId))) return
+      out.push({ id, key, kind: q.kind || 'decision', question: q.q || q.question || '', options: q.options || [],
+        recommendation: q.recommendation || '', askedAt: q.askedAt || j.job?.updated_at, unrelayed: true })
+    })
+  }
+  return out
+}
+
+function openQuestions(d) {
+  return [...(d.orchestrator?.ownerQuestions || []).filter((x) => !x.answeredAt), ...unrelayedJobQuestions(d)]
+}
+
 function pendingAnswer(d, qid) {
   const inbox = (d.inbox || []).find((i) => i.kind === 'answer' && i.id === qid)
   return inbox ? inbox.answer : sentLocal.get(qid) || null
@@ -494,6 +527,7 @@ function questionCard(d, q) {
   }).join('')
   return `<div class="need" data-q="${esc(q.id)}">
     <div class="need-top"><span class="tag warn">${esc(q.id)}</span><span class="tag">${esc(q.kind || 'question')}</span>
+      ${q.unrelayed ? '<span class="tag" title="Asked by the worker; not relayed by the orchestrator yet. You can answer it here.">from worker</span>' : ''}
       ${q.key ? `<button class="key" data-open="${esc(q.key)}">${esc(q.key)}</button>` : ''}
       ${t?.title ? `<span class="muted">${esc(t.title)}</span>` : ''}
       <span class="faint" style="margin-left:auto">${q.askedAt ? 'asked ' + clock(q.askedAt) : ''}</span></div>
@@ -512,7 +546,7 @@ function renderNeeds(d) {
   const el = $('needs')
   if (el.contains(document.activeElement) && document.activeElement.tagName === 'INPUT') return
   const o = d.orchestrator || {}
-  const open = (o.ownerQuestions || []).filter((x) => !x.answeredAt)
+  const open = openQuestions(d)
   const cards = open.map((q) => questionCard(d, q))
   const asked = new Set(open.map((x) => x.key))
   for (const t of tickets.values()) {
@@ -534,6 +568,11 @@ function renderNeeds(d) {
   for (const g of (o.setup?.gaps || []).filter((x) => x.severity === 'blocking' && x.status === 'open')) {
     cards.push(`<div class="need info"><div class="need-top"><span class="tag warn">setup</span></div>
       <div class="need-q">${esc(g.item)}</div><div class="chat-hint">${esc(g.fix || '')}</div></div>`)
+  }
+  for (const i of (d.inbox || []).filter((x) => x.kind === 'control')) {
+    cards.push(`<div class="need info"><div class="need-top"><span class="tag accent">${esc(i.action)} requested</span>
+      ${i.ticket ? `<button class="key" data-open="${esc(i.ticket)}">${esc(i.ticket)}</button>` : '<span class="muted">everything</span>'}</div>
+      <div class="sent">Waiting for the orchestrator's next cycle.</div></div>`)
   }
   for (const i of (d.inbox || []).filter((x) => x.kind === 'feedback')) {
     cards.push(`<div class="need info"><div class="need-top"><span class="tag accent">feedback sent</span>
@@ -676,6 +715,7 @@ function renderDrawer() {
     (t.orchStage || t.jobStage || '').replace(/_/g, ' ')].filter(Boolean).join(' · ')
   $('d-title').textContent = t.title || t.key
   $('d-links').innerHTML = [t.url && link(t.url, 'ticket'), t.pr?.url && link(t.pr.url, `PR #${esc(t.pr.number ?? '')}`),
+    t.hasReport && `<a href="/report/${encodeURIComponent(t.key)}/" target="_blank" rel="noopener">Change report</a>`,
     t.orch?.branch || t.job?.branch ? `<span class="faint">${esc(t.orch?.branch || t.job?.branch)}</span>` : '',
     t.job?.record ? `<span class="faint">${esc(t.job.record)}</span>` : ''].filter(Boolean).join('')
 
@@ -846,7 +886,7 @@ async function poll() {
     const changed = text !== lastJson
     if (!changed) return
     lastJson = text; data = JSON.parse(text)
-    for (const q of [...sentLocal.keys()]) if (!(data.orchestrator?.ownerQuestions || []).some((x) => x.id === q && !x.answeredAt)) sentLocal.delete(q)
+    for (const q of [...sentLocal.keys()]) if (!openQuestions(data).some((x) => x.id === q)) sentLocal.delete(q)
     tickets = buildTickets(data)
     renderHeader(data); renderNeeds(data); renderWaves(data); renderBoard(); renderFeed(data)
     if (openKey && !document.activeElement?.matches?.('textarea')) renderDrawer()

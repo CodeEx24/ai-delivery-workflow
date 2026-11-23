@@ -48,6 +48,8 @@ settings or permissions, report faithfully.
 | `/factory plan` | Run `plan-waves` over the labeled issues only; owner approves; wave labels are applied to those issues. |
 | `/factory board` | Start (or reopen) the live board and print its URL. |
 | `/factory status` | Read-only: queue, in flight, waiting on you, board URL. Same as `/deliver --status`. |
+| `/factory pause [#12 …] [--now]` | Pause the factory (or these issues): nothing new starts, nothing merges, workers park after their current step (`--now`: stop at once, work committed). Issue labels are not changed. Deliver's `references/pause.md`. |
+| `/factory resume [#12 …]` | Resume from where each issue stopped. |
 | `/factory <anything else>` | **Talk mode** (below). |
 | `--cap N`, `--dry-run`, `--watcher` | As in `/deliver`. |
 | `--label L` | Use another queue label than `factory` (saved in `orchestrator.json.tracker.queueLabel`). |

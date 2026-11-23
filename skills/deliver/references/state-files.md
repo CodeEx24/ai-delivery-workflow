@@ -30,7 +30,11 @@ copies what matters into it. The orchestrator writes only *other* files inside a
 │                               reviewers, one per routed role, first line VERDICT: PASS|CHANGES
 ├─ round-N/screenshots/         <KEY>-<n>-AC1-step-01.png … (tester-device; never committed)
 ├─ decision.md                  approver; first line APPROVE | ESCALATE
-└─ walkthrough.md               explainer; posted into the PR description
+├─ walkthrough.md               explainer; posted into the PR description
+├─ changes.json                 explainer; per-file and per-function explanations (change-report.md)
+└─ report.html                  the owner's change report (board.py report; never committed)
+
+<main checkout>/.delivery/reports/<KEY>/       archived change report + its screenshots; kept after cleanup
 ```
 
 `<KEY>-<n>` is the full ticket key (`ABC-27`); where this skill writes `<KEY>` for a ticket it
@@ -78,10 +82,12 @@ the original. Timestamps are ISO 8601 with offset.
   },
   "policy": {
     "cap": 2,
-    "capSource": "docs/workflow/README.md §4 | default (2) | --cap",
+    "capSource": "docs/workflow/delivery.config.json | docs/workflow/README.md | default (2) | --cap",
     "mergePath": "owner (default) | agent (only if the merge command is allowed for agents)",
+    "autoAcceptRecommended": false,
+    "loopMinutes": "auto | 1-60",
     "idleReleaseMin": 60,
-    "mergeStrategy": "squash",
+    "mergeStrategy": "squash | merge | rebase",
     "workerMayPush": true,
     "maxRounds": 3,
     "workerAgent": "claude",
@@ -142,6 +148,8 @@ the original. Timestamps are ISO 8601 with offset.
       "notes": "device test r1 waited behind ABC-30"
     }
   },
+  "pause": { "active": false, "scope": "all | tickets", "tickets": [], "mode": "soft | now",
+             "since": "…", "by": "owner (chat) | owner (board.py)", "reason": null },
   "gate": { "holder": "ABC-27 | null", "round": 1, "startedAt": "…", "bgTaskId": "…", "queue": ["ABC-31"] },
   "deviceLane": { "holder": "ABC-30 | null", "grantedAt": "…", "queue": ["ABC-27"] },
   "mergeLock": { "holder": "ABC-25 | null", "startedAt": "…", "awaitingOwnerMerge": ["ABC-24"] },
@@ -162,7 +170,9 @@ Rules:
 
 - `holdsSlot` is true for stages `dispatched`, `gating`, `gate_failed`, `testing`,
   `device_wait`, `reviewing`, `approving` and `merging`; false for `queued`,
-  `awaiting_owner`, `escalated`, `blocked`, `awaiting_owner_merge`, `merged`, `cleaned`.
+  `awaiting_owner`, `escalated`, `blocked`, `awaiting_owner_merge`, `paused`, `merged`, `cleaned`.
+- `paused` (owner paused it, `pause.md`): the ticket also carries `pausedFrom` (the stage to
+  return to) and `pausedAt`. `pause` is `null` or `active: false` when nothing is paused.
   In-flight count = tickets with `holdsSlot: true`. It must never exceed `policy.cap`.
 - `waitingOn`: `null | "owner" | "gate" | "device-lane" | "merge-lock" | "worker"`;
   `waitingSince` is set when `waitingOn` becomes `"owner"`. After `policy.idleReleaseMin`
@@ -228,7 +238,9 @@ loop by hand sets them the same way.
   "last_error": null,
   "progress": { "step": 1, "phase": "Phase 6 · build", "tasksDone": 2, "tasksTotal": 5,
                 "current": "Task 3: guard the save handler", "updated_at": "…" },
-  "questions": [ { "q": "…", "options": ["A …", "B …"], "recommendation": "A — because …" } ],
+  "questions": [ { "id": "ABC-27-q1", "kind": "decision", "q": "ABC-27: …?",
+                   "options": ["A - …", "B - …"], "recommendation": "A - because …",
+                   "askedAt": "…", "messageId": null, "answer": null, "answeredAt": null } ],
   "updated_at": "…"
 }
 ```
@@ -236,8 +248,11 @@ loop by hand sets them the same way.
 `job.json` exists from the worker's **first minute** (implement-ticket writes it at intake with
 `stage: "intake"`), not only at hand-off, so the live board shows a ticket as soon as it starts.
 `progress` is for the board (step index: 0 intake · 1 build · 2 gate · 3 test · 4 review ·
-5 approve · 6 merge · 7 done). `questions` is used only by the subagent engine, which has no
-`ask` (factory skill, `references/subagent-engine.md`).
+5 approve · 6 merge · 7 done). `questions` holds every owner question the worker asked, one decision per entry
+(`id` `<KEY>-q<n>`, `kind`, `q`, `options`, `recommendation`, `askedAt`, `messageId`, `answer`,
+`answeredAt`, optional `notes`); full rules in implement-ticket's `references/owner-questions.md`.
+Orca workers write it before their `ask`; subagent workers instead of an `ask`. The board shows
+open entries even before the orchestrator relays them.
 
 | Field | Who decides it | Read by |
 |---|---|---|
@@ -250,7 +265,7 @@ loop by hand sets them the same way.
 | `services` | Worker, from tester-device's report (what it started and stopped) | Orchestrator (lane release), merge-ticket cleanup |
 | `decision`, `escalation`, `owner_actions`, `cost` | Worker, from `decision.md`, owner guides and the cost script | Orchestrator, merge-ticket |
 | `progress` | Worker, at each phase and plan task | The live board |
-| `questions` | Worker (subagent engine only) | Orchestrator → `ownerQuestions` |
+| `questions` | Worker, one entry per decision, before asking | Orchestrator → `ownerQuestions` (one each, `jobQuestion` link), the live board |
 
 ### Stage vocabulary
 
@@ -324,6 +339,8 @@ All through Orca orchestration; subjects start with `[<KEY>-<n>]` so a batch is 
 | `[ABC-27] APPROVE` | Every routed role wrote PASS (tester-device may be BLOCKED); run approver, then explainer on APPROVE |
 | `[ABC-27] RESUME` | Owner answered the escalation: the answer, and what to do next |
 | `[ABC-27] RESYNC` | Re-sync with the default branch (conflict merge-ticket could not resolve) |
-| `[ABC-27] STOP` | Owner asked to stop: commit WIP to the branch, push, report, end |
+| `[ABC-27] STOP` | Owner asked to stop (or `--pause --now`): commit WIP to the branch, push, report, end |
+| `[ABC-27] PAUSE` | Soft pause: finish the current step, commit, push, update job.json, report, then wait |
+| `[ABC-27] CONTINUE` | Resume after a pause: the recorded stage and the next instruction (re-sync first if behind) |
 
 The exact bodies are in `worker-brief.md`.

@@ -103,8 +103,9 @@ Only merge-ticket marks a PR ready; builders, testers and the orchestrator leave
 
 ## The two merge paths
 
-The project decides this once (workflow 1b, recorded in `docs/workflow/README.md` or
-`CLAUDE.md`). **Default: owner approves by merging.** Agent merges only when the owner chose it
+The project decides this with `/delivery-config mergePath=owner|agent` (recorded in
+`docs/workflow/delivery.config.json`; older projects may record it in `docs/workflow/README.md`
+or `CLAUDE.md`). **Default: owner approves by merging.** Agent merges only when the owner chose it
 and allow-listed the merge command for agents. Honour the choice; do not switch paths because
 one is blocked.
 

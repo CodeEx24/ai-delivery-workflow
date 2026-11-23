@@ -17,7 +17,7 @@ Legend: **(human)** owner decision or action · **(agent)** Claude Code skill or
   - `--only <KEY>-<n>[,…]` — start only these tickets (one-ticket runs).
   - `--board` — open the live delivery board (below).
 - **`/factory run`** — the same engine fed by GitHub issues labeled `factory` instead of a whole backlog. Issue labels track each step (`factory:building`, `factory:needs-info`, `needs-human`, `ready-to-merge`); `/factory <anything>` answers questions, gives feedback, rejects, or files a new labeled issue. Recommended form: **`/loop /factory run`**. Works without Orca (workers become background subagents).
-- **Live delivery board** — `python ~/.claude/delivery-board/board.py serve --repo . --open` (the orchestrator starts it for you). One page for the whole delivery: the wave plan, every ticket's step, round verdicts, acceptance criteria, blockers, your open questions (answerable from the page) and an activity feed, refreshed every 2 s. Try it with `--demo`.
+- **Live delivery board** — `python "$HOME/.claude/delivery-board/board.py" serve --repo . --open` (the orchestrator starts it for you). One page for the whole delivery: the wave plan, every ticket's step, round verdicts, acceptance criteria, blockers, your open questions (answerable from the page) and an activity feed, refreshed every 2 s. Try it with `--demo`.
 - **New project?** Start with `/delivery-blueprint`, then `/deliver`.
 - **Which commands for my situation?** See `PLAYBOOK.md` in the kit's `workflow/` folder: Jira backlog, one ticket only, GitHub issues, new project.
 
