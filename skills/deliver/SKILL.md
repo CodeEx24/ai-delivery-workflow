@@ -13,7 +13,7 @@ description: >-
   else a local `docs/tickets/backlog.md` (`T-001…`). Manual-only: it runs when the owner types `/deliver …` (or
   `/loop /deliver …`), never from a phrase. It enforces the two-wave window, the concurrency
   cap, the device lane, one-merge-at-a-time and never merging on red.
-argument-hint: "<PROJECT-KEY | path-or-URL> [--watcher] [--status] [--dry-run] [--cap N] [--takeover]"
+argument-hint: "<PROJECT-KEY | path-or-URL> [--watcher] [--status] [--dry-run] [--mine | --only KEY-n,...] [--cap N] [--takeover]"
 user-invocable: true
 disable-model-invocation: true
 ---
@@ -54,6 +54,7 @@ needs reinstalling.
 | `--cap N` | Lower the concurrency cap for this run. A cap *above* the project's configured one (default **2**) needs the owner's explicit yes; to raise it for good, use `/delivery-config cap=N`. |
 | `--takeover` | Take over from another orchestrator whose lock looks stale (see `references/state-files.md`, "Lock"). |
 | `/deliver <KEY> --only ABC-42[,ABC-43]` | Fill capacity only from these tickets (step 5); everything else in the cycle runs as usual. Blockers, the two-wave window and the cap still apply: a barred ticket is reported with the reason, not started. Stops when these tickets are merged or waiting on the owner. Saved as `policy.only` for the run. |
+| `/loop /deliver <KEY> --mine` | Run every ticket assigned to the operator, with no list. Each cycle re-reads assignments and blockers, so new and newly unblocked tickets start automatically. Touches only the operator's tickets and PRs, and keeps watching until 8 idle hours pass. **Read `references/mine.md`**, which overrides the steps it names. |
 | `/deliver <KEY> --board` | Start (or reopen) the live delivery board and print its URL; changes nothing else. See `references/board.md`. |
 | `/deliver <KEY> --pause [KEY-n,…] [--now]` | Pause everything (or these tickets). Soft by default: start nothing new, merge nothing, each worker finishes its current step, commits, pushes and waits. `--now` stops workers immediately (work in progress committed and pushed). Nothing is lost; the tracker is not changed. See `references/pause.md`. |
 | `/deliver <KEY> --resume [KEY-n,…]` | Resume everything (or these tickets) from exactly where each stopped. |
@@ -166,7 +167,8 @@ Details, detection commands and fixes: **`references/bootstrap.md`**.
    workers ~400k, subagents 200k, a `# Compact instructions` section in `CLAUDE.md`; a
    SessionStart hook only if compactions turn out to lose state). Settings are written **only
    with the owner's yes**; a gap is *info*, never blocking.
-3. **Waves.** Run `wave-status` and read its summary block. If waves exist (`window` not
+3. **Waves.** Run `wave-status` and read its summary block. With `--mine`, continue whether or
+   not waves exist and never run `plan-waves`. If waves exist (`window` not
    null, or a wave plan document the tracker agrees with) → continue. If none → run
    `plan-waves`, present its plan, and **wait for the owner's explicit approval** before it
    applies anything; end the turn there (no wake-up scheduled). On the approval turn, let
@@ -176,7 +178,8 @@ Details, detection commands and fixes: **`references/bootstrap.md`**.
    `.delivery/orchestrator.json` (atomic write: temp file, then rename) with project, policy,
    cap, run id, lock, empty tickets / device lane / merge lock. Adopt work already in flight:
    any `.delivery/jobs/*/job.json` in existing Orca worktrees, and open PRs of window tickets,
-   become `tickets` entries instead of being started twice.
+   become `tickets` entries instead of being started twice. With `--mine`, adopt only the
+   operator's work (`references/mine.md`).
 5. **Live board.** If it is not running (`.delivery/board.json` missing, or its `api/ping`
    fails), start `python "$HOME/.claude/delivery-board/board.py" serve --repo <main checkout>` with
    `run_in_background` and print the URL once: "Live board: <url>, showing waves, each ticket's
@@ -228,6 +231,8 @@ Full procedure, stage table, device lane and merge protocol: **`references/cycle
    Then either **stop** or **schedule the next wake-up** (below).
 
 ### Stop condition
+
+With `--mine`, use the watch and idle-limit rules in `references/mine.md` instead of this section.
 
 Stop when **all** hold: no worker is in an active stage; no merge or gate is running; nothing in
 the window is ready (or every ready ticket is barred by a rule above); and everything left

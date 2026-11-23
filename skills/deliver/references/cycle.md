@@ -28,11 +28,14 @@ little. Keep your own output short: one line per action, the detail lives in fil
    close out anything this cycle on board data alone. Rewrite `orchestrator.json.backlog` from
    the block (every open ticket of the window and the waves after it, with status, wave and
    blockers) so the live board's Waves strip is current (`board.md`).
+   **`--mine`:** refresh the operator's assigned tickets now and apply the scope in `mine.md`.
 5. **Reconcile** `orchestrator.json` with each ticket's `job.json` (read from its worktree)
    and the board. Disagreements are findings: e.g. job `ready_to_merge` but PR closed → stop
    that ticket, report.
 
 ## 2. Housekeeping first
+
+With `--mine`, act only on the operator's tickets and PRs. Report the rest (`mine.md`, section 4).
 
 | Board finding | Action |
 |---|---|
@@ -177,14 +180,16 @@ the reason) and check:
    A blocker whose PR merged but ticket is not closed → close it out first (step 2), not around it.
 2. **Project entry rules:** readiness label/status; for medium/high risk, design accepted if the
    workflow doc requires it before a worktree (otherwise the worker asks SPEC-APPROVAL).
-3. **Window:** wave ∈ {base, next if `window.next_open`}, or critical bug.
+3. **Window:** wave ∈ {base, next if `window.next_open`}, or critical bug. With `--mine`, an
+   assigned ticket with no wave passes this check, and the assignee is re-read first (`mine.md`).
 4. **No collision:** owned paths and hotspots don't overlap a running ticket's; migration
    hotspot: one in-flight branch at a time.
 5. **Machine:** free disk above `policy.diskWarnGb`.
 
 Pass → write the brief (`worker-brief.md`), `worker-start`, record the ticket (`dispatched`,
 `holdsSlot: true`), comment on the Orca worktree card. Fail → skip with the reason in the
-cycle line. Never take a ticket from outside `ready`.
+cycle line. Never take a ticket from outside `ready`, except an assigned no-wave ticket under
+`--mine`, which goes through the same checks.
 
 ## 6. Owner questions
 
