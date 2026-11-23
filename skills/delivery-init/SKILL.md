@@ -81,7 +81,7 @@ Do not commit. Report the files changed and suggest committing `CLAUDE.md`,
 
 ```
 Project ready for the delivery workflow.
-  Live board (sample data):   python ~/.claude/delivery-board/board.py serve --demo --open
+  Live board (sample data):   python "$HOME/.claude/delivery-board/board.py" serve --demo --open
   Jira / Linear backlog:      /wave-status  →  /plan-waves (if no waves)  →  /loop /deliver <KEY>
   One ticket:                 /loop /deliver <KEY> --only <KEY>-<n>    (or /implement-ticket <KEY>-<n>)
   GitHub issues:              label them `factory`  →  /loop /factory run

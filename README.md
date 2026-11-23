@@ -107,12 +107,13 @@ In a project that already has tickets:
 
 | `/deliver <KEY> --only ABC-42` | Run the loop for just these tickets. |
 | `/deliver <KEY> --board` | Open the live delivery board. |
+| `/deliver <KEY> --pause` / `--resume` | Pause everything (or `--pause ABC-42`; `--now` to stop at once) without losing work; resume from where each ticket stopped. `/factory pause` / `resume` for the factory. |
 | `/loop /factory run` | Build every open GitHub issue labeled `factory` (labels track each step; questions go on the issue and the board). |
 | `/factory <anything>` | Answer a question (`Q3: B`), give feedback (`#12 …`), reject, or file a new labeled issue. |
 
 New project? Run **`/delivery-blueprint`** first (PRD, tickets, `CLAUDE.md`, docs layout), then `/deliver`.
 
-**Live board:** `python ~/.claude/delivery-board/board.py serve --repo . --open` in the project (the orchestrator starts it automatically). See it with sample data right after installing: `python ~/.claude/delivery-board/board.py serve --demo --open`. Needs Python 3.10+.
+**Live board:** `python "$HOME/.claude/delivery-board/board.py" serve --repo . --open` in the project (the orchestrator starts it automatically). See it with sample data right after installing: `python "$HOME/.claude/delivery-board/board.py" serve --demo --open`. Needs Python 3.10+.
 
 **Not sure which commands fit your situation?** [`workflow/PLAYBOOK.md`](workflow/PLAYBOOK.md) walks through a Jira backlog, a single ticket, GitHub issues and a new project, command by command.
 

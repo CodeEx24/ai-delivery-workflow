@@ -110,4 +110,4 @@ Say '  3. Manual alternative: see INSTALL.md (section "Set up a project by hand"
 Say '  4. Optional tools (Orca, PM tool MCP, gh, Context7, ...): see third-party.md'
 Say '  5. Start:  /loop /deliver <PROJECT-KEY>   (new project: /delivery-blueprint first)'
 Say '     GitHub issues labeled "factory":  /loop /factory run'
-Say '  6. Live board (try it now):  python ~/.claude/delivery-board/board.py serve --demo --open'
+Say '  6. Live board (try it now):  python "$HOME/.claude/delivery-board/board.py" serve --demo --open'

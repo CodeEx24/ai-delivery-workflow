@@ -149,7 +149,8 @@ your guess). End with: "Correct me now or I proceed with these." A guess that is
 fork becomes a question.
 
 Use `AskUserQuestion` (or, as an Orca worker, the orchestration `ask` — see below), at most
-~4 questions, recommendation as option 1 labelled `(Recommended)`. Good candidates: extend a
+~4 questions, recommendation as option 1 labelled `(Recommended)`. As a worker, follow
+`references/owner-questions.md`: one decision per question, each written to `job.json.questions` first. Good candidates: extend a
 module vs add one, where a permission or validation gate belongs, database vs application
 logic, schema change vs derive on read, how much adjacent refactoring, an AC that conflicts
 with the data model.
@@ -310,7 +311,9 @@ contract**:
   an edit. Shared files (manifest, lockfile, build config, root layout, shared schemas)
   follow the brief's coordination rule. Never hand-merge a lockfile: rebase and reinstall.
 - **Owner questions and record acceptance (medium/high) go through the orchestration `ask`**,
-  never `AskUserQuestion`; answers come back the same way. Ask only what an accepted record
+  never `AskUserQuestion`; answers come back the same way. Follow `references/owner-questions.md`
+  exactly: one decision per question (never "Accept? Sub-questions: …"), each in
+  `job.json.questions` before you ask, all of them in one `ask`. Ask only what an accepted record
   doesn't settle; skip acceptance if the brief says the record is already accepted.
 - Run every phase through Phase 9 (checks, commit, push, draft PR, record link, In Review,
   `job.json`), then follow the brief's stage instructions. **Never merge.**
@@ -319,6 +322,8 @@ contract**:
 
 ## References
 
+- `references/owner-questions.md` — how to ask the owner: one decision per question,
+  `job.json.questions`, the `ask` format. Read before any question as a worker.
 - `references/ticket-types.md` — Feature / Bug / Chore / Spike in detail. Read at Phase 1.
 - `references/ticket-record.md` — record template, links block, folder form, plan file,
   owner-guide front matter. Read at Phase 4–5.

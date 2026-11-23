@@ -56,7 +56,7 @@ third-party skills with `npx skills add`. It never edits `settings.json` or any 
 autocomplete. Then look at the board with sample data:
 
 ```bash
-python ~/.claude/delivery-board/board.py serve --demo --open
+python "$HOME/.claude/delivery-board/board.py" serve --demo --open
 ```
 
 ## 2. Set up a project

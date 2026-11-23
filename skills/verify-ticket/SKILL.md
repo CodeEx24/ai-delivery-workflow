@@ -171,6 +171,9 @@ does not verify a UI criterion. **Screenshot every step**, not just the final on
 .delivery/jobs/<KEY>-<n>/round-<N>/screenshots/<KEY>-<n>-AC1-step-NN.png    ← the moment that proves or disproves it
 ```
 
+A few words after the step number say what the screen shows (`…-AC1-step-02-saved.png`); add
+`-FAIL` to the step that proves a criterion is not met (`…-AC1-step-04-wrong-total-FAIL.png`), so
+the change report (`board.py report`) outlines it as the failing step.
 Bugs add `-before-` / `-after-` (e.g. `<KEY>-<n>-AC1-before-step-01.png`). Keep a step log as you
 go: step number → action → what the screen showed → file. The working folder is gitignored;
 never add images to the working tree. If the project has no `.delivery/` convention, use the

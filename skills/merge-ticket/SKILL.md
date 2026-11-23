@@ -205,6 +205,10 @@ mechanically → abort, report the PR and files, leave it for its builder. Recip
 
 **Clean up this ticket** (only after step 5 succeeded — the working folder holds the evidence):
 
+0. **Change report first**, while the worktree and working folder still exist:
+   `python "$HOME/.claude/delivery-board/board.py" report --repo <main checkout> --ticket <KEY>`.
+   It copies `report.html` and its screenshots to `<main checkout>/.delivery/reports/<KEY>/`
+   (gitignored), so the owner keeps it after cleanup. Failure here is reported, not fatal.
 1. **Worktree:** confirm it is clean (`git status --porcelain` empty) and has nothing unpushed;
    anything left → stop and report, never discard. Prefer the tool that manages it (e.g. the
    Orca CLI for Orca worktrees) over raw `git worktree remove`. Stop any process still running

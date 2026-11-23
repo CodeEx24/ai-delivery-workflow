@@ -47,6 +47,8 @@ the owner. Everything else happens in workers.
 | `--takeover` | Take over from another orchestrator whose lock looks stale (see `references/state-files.md`, "Lock"). |
 | `/deliver <KEY> --only ABC-42[,ABC-43]` | Fill capacity only from these tickets (step 5); everything else in the cycle runs as usual. Blockers, the two-wave window and the cap still apply: a barred ticket is reported with the reason, not started. Stops when these tickets are merged or waiting on the owner. Saved as `policy.only` for the run. |
 | `/deliver <KEY> --board` | Start (or reopen) the live delivery board and print its URL; changes nothing else. See `references/board.md`. |
+| `/deliver <KEY> --pause [KEY-n,…] [--now]` | Pause everything (or these tickets). Soft by default: start nothing new, merge nothing, each worker finishes its current step, commits, pushes and waits. `--now` stops workers immediately (work in progress committed and pushed). Nothing is lost; the tracker is not changed. See `references/pause.md`. |
+| `/deliver <KEY> --resume [KEY-n,…]` | Resume everything (or these tickets) from exactly where each stopped. |
 | `--engine orca\|subagents` | Worker transport. Default `orca`; `subagents` runs workers as background subagents of this session when Orca is unavailable (`~/.claude/skills/factory/references/subagent-engine.md`). |
 
 GitHub issues labeled `factory` have their own front door, **`/factory`**, which runs this same
@@ -166,7 +168,7 @@ Details, detection commands and fixes: **`references/bootstrap.md`**.
    any `.delivery/jobs/*/job.json` in existing Orca worktrees, and open PRs of window tickets,
    become `tickets` entries instead of being started twice.
 5. **Live board.** If it is not running (`.delivery/board.json` missing, or its `api/ping`
-   fails), start `python ~/.claude/delivery-board/board.py serve --repo <main checkout>` with
+   fails), start `python "$HOME/.claude/delivery-board/board.py" serve --repo <main checkout>` with
    `run_in_background` and print the URL once: "Live board: <url>, showing waves, each ticket's
    step, blockers and your questions; you can answer there too." No approval needed (local,
    read-only, 127.0.0.1). Python missing → info gap, continue. Details: `references/board.md`.
@@ -302,6 +304,8 @@ the handle, and stop — this session does not cycle. The watcher binds the stor
   lock rules, message subjects between orchestrator and workers.
 - `references/worker-brief.md` — the exact brief sent to each ticket worker, and the
   stage-instruction messages.
+- `references/pause.md` — pause and resume (all or single tickets, soft or now): state, what
+  each cycle step does while paused, the PAUSE / CONTINUE messages, ending and restarting the loop.
 - `references/board.md` — the live delivery board: starting it, the files it reads, the
   `wave-plan.json` / `events.jsonl` / `progress` / inbox contracts, and the trust rules for
   answers typed on the board.

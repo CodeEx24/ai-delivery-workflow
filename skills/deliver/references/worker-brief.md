@@ -75,12 +75,17 @@ section applies) with these settings:
 1. **Questions for the owner** go through
    `orca orchestration ask --question "[{{KEY}}] OWNER: <question>" --options "<A (recommended)>,<B>,…"`,
    then end your turn; Orca wakes you with the answer. Never use AskUserQuestion — the owner
-   is not watching this chat. Ask only what the record, this brief and the repo docs don't settle;
-   batch related forks into one ask. Before ending the turn, make sure `job.json` and the job
+   is not watching this chat. Ask only what the record, this brief and the repo docs don't settle.
+   Follow `~/.claude/skills/implement-ticket/references/owner-questions.md`:
+   **one decision per question**, each written to `job.json.questions` (`{{KEY}}-q<n>`) before
+   the `ask`, all open questions in one `ask`, one line per question id. Never bundle forks into
+   one question or hide them in a spec approval ("Accept? Sub-questions: …"). Before ending the turn, make sure `job.json` and the job
    folder hold everything needed to continue: after ~1 hour waiting on the owner the
    orchestrator releases this worker and resumes it (or a fresh one) from those files.
 2. **Record acceptance** (medium/high risk, or whatever `{{WORKFLOW_DOC}}` requires): write the
-   ticket record, then `ask --question "[{{KEY}}] SPEC-APPROVAL: <record path> — <one-line summary + open questions>"`
+   ticket record, then `ask --question "[{{KEY}}] SPEC-APPROVAL: <record path> — <one-line summary>"`
+   (the approval is `{{KEY}}-q1`; each open point that is a real decision is its own question,
+   the rest go under `notes`)
    and end your turn. No code before the answer says accepted.
 3. **Push and draft PR: {{PUSH_POLICY}}.** This is the go-ahead for implement-ticket Phase 8:
    push the ticket branch and open a **draft** PR. Never mark it ready (merge-ticket does that
@@ -146,6 +151,10 @@ and say so in your report.
 - **RESYNC** — merge `origin/{{DEFAULT_BRANCH}}` into your branch, resolve conflicts inside
   your owned paths (anything else: report, don't guess), re-run the checks, push, report.
 - **STOP** — commit work in progress to your branch, push, report what is unfinished, end.
+- **PAUSE** — finish the step you are in, commit, push, update `job.json` (stage and
+  `progress`), report, then wait; start nothing new until **CONTINUE**.
+- **CONTINUE** — re-sync with the default branch if behind, then carry on from the stage the
+  message names.
 
 ## job.json (`deliver-job/1`)
 Fields: `schema`, `ticket`, `title`, `type`, `risk`, `stage`, `round`, `branch`,

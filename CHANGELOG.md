@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-11-12 — change report, owner questions, Windows paths
+
+- **Change report** (`board/report.py`, `board.py report --repo . --ticket <KEY> [--open]`): one HTML page per ticket, never committed. Every changed file grouped by area (frontend, backend & logic, database, tests, config, docs) with its functions marked added / updated / removed, what changed, and links to the file on GitHub and locally (no diffs); the acceptance criteria; every round's verdicts; the device tester's step-by-step screenshots per criterion, labelled failed or passed run, with the failing step outlined. The explainer writes `changes.json` (schema `delivery-changes/1`) and builds it after APPROVE; merge-ticket refreshes the archived copy in `.delivery/reports/<KEY>/` before cleanup. The board links it from the ticket drawer (`/report/<KEY>/`). Screenshot names gain a caption and a `-FAIL` mark. New reference `skills/deliver/references/change-report.md`.
+- **Owner questions: one decision per question** (`skills/implement-ticket/references/owner-questions.md`). Workers write every question to `job.json.questions` (`<KEY>-q<n>`) before asking; the orchestrator relays every open question each cycle as its own entry (no cap, never bundled) and answers a worker once all its questions are answered. The board shows a worker's questions straight from `job.json` ("from worker") and accepts answers to them.
+- **Windows**: every board command uses `"$HOME/.claude/delivery-board/board.py"` instead of `~/...`, which PowerShell does not expand (the orchestrator silently skipped the board inbox). A failed inbox read is now reported, never skipped.
+
+## 2026-11-11 (later) — pause and resume
+
+- **`/deliver <KEY> --pause [keys] [--now]`** and **`--resume [keys]`**, **`/factory pause|resume`**: pause everything or single tickets without losing work. Soft (default): nothing new starts, nothing merges, each worker finishes its current step, commits, pushes and waits (`[KEY] PAUSE`); `--now` sends `STOP`. The loop ends once everything is parked; resume sends `[KEY] CONTINUE` from each ticket's recorded stage (re-sync first after a long pause). The tracker is not changed. New reference `skills/deliver/references/pause.md`; `orchestrator.json.pause`, ticket stage `paused` with `pausedFrom`.
+- **`board.py pause|resume`**: pause or resume from any terminal (an inbox request applied on the next cycle). The board shows a ⏸ paused pill and pending requests.
+
 ## 2026-11-11 — `/factory` and the live delivery board
 
 Inspired by zazencodes' "software factory v2" (label-driven GitHub issue queue, file-based state, a polling HTML board), rebuilt on this kit's engine instead of a second pipeline.
