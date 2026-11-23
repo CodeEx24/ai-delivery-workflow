@@ -279,8 +279,9 @@ When resumed for a ticket whose `.delivery/jobs/<KEY>-<n>/round-N/*.md` files co
    (`fix(scope): address review round N`), push.
 4. Bump the round in `job.json` (`round: N+1`, stage `built`); stop with the one-line report.
 
-**Max 2 extra rounds** (rounds 2 and 3). If round 3 still has CHANGES, do not fix again: set
-stage `escalated`, write the one specific question for the owner, and stop.
+**Round limit:** the project's `maxRounds` (`docs/workflow/delivery.config.json`, default 3). If
+the last round still has CHANGES, or the orchestrator says the limit is reached, do not fix
+again: set stage `escalated`, write the one specific question for the owner, and stop.
 
 ## Progress for the board
 

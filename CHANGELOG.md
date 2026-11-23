@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-23 — project settings and setup guide
+
+- **`/delivery-config`**: show or change one project's settings in `docs/workflow/delivery.config.json`: tickets at once, review rounds, loop pacing, worker idle release, auto-accept, merge path, merge strategy, worker push, device lane, engine and disk warning. A running loop applies changes on its next cycle.
+- **Auto-accept recommended options**, default **off**. When on, only routine decisions on non-high-risk tickets are accepted; escalations, sensitive areas, scope, deferrals, plans and merges still go to the owner, and every auto-accepted answer is logged.
+- **Merge path**: owner merges by default, and an undecided project no longer blocks the first run. Agent merges need both `mergePath=agent` and `gh pr merge` allowed in permissions; with only one, the owner still merges.
+- **`docs/GUIDE.md`**: setting up a new project, daily commands and every setting.
+
 ## 2026-11-12 — change report, owner questions, Windows paths
 
 - **Change report** (`board/report.py`, `board.py report --repo . --ticket <KEY> [--open]`): one HTML page per ticket, never committed. Every changed file grouped by area (frontend, backend & logic, database, tests, config, docs) with its functions marked added / updated / removed, what changed, and links to the file on GitHub and locally (no diffs); the acceptance criteria; every round's verdicts; the device tester's step-by-step screenshots per criterion, labelled failed or passed run, with the failing step outlined. The explainer writes `changes.json` (schema `delivery-changes/1`) and builds it after APPROVE; merge-ticket refreshes the archived copy in `.delivery/reports/<KEY>/` before cleanup. The board links it from the ticket drawer (`/report/<KEY>/`). Screenshot names gain a caption and a `-FAIL` mark. New reference `skills/deliver/references/change-report.md`.

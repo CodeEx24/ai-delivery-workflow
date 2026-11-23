@@ -49,6 +49,9 @@ Track the steps in your todo list so the human can see where you are.
 
 One pass, then say in one line what you found:
 
+- `python "$HOME/.claude/skills/delivery-config/config.py" --repo . show --json` — when
+  `docs/workflow/delivery.config.json` exists, its `effectiveMergePath` and `mergeStrategy` win
+  over the prose sources below.
 - `CLAUDE.md` / `AGENTS.md` / `docs/workflow/README.md` — merge strategy (usually squash), the
   **merge path** (agent merges with an allowed command, or *owner approves by merging*), the
   checks script (e.g. `scripts/workflow/checks.sh` / `.ps1`), the cost script (default name

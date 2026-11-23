@@ -6,13 +6,14 @@ This project follows the AI delivery workflow (`~/.claude/workflows/ai-delivery-
 
 ## Capacity
 
-- **Concurrency cap: 2** tickets in flight at once. (Raise to 3 only on a desktop-class machine, and write it here.)
+- **Settings live in `docs/workflow/delivery.config.json`.** Run `/delivery-config` to see or change them (cap, review rounds, loop pacing, auto-accept, merge path). That file wins over this one.
+- **Concurrency cap: 2** tickets in flight at once by default. (3 suits a desktop-class machine: `/delivery-config cap=3`.)
 - **Device lane:** only one ticket uses the simulator / emulator / device and the dev ports at a time. The orchestrator hands the lane out; a ticket waiting for it also waits for its UI / UX reviewers.
 
 ## Merge path
 
 - **Owner merges** (default). The agent re-checks, marks the PR ready, labels the ticket `ready-to-merge` and hands over the PR link; the owner merges (squash); `/merge-ticket` then finishes the close-out.
-- To switch to **agent merges**, allow `gh pr merge` for agents in `.claude/settings.json` and replace the line above with: `Merge path: agent merges (allowed by <owner>, <date>)`.
+- To switch to **agent merges**, run `/delivery-config mergePath=agent` and allow `gh pr merge` for agents in `.claude/settings.json`. Both are required.
 
 ## Ticket type mapping
 

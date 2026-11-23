@@ -135,6 +135,7 @@ The first `/deliver` run checks the rest (checks script, agent files, local back
 
 ## More
 
+- **Setup and settings guide: [`docs/GUIDE.md`](docs/GUIDE.md)**
 - Full workflow: [`workflow/ai-delivery-workflow.md`](workflow/ai-delivery-workflow.md)
 - PDF guide: [`workflow/AI-Delivery-Workflow.pdf`](workflow/AI-Delivery-Workflow.pdf)
 - Third-party tools: [`third-party.md`](third-party.md)

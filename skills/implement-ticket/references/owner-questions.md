@@ -89,3 +89,6 @@ open points that really are decisions, and everything else under `notes`.
   is the wake-up; `job.json` is the source of truth).
 - It relays every open question, not a capped batch. A worker gets its answers when all of its
   open questions are answered, or when the owner says "go with your recommendations".
+- If the project turned on `autoAcceptRecommended` (default off), it may answer routine questions
+  with their recommendation, within the limits in cycle step 6. Workers ask the same way either
+  way, so give every question an honest recommendation and the right `kind`.

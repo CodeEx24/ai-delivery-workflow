@@ -95,8 +95,8 @@ If the repo has no such agents yet, say so and suggest the setup step (workflow 
    `fix(scope): address review round N (<KEY>-<n>)`, push.
 4. `job.json`: `round: N+1`, `stage: "built"`, `updated_at`. One-line report.
 
-**Round limit:** rounds 2 and 3 are the two extra rounds. CHANGES on round 3 → do not fix;
-set `stage: "escalated"`, add `"escalation": "<one specific question for the owner>"`, and
+**Round limit:** the project's `maxRounds` (`docs/workflow/delivery.config.json`, default 3).
+CHANGES on the last round → do not fix; set `stage: "escalated"`, add `"escalation": "<one specific question for the owner>"`, and
 stop. Testers never fix code and you never edit their verdict files.
 
 ## The one-line report
@@ -105,7 +105,7 @@ stop. Testers never fix code and you never edit their verdict files.
 <KEY>-<n> built · <type> · <risk> risk · draft PR <url> · checks PASS · stage built r<N>
 ```
 
-Escalation: `<KEY>-<n> escalated r3 · <question> · PR <url>`.
+Escalation: `<KEY>-<n> escalated r<N> · <question> · PR <url>`.
 
 ## Structured worker report (Orca `worker_done`)
 

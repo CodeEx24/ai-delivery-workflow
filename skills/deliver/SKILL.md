@@ -33,6 +33,14 @@ on the default branch, kept clean. You do not write product code. You read the b
 workers, move tickets from stage to stage, run the gate, merge one PR at a time, and talk to
 the owner. Everything else happens in workers.
 
+**Settings.** At bootstrap and at the start of every cycle, run
+`python "$HOME/.claude/skills/delivery-config/config.py" --repo <main checkout> show --json` and
+copy `values` into `orchestrator.json.policy` (`mergePath` = `effectiveMergePath`,
+`deviceLaneEnabled` = `deviceLane`). Order of precedence: this run's flags, then
+`docs/workflow/delivery.config.json`, then values written in `docs/workflow/README.md`, then the
+defaults. Print any `warnings`. Script missing → use the README and defaults, and say the kit
+needs reinstalling.
+
 ## Arguments and modes
 
 | Invocation | What happens |
@@ -43,7 +51,7 @@ the owner. Everything else happens in workers.
 | `/deliver <path-or-URL> …` | **File mode.** Same as above, but the bootstrap first imports the document's tasks as tickets (owner approves the list), then plans waves (owner approves again). All flags work the same. |
 | `/deliver <KEY> --status` | Read-only: print state from `.delivery/orchestrator.json` + a fresh wave-status. Changes nothing. |
 | `/deliver <KEY> --dry-run` | Bootstrap checks and one cycle **as a plan**: what would be started, advanced, merged, asked. No writes anywhere (not even state files). |
-| `--cap N` | Lower the concurrency cap for this run. A cap *above* the project's documented one (default **2** when none is written) needs the owner's explicit yes. |
+| `--cap N` | Lower the concurrency cap for this run. A cap *above* the project's configured one (default **2**) needs the owner's explicit yes; to raise it for good, use `/delivery-config cap=N`. |
 | `--takeover` | Take over from another orchestrator whose lock looks stale (see `references/state-files.md`, "Lock"). |
 | `/deliver <KEY> --only ABC-42[,ABC-43]` | Fill capacity only from these tickets (step 5); everything else in the cycle runs as usual. Blockers, the two-wave window and the cap still apply: a barred ticket is reported with the reason, not started. Stops when these tickets are merged or waiting on the owner. Saved as `policy.only` for the run. |
 | `/deliver <KEY> --board` | Start (or reopen) the live delivery board and print its URL; changes nothing else. See `references/board.md`. |
@@ -94,7 +102,9 @@ These hold in every mode, every cycle. If a step would break one, stop that step
    re-read says Done; a check you did not run is "not run". Every PR mention carries its full
    URL. When a PR becomes reviewable by the owner, say "ready for your review" with the link.
 8. **Owner questions are batched, recommendation first**, and only for what the brief, the
-   accepted record, the workflow file or the owner's earlier answers do not settle.
+   accepted record, the workflow file or the owner's earlier answers do not settle. Nothing is
+   auto-accepted unless `policy.autoAcceptRecommended` is on (default off), and then only within
+   the limits of `references/cycle.md`, step 6.
 
 ## Topology (why it is built this way)
 
@@ -141,8 +151,8 @@ Details, detection commands and fixes: **`references/bootstrap.md`**.
    to-do list, `needs-human` and `ready-to-merge` labels, concurrency cap (default 2),
    `.delivery/` ignored, cost script (`scripts/workflow/cost`), workflow file installed.
    Classify each gap **blocking / degraded / info** and print the table with the fix. **Ask
-   only about blocking ones** (one batched AskUserQuestion), e.g. merge path undecided
-   (default: owner approves by merging), `.delivery/` not ignored. Never silently change
+   only about blocking ones** (one batched AskUserQuestion), e.g. `.delivery/` not ignored. No
+   recorded merge path means the default, owner merges. Never silently change
    permissions or settings.
 2b. **Import tasks from a document** (file mode only; **`references/import-tasks.md`**): read
    the doc → split into tasks → per task title, type, testable AC, dependencies, size, risk
@@ -190,7 +200,7 @@ Full procedure, stage table, device lane and merge protocol: **`references/cycle
 3. **Advance running tickets** — one action per ticket per event, from its `job.json` stage
    and its last worker report, in the round order **gate → testers (TEST, DEVICE) → reviewers
    (REVIEW, on the round's final commit) → approver (+ explainer on APPROVE) → merge**. Any
-   CHANGES → fix (max 2 extra rounds). A device check reported `BLOCKED` is not a code failure:
+   CHANGES → fix (up to `policy.maxRounds` rounds in total, default 3). A device check reported `BLOCKED` is not a code failure:
    it never resumes the builder; the approver escalates it with one owner question. ESCALATE
    or round limit → `needs-human`. Merges go through the merge lock, one at a time, via
    `merge-ticket` (which also marks the draft PR ready), honouring the merge path (default:
@@ -231,7 +241,9 @@ resume (`/loop /deliver <KEY>`). Template in `references/cycle.md`.
 
 - **Under `/loop`** (the loop skill's instructions are in context, or this turn came from a
   wake-up): end every turn with exactly one ScheduleWakeup call (load it with ToolSearch if
-  deferred), passing the same `/loop /deliver <KEY> …` prompt back. Delay (60–3600 s):
+  deferred), passing the same `/loop /deliver <KEY> …` prompt back. If `policy.loopMinutes` is a
+  number, use that many minutes for every wake-up except a stop. If it is `auto`, use this
+  table (60–3600 s):
 
   | Situation | Delay |
   |---|---|

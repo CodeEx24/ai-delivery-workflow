@@ -64,9 +64,9 @@ Every round runs in the order of `state-files.md`, "Round order": **gate → tes
 | `approving` / `ready_to_merge` | `worker_done phase ready_to_merge` | Verify `decision.md` first line is `APPROVE`, the walkthrough is in the PR body, PR head = branch head. Queue the merge (step 3b). merge-ticket marks the draft ready. |
 | any / `blocked`, `failed` | `worker_done --outcome failed` | Report with `last_error`; label `needs-human` only if the owner must act; `holdsSlot: false`. |
 
-**Round limit.** `round` counts review rounds (round 1 + at most 2 extra = `policy.maxRounds`
-3). CHANGES on round 3, or a third gate failure in a row → send `FIX r3` with the line "round
-limit reached — do not fix; escalate with one specific question". The brief tells the worker
+**Round limit.** `round` counts review rounds, up to `policy.maxRounds` (default 3: round 1 + 2
+extra). CHANGES on the last round, or that many gate failures in a row → send `FIX r<N>` with the
+line "round limit reached — do not fix; escalate with one specific question". The brief tells the worker
 to set `escalated` instead of fixing. Never skip to `APPROVE` to get past the limit.
 
 ### Routing (decided by the orchestrator, from `job.json`)
@@ -137,7 +137,8 @@ no `CHANGES_REQUESTED`; CI not red; `mergeLock.holder` is null.
    (the pre-merge re-gate), merges per the merge path, verifies the deploy,
    posts the proof (AC results + screenshots on the ticket; verdicts, decision, CI and cost on
    the PR), moves the ticket to Done, re-syncs the other open PRs, and cleans up.
-   - **Agent merge path** (only if the owner allowed the merge command for agents): it merges.
+   - **Agent merge path** (`policy.mergePath` is `agent`, which `delivery-config` reports only
+     when the merge command is allowed for agents): it merges with `policy.mergeStrategy`.
      Expect `MERGED` and a merge SHA in its report.
    - **Owner merge path (the default):** it stops at the hand-over and labels the ticket
      `ready-to-merge` (not `needs-human`). Stage `awaiting_owner_merge`, release the merge lock,
@@ -197,6 +198,15 @@ cycle line. Never take a ticket from outside `ready`.
   `jobQuestion: "<KEY>-q<n>"`, its own options and recommendation. Never merge several into one
   entry or summarize them as "Sub-questions: …". A worker `ask` that bundles forks without
   `job.json.questions`: split it yourself, one entry per fork, and remind the worker of the guide.
+- **Auto-accept (only when `policy.autoAcceptRecommended` is on; default off).** Answer an open
+  question with its recommended option when **all** hold: its `kind` is `decision` or
+  `spec-approval`; it has a `recommendation` naming one listed option; the ticket is not high
+  risk; and it does not touch auth, permissions, data access rules, secrets, billing, personal
+  data, deletion, production, or migrations on live data. **Always relay** escalations, round-limit
+  and `BLOCKED` questions, `scope`, `needs-info` and `action` questions, deferred acceptance
+  criteria, ticket lists, wave plans, setup decisions, and any merge. Record
+  `answer`, `answeredAt` and `answeredBy: "auto"` on the entry, log an `answer` event
+  ("auto-accepted <KEY>-q<n>: <option>"), and list it in the cycle output and the stop summary.
 - **Relay** the rest. Every open question every cycle (no cap), grouped by ticket, newest context first:
 
   ```

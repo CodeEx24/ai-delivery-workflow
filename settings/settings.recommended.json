@@ -3,7 +3,7 @@
     "EXAMPLE ONLY - merge by hand into a project's .claude/settings.json (or ~/.claude/settings.json).",
     "The installer never writes settings. Replace the <placeholders> with the project's real commands.",
     "Merge path: by default the OWNER merges (gh pr merge is NOT allowed). To let agents merge,",
-    "move \"Bash(gh pr merge:*)\" from 'ask' to 'allow' and write 'agent merges' in docs/workflow/README.md.",
+    "move \"Bash(gh pr merge:*)\" from 'ask' to 'allow' and run /delivery-config mergePath=agent.",
     "env: compaction window for long-running sessions. 300000 suits the orchestrator (/loop /deliver);",
     "ticket workers use ~400000 (set through their launch env if your worktree tool can pass it).",
     "Subagents get autoCompactWindow: 200000 from their own frontmatter (Claude Code 2.1.296+).",
