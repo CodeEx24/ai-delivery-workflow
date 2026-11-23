@@ -68,6 +68,8 @@ hand, in this order:
 
 1. **Gate.** Run the **main branch's copy** of the checks script (so a branch can't weaken its
    own checks) against the ticket branch with `--report .delivery/jobs/<KEY>-<n>/round-N/checks.md`.
+   If the repo has `.engineering/check.mjs`, also run
+   `~/.claude/skills/deliver/references/standards-gate.md` and add its block to `checks.md`.
    FAIL → back to the builder with the log; spawn nobody else.
 2. **Testers.** Set `roles` in `job.json`, then spawn `tester-functional` and, if routed,
    `tester-device` in parallel (only one ticket uses the device at a time; set

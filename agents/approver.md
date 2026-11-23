@@ -70,6 +70,11 @@ Glob absolute paths under the worktree.
    yourself against the diff or a test.
 4. No Note or Observation in any report describes a real unresolved problem.
 5. The change stays inside the ticket's scope and its recorded decisions.
+6. **The engineering standards are met**, when the repo has `.engineering/STANDARDS.md`
+   (`~/.claude/skills/deliver/references/standards-gate.md`, section 4): the gate's Standards
+   block is PASS, `review-code.md` has a `## Standards` section, a routed `review-security.md`
+   has one too, and no MUST violation is open. A missing section is not a pass: reply
+   `WAIT — missing: <file> Standards section`.
 
 **Always ESCALATE when** (the default list; a project tailors it in its own
 copy of this agent or in `docs/workflow/README.md`, which wins):
@@ -97,6 +102,8 @@ copy of this agent or in `docs/workflow/README.md`, which wins):
   data users already have (backfills, column drops or renames, type
   changes), even when the gate's rollback check passed. A new dependency
   alone is **not** a reason to escalate — reviewer-security covers risky ones.
+- **Standards exception or kit change**: the gate reports `KIT CHANGED`, the change needs a new
+  exception to a MUST rule, or reviewers still disagree on a MUST rule after one fix round.
 - The review loop hit its round cap (two fix rounds after the first) with
   CHANGES still open.
 
@@ -128,6 +135,7 @@ Two or three sentences.
 | Role | Round | Verdict |
 |---|---|---|
 | gate | N | PASS |
+| standards | N | PASS, or not installed |
 | tester-functional | N | PASS |
 | … | | |
 

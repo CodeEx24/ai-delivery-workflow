@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-23 (standards) — standards gate before approval
+
+- **Automatic checks:** when a repo has `.engineering/`, the gate runs its kit, PR, secret, quality-ratchet and changed-file format checks, from the main checkout's copy.
+- **Rule-by-rule review:** the code and security reviewers check the changed code against `.engineering/STANDARDS.md` and write a `## Standards` section citing rule IDs.
+- **Approver:** cannot approve with a failed standards check, a missing Standards section or an open MUST violation.
+- **Merge:** the standards checks run again after the final re-sync.
+- Repos without `.engineering/` behave as before.
+
 ## 2026-11-23 (newest) — ticket records as long-term memory
 
 - **New record name:** `docs/tickets/<KEY>-<n>-<slug>.md`. Existing records keep their names and are still found.

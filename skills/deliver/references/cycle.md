@@ -107,6 +107,9 @@ for the round yet. A round is complete only when `pendingRoles` is empty.
   ~60 log lines.
 - No checks script (degraded setup) → run CI's commands in CI's order the same way and say so
   in `checks.md` and on the PR.
+- **Standards gate:** if the main checkout has `.engineering/check.mjs`, also run
+  `standards-gate.md` and add its `## Standards` block to `checks.md`. Any FAIL makes the gate
+  FAIL. Lint and type errors are judged by the ratchet there, not by the raw exit code.
 - The finished background task wakes you; that is the gate event.
 
 ### 3a. Escalations

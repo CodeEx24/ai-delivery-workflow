@@ -56,14 +56,16 @@ there.
    (risk tiers, gates) and `docs/workflow/REVIEW.md` (review rules). A stated
    non-negotiable of the repo is a **blocking** standard even when the code
    works. Project rules outrank anything generic in this file.
-2. The ticket record (type, risk, AC, decisions) and `plan.md`.
-3. The change: `git log --oneline <base>..HEAD` and `git diff <base>...HEAD`
+2. `.engineering/STANDARDS.md`, if the repo has it, and `docs/engineering/exceptions.md`.
+   See "Standards review" below.
+3. The ticket record (type, risk, AC, decisions) and `plan.md`.
+4. The change: `git log --oneline <base>..HEAD` and `git diff <base>...HEAD`
    (three dots), where HEAD is the round's final commit, testers' commits
    included — their new tests are part of what you review. Note the HEAD sha
    you reviewed. Open changed files **in full**
    where the hunk is not enough; the bug usually lives in what the patch
    assumes about lines it did not touch.
-4. From round 2 on: your own `round-<M>/review-code.md` from the previous
+5. From round 2 on: your own `round-<M>/review-code.md` from the previous
    round. Check whether each finding was fixed; say so under "Previous
    findings".
 
@@ -117,6 +119,14 @@ Pick the lenses the diff warrants and name the ones you skipped and why.
 - **Docs**: a doc, README or owner guide in `docs/actions/` that the change
   makes untrue; the ticket record's link block (ticket + PR) present.
 
+## Standards review
+
+If the repo has `.engineering/STANDARDS.md`, check the changed lines against its `GIT`, `PR`,
+`NAME`, `CODE`, `ARCH`, `QA`, `REV`, `OPS`, `DOC` and `AI` rules, following
+`~/.claude/skills/deliver/references/standards-gate.md`, section 3. Cite the rule ID in each
+finding. A MUST violated in changed code is **blocking** unless a recorded exception covers it.
+Existing code the change does not touch is not a finding.
+
 ## Verify before you report
 
 For each candidate, write the concrete failure: *this input or sequence → that
@@ -148,6 +158,13 @@ VERDICT: PASS | CHANGES
 - Failure: <input / state / sequence> → <wrong result>
 - Fix: <the concrete change you want>
 - Verified: <command and result> | read-only
+
+## Standards
+- Rules checked: <rule IDs>, or "Standards not installed"
+- Not applicable: <rule groups and why>
+- MUST violations: <rule ID and finding number>, or None
+- SHOULD notes: <rule ID and note>, or None
+- Exceptions used: <rule and scope>, or None
 
 ## Previous findings
 Round 2+: each earlier finding → fixed / not fixed (and where). Omit in round 1.
