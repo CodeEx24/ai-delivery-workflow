@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-23 (later) — `/deliver --mine`
+
+- **`/loop /deliver <KEY> --mine`**: runs every ticket assigned to the person running it, with no ticket list. Each cycle re-reads assignments and blockers, so new and newly unblocked tickets start automatically. The loop keeps watching while work is blocked and stops after 8 idle hours.
+- **Safe for several developers**: a `--mine` run only adopts, closes out and re-syncs the operator's own tickets and PRs, and re-checks the assignee immediately before starting a ticket.
+
 ## 2026-11-23 — project settings and setup guide
 
 - **`/delivery-config`**: show or change one project's settings in `docs/workflow/delivery.config.json`: tickets at once, review rounds, loop pacing, worker idle release, auto-accept, merge path, merge strategy, worker push, device lane, engine and disk warning. A running loop applies changes on its next cycle.
