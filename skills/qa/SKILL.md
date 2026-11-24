@@ -34,8 +34,10 @@ Arguments: `$ARGUMENTS`
 | `/qa ABC --release` | Tickets in the release being cut, plus a regression pass over their shared areas |
 | `/qa ABC-123 --retest [--from-run <run-id>]` | Re-verify the failed scenarios, then rerun all of them plus regressions from the fix diff. Follows `references/retest.md` |
 
-The testing status comes from the `QA testing status` line in `docs/workflow/README.md`. If it is
-missing, ask; never guess. For several tickets, show the list and get a yes before starting, then
+The testing status is the project's `testingStaging` status (`testingProduction` for
+`--release`), from `python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses show --json`. With no mapping, use the
+legacy `QA testing status` line in `docs/workflow/README.md`. If neither exists, ask; never guess.
+Rules: `~/.claude/skills/delivery-config/references/statuses.md`. For several tickets, show the list and get a yes before starting, then
 test one at a time and give each its own run and report. `--release` also writes a roll-up: its
 result is the worst of its tickets.
 
@@ -178,16 +180,16 @@ Every report records environment, URL, deployed SHA, account role, browser, date
    `references/result-format.md`, with the numbered steps for every failure. Idempotent: search for
    `Issues Found · QA run <run-id>` and edit it. Do this wherever QA ran: staging, preview, or a
    local checkout of the PR branch.
-5. **On `❌ QA FAILED`, move the ticket back** using `docs/workflow/README.md`:
+5. **On `❌ QA FAILED`, move the ticket back** by the `qaFailed` event:
+   `python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses target --event qaFailed` (the project's In Progress, else To Do). This holds whether the PR is
+   merged or open: `/fix-ticket` picks the route. With no mapping, use the legacy
+   `QA failed status` lines in `docs/workflow/README.md`.
 
-   | PR state (`gh pr view`) | Status line used |
-   |---|---|
-   | Merged | `QA failed status (merged)` |
-   | Open, or no PR | `QA failed status (open PR)` |
-
-   Read the available transitions first, then re-read the ticket to confirm. If the line is
-   missing or the transition is not available, leave the status alone and say so in the comment
-   and the final report. Never guess a status. Blocked, passed and `--dry-run` runs do not move it.
+   Read the available transitions first, then re-read the ticket to confirm. If there is no
+   status or the transition is not available, leave the status alone and say so in the comment
+   and the final report. Never guess a status. Blocked and `--dry-run` runs do not move it.
+   **On a pass**, do not move it: `qaPassed` needs a person. End the comment with
+   `Next: a person moves it to <statuses target --event qaPassed>`.
 6. **Never move a ticket to Done**, or put emoji in its title. On a passing retest, remove
    `qa:fix-ready`.
 

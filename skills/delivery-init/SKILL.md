@@ -35,11 +35,12 @@ point to `INSTALL.md` in the kit.
 | Project key | argument; else `CLAUDE.md` / `AGENTS.md` ("key `ABC`"); else issue keys in `git log --oneline -30`; GitHub-only projects use `GH` |
 | Tracker | `--tracker`; else what `CLAUDE.md` names; else Jira / Linear if their MCP tools load (ToolSearch first); else GitHub Issues if `gh` works; else local backlog |
 | Base branch | `python "$HOME/.claude/skills/delivery-config/config.py" --repo . branch --json` (`recommended` and `candidates`) |
+| Ticket statuses | `statuses show --json`. Empty and a tracker is set → read its statuses and run `statuses suggest` (`~/.claude/skills/delivery-config/references/statuses.md`) |
 | Already set up | `CLAUDE.md` contains `@~/.claude/workflows/ai-delivery-workflow.md` or the `ai-delivery-workflow:start` marker; `docs/workflow/README.md` exists; `.gitignore` has `.delivery/` |
 | Checks command | `scripts/workflow/checks*`, else the package scripts / Makefile targets for test, lint, typecheck (for the README and the settings placeholders) |
 
 Ask (one batched AskUserQuestion) only for what detection could not settle: the project key,
-the tracker, **the base branch PRs target** (recommended from the repo; with no `staging`, offer its default branch), the merge path (default: **owner merges**), and whether to merge the recommended
+the tracker, **the base branch PRs target** (recommended from the repo; with no `staging`, offer its default branch), **the ticket status mapping** (show the suggested table), the merge path (default: **owner merges**), and whether to merge the recommended
 permissions into `.claude/settings.json` (default: **no**, show them instead).
 
 ### Recommend a tracker when none is set
@@ -82,6 +83,7 @@ changes. Then wait for a yes. `--dry-run` stops here.
    and offer to update them one by one.
 3. **`.gitignore`**: append `.delivery/` under a `# AI delivery workflow` comment if missing.
    Save the choice: `python "$HOME/.claude/skills/delivery-config/config.py" --repo . set baseBranch=<branch>`.
+   Save the status mapping: `statuses suggest --from <file> --save`, or `statuses set` for the owner's edits.
 4. **`.claude/settings.json`**, only on an explicit yes: merge `templates/settings.recommended.json`.
    Add missing `allow` / `ask` / `deny` entries (never remove the project's own), replace the
    `<test-runner>` placeholders with the real commands from Step 1 (drop those that do not

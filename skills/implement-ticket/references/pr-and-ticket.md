@@ -112,8 +112,9 @@ Comment once, then transition:
   the PM tool — but in practice write nothing here: the comment goes on the PR, and the status
   is derived from the draft PR (only merge-ticket edits the entry, on the PR branch).
 
-Move it to **In Review** (or `Code Review` / `Review` — the repo's review status). If there is
-none, leave the status and say so. **Never Done** — Done happens after merge. Re-read the
+Move it by the `prOpened` event: `python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses target --event prOpened`. It returns the project's review status
+(`In Review`, `REVIEW`, `Code Review`…) from `docs/workflow/delivery.config.json`. If it returns
+none, leave the status and say so. **Never Done** — that happens after merge. Rules: `~/.claude/skills/delivery-config/references/statuses.md`. Re-read the
 issue to confirm status and comment. Keep it idempotent: on a re-run (e.g. after a CHANGES
 round), update or skip rather than posting a duplicate comment.
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-24 (statuses) — each project's own ticket statuses
+
+- **No hard-coded statuses:** each repo maps its tracker statuses to seven stages (To Do, In Progress, In Review, Testing (Staging), Done (Staging), Testing (Production), Done) in `docs/workflow/delivery.config.json`, and leaves out the ones it does not have.
+- **Moves by event:** `/delivery-config statuses target --event merged` and similar return the right status for the project. After a merge, a 7-status project goes to testing, and a 4-status project goes to Done.
+- **Set up and kept in sync from the tracker:** `statuses suggest` reads Jira, Linear, GitHub or other status lists and proposes the mapping. `statuses check` reports renamed or new statuses.
+- **People sign off:** QA passing and the production check are never moved by an agent.
+
 ## 2026-11-24 (cleanup) — delete merged branches and worktrees
 
 - **After every merge:** `/merge-ticket` deletes the remote branch, the local branch and the worktree, then confirms each one is gone, including after a merge done by hand on GitHub.

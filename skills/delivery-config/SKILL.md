@@ -3,7 +3,7 @@ name: delivery-config
 description: >-
   Show or change delivery settings: personal machine settings (how many tickets this computer
   runs at once, loop pacing, worker engine) and team rules in docs/workflow/delivery.config.json
-  (review rounds, auto-accept, who merges, merge strategy, PR target branch). Shows allowed values, this computer's
+  (review rounds, auto-accept, who merges, merge strategy, PR target branch, ticket statuses). Shows allowed values, this computer's
   suggested cap and how to change each one. Use when the user types /delivery-config.
 argument-hint: "[show | [--me] key=value ... | reset [--me] <key>... | reset [--me] --all]"
 user-invocable: true
@@ -50,6 +50,28 @@ python "$HOME/.claude/skills/delivery-config/config.py" --repo . branch
 ```
 
 A branch must exist before it can be saved. If the repo has `.engineering/config.json`, its `baseBranch` and `productionBranch` are read as the current values, and saving here updates them too, so PR checks agree. Tell the owner to commit both files so everyone uses the same target.
+
+## Ticket statuses
+
+Each project maps its own tracker statuses to the workflow's stages, so a project with 4 statuses
+and one with 7 both work. Full rules: `~/.claude/skills/delivery-config/references/statuses.md`.
+
+```text
+/delivery-config statuses                      Show the mapping
+python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses suggest --from <statuses.json>
+python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses set testingStaging="QA" doneStaging="Ready for Release"
+python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses check --from <statuses.json>
+```
+
+| Arguments | Do |
+|---|---|
+| `statuses` | Run `statuses show` and print the table |
+| `statuses sync` or `statuses suggest` | Read the tracker's statuses (see the reference), run `suggest`, show the table and ask once, then save with `--save` |
+| `statuses <stage>="<Status>" ...` | Run `statuses set` |
+| `statuses reset <stage>...` or `statuses reset --all` | Run `statuses reset` |
+
+Stages: `todo`, `inProgress`, `inReview`, `testingStaging`, `doneStaging`, `testingProduction`,
+`done`. Leave out the ones the project does not have. It is a team setting, so suggest committing it.
 
 ## Confirm these two changes first
 

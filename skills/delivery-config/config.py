@@ -5,6 +5,8 @@
   python config.py --repo . set [--me] key=value [key=value ...]
   python config.py --repo . reset [--me] key [key ...] | --all
   python config.py --repo . branch [--base BRANCH] [--json]
+  python config.py --repo . statuses show | suggest --from FILE [--save] | check --from FILE
+                                   | set stage=Status ... | reset [stage ...|--all] | target --event EVENT
 
 Team settings live in docs/workflow/delivery.config.json and are committed.
 Personal settings (--me) live in ~/.claude/delivery.machine.json and win over the project's.
@@ -148,12 +150,15 @@ def load(root):
         raise ConfigError(f"cannot read {CONFIG_PATH}: {exc}")
     if not isinstance(data, dict):
         raise ConfigError(f"{CONFIG_PATH} must be a JSON object")
-    return {k: parse_value(k, v) for k, v in data.items() if k != "schema"}
+    return {k: parse_value(k, v) for k, v in data.items() if k not in ("schema", "statuses")}
 
 
 def save(root, stored):
     body = {"schema": SCHEMA}
     body.update({k: stored[k] for k in SETTINGS if k in stored and stored[k] != SETTINGS[k][0]})
+    statuses = load_statuses(root)
+    if statuses:
+        body["statuses"] = statuses
     write_json(root / CONFIG_PATH, body)
 
 
@@ -305,7 +310,7 @@ def show(root, as_json):
     if as_json:
         print(json.dumps({"schema": SCHEMA, "file": CONFIG_PATH.as_posix(),
                           "machineFile": str(machine_path()), "values": values, "sources": sources,
-                          "machine": specs, "mergePermission": permission,
+                          "machine": specs, "mergePermission": permission, "statuses": load_statuses(root),
                           "warnings": warnings}, indent=2))
         return
     team_keys = [key for key in SETTINGS if key not in MACHINE_KEYS]
@@ -319,6 +324,10 @@ def show(root, as_json):
     print("\nTEAM RULES (everyone on this project, commit the file)")
     print_rows(team_keys, values, sources)
     print(f"\nWho merges right now: {values['effectiveMergePath']}")
+    mapping = load_statuses(root)
+    print("\nTICKET STATUSES (team, see: /delivery-config statuses)")
+    for stage in STAGES:
+        print(f"  {stage:<19}{mapping.get(stage, 'not used')}")
     print("\nHow to change")
     print("  Just for me:       /delivery-config --me cap=4")
     print("  Undo mine:         /delivery-config reset --me cap")
@@ -495,6 +504,240 @@ def check_branches_exist(root, changes):
                 raise ConfigError(f"{key}: branch '{value}' does not exist. Branches: {', '.join(branches[:20])}")
 
 
+# Ticket statuses: each project maps its own tracker statuses to these stages.
+STAGES = ("todo", "inProgress", "inReview", "testingStaging", "doneStaging", "testingProduction", "done")
+STAGE_TEXT = {
+    "todo": "Ready to start",
+    "inProgress": "Being built or fixed",
+    "inReview": "PR is open",
+    "testingStaging": "Merged; QA checks it on staging (or the only testing step)",
+    "doneStaging": "Passed on staging, waiting for release",
+    "testingProduction": "Released; being checked in production",
+    "done": "Finished",
+}
+# Each event moves a ticket to the first stage the project has, in this order.
+EVENTS = {
+    "start": ("inProgress",),
+    "prOpened": ("inReview",),
+    "merged": ("testingStaging", "doneStaging", "done"),
+    "qaPassed": ("doneStaging", "done"),
+    "released": ("testingProduction", "done"),
+    "verified": ("done",),
+    "qaFailed": ("inProgress", "todo"),
+}
+PERSON_EVENTS = ("qaPassed", "verified")
+CANCELLED = ("cancel", "won t", "wont", "reject", "duplicate", "invalid", "abandon")
+TODO_NAMES = ("to do", "todo", "ready", "ready for dev", "ready for development", "selected for development",
+              "open", "backlog")
+CATEGORY = {"new": "new", "to do": "new", "todo": "new", "backlog": "new", "unstarted": "new", "triage": "new",
+            "indeterminate": "indeterminate", "in progress": "indeterminate", "started": "indeterminate",
+            "done": "done", "completed": "done", "complete": "done", "closed": "done",
+            "canceled": "canceled", "cancelled": "canceled"}
+
+
+def clean_status(name):
+    text = str(name).strip()
+    if not text or len(text) > 80 or any(ord(ch) < 32 for ch in text):
+        raise ConfigError("a status name must be 1 to 80 printable characters")
+    return text
+
+
+def read_config_json(root):
+    path = root / CONFIG_PATH
+    if not path.exists():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError) as exc:
+        raise ConfigError(f"cannot read {CONFIG_PATH}: {exc}")
+    if not isinstance(data, dict):
+        raise ConfigError(f"{CONFIG_PATH} must be a JSON object")
+    return data
+
+
+def load_statuses(root):
+    raw = read_config_json(root).get("statuses")
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise ConfigError("statuses must be an object of stage: status name")
+    found = {}
+    for stage, name in raw.items():
+        if stage not in STAGES:
+            raise ConfigError(f"unknown stage '{stage}'. Stages: {', '.join(STAGES)}")
+        found[stage] = clean_status(name)
+    return found
+
+
+def save_statuses(root, mapping):
+    data = read_config_json(root) or {"schema": SCHEMA}
+    data.setdefault("schema", SCHEMA)
+    if mapping:
+        data["statuses"] = {stage: mapping[stage] for stage in STAGES if stage in mapping}
+    else:
+        data.pop("statuses", None)
+    write_json(root / CONFIG_PATH, data)
+
+
+def norm(name):
+    return re.sub(r"[^a-z0-9]+", " ", str(name).lower()).strip()
+
+
+def read_tracker_statuses(path):
+    """Accept [{name, category}], ["name"], or Jira's transitions response as-is."""
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError) as exc:
+        raise ConfigError(f"cannot read {path}: {exc}")
+    if isinstance(data, dict) and isinstance(data.get("transitions"), list):
+        data = [{"name": (t.get("to") or {}).get("name") or t.get("name"),
+                 "category": ((t.get("to") or {}).get("statusCategory") or {}).get("key")}
+                for t in data["transitions"] if isinstance(t, dict)]
+    if isinstance(data, dict) and isinstance(data.get("statuses"), list):
+        data = data["statuses"]
+    if not isinstance(data, list):
+        raise ConfigError("the status list must be a JSON list")
+    found, seen = [], set()
+    for item in data:
+        name = item.get("name") if isinstance(item, dict) else item
+        category = item.get("category") if isinstance(item, dict) else None
+        if not isinstance(name, str) or not name.strip():
+            continue
+        name = clean_status(name)
+        if name.lower() in seen:
+            continue
+        seen.add(name.lower())
+        found.append((name, CATEGORY.get(norm(category), "") if category else ""))
+    if not found:
+        raise ConfigError("the status list is empty")
+    return found
+
+
+def has(text, *words):
+    """Whole-word prefix match: 'stag' matches 'staging', but 'live' does not match 'delivered'."""
+    tokens = text.split()
+    return any((word in text) if " " in word else any(t.startswith(word) for t in tokens) for word in words)
+
+
+def cancelled(name, category):
+    return category == "canceled" or any(word in norm(name) for word in CANCELLED)
+
+
+def suggest_statuses(statuses):
+    pool = [(name, cat, norm(name)) for name, cat in statuses if not cancelled(name, cat)]
+    mapping, how, taken = {}, {}, set()
+
+    def testing(text):
+        return has(text, "test", "qa", "uat", "verif", "validat")
+
+    def staging(text):
+        return has(text, "stag", "stg", "preprod", "pre prod")
+
+    def production(text):
+        return has(text, "prod", "live")
+
+    def finished(text):
+        return has(text, "done", "complete", "closed", "resolved", "released", "deployed", "merged", "shipped")
+
+    def pick(stage, test, why, order=None):
+        if stage in mapping:
+            return
+        hits = [row for row in pool if row[0] not in taken and test(row)]
+        if order:
+            hits.sort(key=order)
+        if hits:
+            mapping[stage], how[stage] = hits[0][0], why
+            taken.add(hits[0][0])
+
+    pick("testingProduction", lambda r: testing(r[2]) and production(r[2]), "name")
+    pick("doneStaging", lambda r: finished(r[2]) and staging(r[2]), "name")
+    pick("testingStaging", lambda r: testing(r[2]) and staging(r[2]), "name")
+    pick("testingStaging", lambda r: testing(r[2]) and not production(r[2]) and r[1] != "done", "name (general testing step)")
+    pick("inReview", lambda r: has(r[2], "review") or r[2] in ("pr", "pull request"), "name")
+    pick("todo", lambda r: r[2] in TODO_NAMES, "name", order=lambda r: TODO_NAMES.index(r[2]))
+    pick("inProgress", lambda r: has(r[2], "progress", "doing", "develop", "wip", "started", "implement", "building"), "name")
+    pick("done", lambda r: r[1] == "done" and not staging(r[2]), "category", order=lambda r: r[2] != "done")
+    pick("done", lambda r: finished(r[2]) and not staging(r[2]) and not testing(r[2]), "name")
+    pick("todo", lambda r: r[1] == "new", "category")
+    pick("inProgress", lambda r: r[1] == "indeterminate" and not testing(r[2]) and not has(r[2], "review"), "category")
+    unmapped = [name for name, cat in statuses if name not in taken and not cancelled(name, cat)]
+    return {"mapping": {s: mapping[s] for s in STAGES if s in mapping}, "matchedBy": how,
+            "missingStages": [s for s in STAGES if s not in mapping], "unmappedStatuses": unmapped}
+
+
+def check_statuses(mapping, statuses):
+    names = {name.lower() for name, _ in statuses}
+    missing = [{"stage": s, "status": mapping[s]} for s in STAGES if s in mapping and mapping[s].lower() not in names]
+    used = {v.lower() for v in mapping.values()}
+    new = [name for name, cat in statuses if name.lower() not in used and not cancelled(name, cat)]
+    return {"ok": not missing and bool(mapping), "configured": bool(mapping), "missing": missing, "unmapped": new}
+
+
+def status_target(mapping, event):
+    if event not in EVENTS:
+        raise ConfigError(f"unknown event '{event}'. Events: {', '.join(EVENTS)}")
+    body = {"event": event, "stage": None, "status": None, "requiresPerson": event in PERSON_EVENTS,
+            "needsSetup": not mapping, "reason": None}
+    if not mapping:
+        body["reason"] = "this project has no status mapping yet. Run /delivery-config statuses"
+        return body
+    for stage in EVENTS[event]:
+        if stage in mapping:
+            body.update(stage=stage, status=mapping[stage])
+            return body
+    body["reason"] = f"this project has no status for '{event}', so leave the ticket where it is"
+    return body
+
+
+def run_statuses(root, args):
+    mapping = load_statuses(root)
+    if args.action == "show":
+        body = {"statuses": mapping, "stages": {s: STAGE_TEXT[s] for s in STAGES},
+                "events": {e: list(v) for e, v in EVENTS.items()}, "personEvents": list(PERSON_EVENTS)}
+        if args.json:
+            print(json.dumps(body, indent=2))
+        else:
+            print(f"Ticket statuses in {root / CONFIG_PATH}")
+            for stage in STAGES:
+                print(f"  {stage:<19}{mapping.get(stage, 'not used'):<24}{STAGE_TEXT[stage]}")
+            if not mapping:
+                print("No mapping yet. Read the tracker's statuses, then: /delivery-config statuses suggest")
+        return 0
+    if args.action in ("suggest", "check"):
+        statuses = read_tracker_statuses(args.source)
+        body = suggest_statuses(statuses) if args.action == "suggest" else check_statuses(mapping, statuses)
+        if args.action == "suggest" and args.save:
+            if not body["mapping"]:
+                raise ConfigError("nothing could be matched, so nothing was saved")
+            save_statuses(root, body["mapping"])
+            body["saved"] = True
+        print(json.dumps(body, indent=2))
+        return 0 if args.action == "suggest" or body["ok"] else 1
+    if args.action == "set":
+        for pair in args.pairs:
+            if "=" not in pair:
+                raise ConfigError(f"'{pair}' is not stage=Status")
+            stage, name = (part.strip() for part in pair.split("=", 1))
+            if stage not in STAGES:
+                raise ConfigError(f"unknown stage '{stage}'. Stages: {', '.join(STAGES)}")
+            mapping[stage] = clean_status(name)
+        save_statuses(root, mapping)
+    elif args.action == "reset":
+        if not args.all and not args.stages:
+            raise ConfigError("name the stages to reset, or use --all")
+        for stage in args.stages:
+            if stage not in STAGES:
+                raise ConfigError(f"unknown stage '{stage}'")
+            mapping.pop(stage, None)
+        save_statuses(root, {} if args.all else mapping)
+    elif args.action == "target":
+        body = status_target(mapping, args.event)
+        print(json.dumps(body, indent=2))
+        return 1 if body["needsSetup"] else 0
+    print(json.dumps({"ok": True, "statuses": load_statuses(root)}, indent=2))
+    return 0
+
+
 def parse_pairs(pairs):
     changes = {}
     for pair in pairs:
@@ -521,10 +764,28 @@ def main(argv=None):
     branch_cmd = sub.add_parser("branch")
     branch_cmd.add_argument("--base")
     branch_cmd.add_argument("--json", action="store_true")
+    status_cmd = sub.add_parser("statuses")
+    status_sub = status_cmd.add_subparsers(dest="action", required=True)
+    status_show = status_sub.add_parser("show")
+    status_show.add_argument("--json", action="store_true")
+    for name in ("suggest", "check"):
+        cmd = status_sub.add_parser(name)
+        cmd.add_argument("--from", dest="source", required=True)
+        if name == "suggest":
+            cmd.add_argument("--save", action="store_true")
+    status_set = status_sub.add_parser("set")
+    status_set.add_argument("pairs", nargs="+", metavar="stage=Status")
+    status_reset = status_sub.add_parser("reset")
+    status_reset.add_argument("stages", nargs="*")
+    status_reset.add_argument("--all", action="store_true")
+    status_target_cmd = status_sub.add_parser("target")
+    status_target_cmd.add_argument("--event", required=True)
     args = parser.parse_args(argv)
 
     try:
         root = repo_root(args.repo)
+        if args.command == "statuses":
+            return run_statuses(root, args)
         if args.command == "branch":
             return show_branch(root, args.base, args.json)
         if args.command == "show":

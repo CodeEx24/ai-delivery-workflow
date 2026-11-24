@@ -113,7 +113,7 @@ prompt surfaces, quotas, sync, billing, account deletion / export, migrations on
 low = small and touching none of those; medium = everything else). Risk is separate from
 type: a small bug in auth is still high risk.
 
-Move the ticket to its in-progress status and re-read it to confirm. Report: one paragraph
+Move the ticket by the `start` event (`python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses target --event start`, rules in `~/.claude/skills/delivery-config/references/statuses.md`) and re-read it to confirm. Report: one paragraph
 on what it asks, type, risk tier, the AC checklist.
 
 ### How the type changes the flow
@@ -269,8 +269,9 @@ Details and templates: **`references/pr-and-ticket.md`**.
    built, main files, decisions, how to test** — plus the link to the ticket record. Report
    the PR link.
 3. **Add the PR link to the record's links block** (`PRs:`), commit, push.
-4. Comment on the ticket (PR link, one-line summary) and move it to **In Review** (or the
-   repo's review status — read the transitions, never use Done). Re-read to confirm.
+4. Comment on the ticket (PR link, one-line summary) and move it by the `prOpened` event
+   (`statuses target --event prOpened`). No review status → leave it and say so. Never Done.
+   Re-read to confirm.
 
 **Spike:** the draft PR carries the record and prototypes, marked "not for merge as product
 code"; propose follow-up tickets in the record and the ticket comment for the owner. Only a
@@ -343,7 +344,7 @@ contract**:
   exactly: one decision per question (never "Accept? Sub-questions: …"), each in
   `job.json.questions` before you ask, all of them in one `ask`. Ask only what an accepted record
   doesn't settle; skip acceptance if the brief says the record is already accepted.
-- Run every phase through Phase 9 (checks, commit, push, draft PR, record link, In Review,
+- Run every phase through Phase 9 (checks, commit, push, draft PR, record link, review status,
   `job.json`), then follow the brief's stage instructions. **Never merge.**
 - Finish each instruction with the **structured worker report** (`worker_done`); format in
   `references/review-loop.md`.

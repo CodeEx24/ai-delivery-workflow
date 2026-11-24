@@ -82,7 +82,7 @@ Never work in the main checkout, and never touch another worktree's uncommitted 
 - **`new-fix-pr`:** `git fetch origin <base>`, then create the new branch from `origin/<base>` in
   its own worktree.
 
-Move the ticket to the project's in-progress status, reading the transitions first. Comment:
+Move the ticket by the `start` event (`python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses target --event start`; rules in `~/.claude/skills/delivery-config/references/statuses.md`). Comment:
 `🛠️ Fix started · <branch> · <PR or "new PR">`. Search for the same text first to avoid duplicates.
 
 ## Step 5 — Reproduce and fix
@@ -124,7 +124,7 @@ Follow `implement-ticket`'s Bug path, including its standards checks and project
 
 ## Step 7 — Hand off
 
-Move the ticket to the review status, add `qa:fix-ready`, and post:
+Move the ticket by the `prOpened` event (`statuses target --event prOpened`), add `qa:fix-ready`, and post:
 
 ```markdown
 🛠️ Fix ready for review · [PR #<n>](<PR URL>)
