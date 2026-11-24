@@ -10,12 +10,12 @@ description: >-
   things forward. Invoked as `/deliver <PROJECT-KEY>` (best as `/loop /deliver <KEY>`), or as
   `/deliver <path-or-URL>` to first turn a document of tasks (spec, notes, backlog, PRD) into
   owner-approved tickets — in the PM tool; with none connected, GitHub Issues when `gh` works,
-  else a local `docs/tickets/backlog.md` (`T-001…`). Manual-only: it runs when the owner types `/deliver …` (or
-  `/loop /deliver …`), never from a phrase. It enforces the two-wave window, the concurrency
+  else a local `docs/tickets/backlog.md` (`T-001…`). Owner-started only: invoke this skill only when the owner typed `/deliver …`, or typed
+  `/loop … /deliver …` and the loop is running its next cycle. Never start it from a phrase or on
+  your own judgment: if asked in words, tell the owner the command to type. It enforces the two-wave window, the concurrency
   cap, the device lane, one-merge-at-a-time and never merging on red.
 argument-hint: "<PROJECT-KEY[,KEY] | path-or-URL> [--watcher] [--status] [--dry-run] [--mine | --only KEY-n,...] [--base BRANCH] [--cap N] [--takeover]"
 user-invocable: true
-disable-model-invocation: true
 ---
 
 # /deliver — the delivery orchestrator
@@ -80,8 +80,9 @@ engine with a label-driven queue (see the factory skill).
 
 In file mode the project key still comes from `CLAUDE.md` / the tracker; with no PM tool the
 local backlog uses `T` (`T-001`). `/deliver` with no argument → read the key from `CLAUDE.md`;
-if it is not unambiguous, ask for it. Never guess a project. The skill is manual-only
-(`disable-model-invocation: true`): it never starts itself from a phrase like "run the factory".
+if it is not unambiguous, ask for it. Never guess a project. The skill is owner-started only:
+it never starts itself from a phrase like "run the factory". `/loop` may invoke it, because the
+owner typed that loop. Anything else is refused: tell the owner to type `/deliver <KEY>`.
 
 ## Hard rules
 

@@ -18,7 +18,7 @@ powershell -ExecutionPolicy Bypass -File "$HOME\.ai-delivery-workflow\install.ps
 | `workflow/ai-delivery-workflow.md` | The workflow itself. Installed to `~/.claude/workflows/` and imported by each project's `CLAUDE.md`. |
 | `workflow/AI-Delivery-Workflow.pdf` | The same workflow as a readable PDF guide. |
 | `workflow/PLAYBOOK.md` | Which commands to type, by scenario: Jira backlog, one ticket only, GitHub issues, new project. |
-| `skills/deliver/` | `/deliver` — the orchestrator: runs steps 3–7 in a loop (manual-only command). |
+| `skills/deliver/` | `/deliver` — the orchestrator: runs steps 3–7 in a loop (owner-started: you type it, or `/loop` runs it). |
 | `skills/new-ticket/` | `/new-ticket "<description>"` — drafts a ticket from one sentence (testable AC, risk, size), creates it in the PM tool or as `docs/tickets/T-<nnn>.md` with a 🔴 / 🟡 / 🟢 status, then offers to build it. |
 | `skills/delivery-init/` | `/delivery-init` — sets up one project in one step (CLAUDE.md block, `docs/workflow/README.md`, `.gitignore`; settings only on your yes). The installer copies `settings/` into it as templates. |
 | `INSTALL.md` | Machine install, project setup, update, uninstall. |
