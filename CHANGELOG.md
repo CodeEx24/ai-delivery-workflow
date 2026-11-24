@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-24 (workspace) — run /deliver from a multi-repo folder
+
+- **Root router:** `/deliver ABC --mine` now works from a folder holding several repos. It finds the repo, asks anything unclear and opens a dedicated session there, so the repo's rules, hooks and permissions apply.
+- **Several projects:** `/deliver ABC,XYZ --mine` opens one session per project. Repo mappings are personal and add no files to the workspace.
+
 ## 2026-11-24 (base-branch) — configurable PR target
 
 - **`baseBranch` and `releaseBranch`:** each repo saves where tickets start, where PRs point and which branch is production.

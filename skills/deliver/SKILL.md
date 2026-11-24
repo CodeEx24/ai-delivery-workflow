@@ -13,7 +13,7 @@ description: >-
   else a local `docs/tickets/backlog.md` (`T-001…`). Manual-only: it runs when the owner types `/deliver …` (or
   `/loop /deliver …`), never from a phrase. It enforces the two-wave window, the concurrency
   cap, the device lane, one-merge-at-a-time and never merging on red.
-argument-hint: "<PROJECT-KEY | path-or-URL> [--watcher] [--status] [--dry-run] [--mine | --only KEY-n,...] [--base BRANCH] [--cap N] [--takeover]"
+argument-hint: "<PROJECT-KEY[,KEY] | path-or-URL> [--watcher] [--status] [--dry-run] [--mine | --only KEY-n,...] [--base BRANCH] [--cap N] [--takeover]"
 user-invocable: true
 disable-model-invocation: true
 ---
@@ -41,6 +41,10 @@ machine settings (`~/.claude/delivery.machine.json`, for `cap`, `loopMinutes`, `
 `engine` and `diskWarnGb` only), then `docs/workflow/delivery.config.json`, then values written in
 `docs/workflow/README.md`, then the defaults. Print any `warnings`. Script missing → use the README and defaults, and say the kit
 needs reinstalling.
+
+## Started from a workspace root
+
+**Check this first, on every invocation.** If the current folder is not inside a Git repo, you are a **router**, not the orchestrator. Follow `references/workspace.md`: find the project's repo, ask anything unclear, open a real session in that repo, report it, and stop. Never run the cycle from a workspace root. Comma-separated keys (`/deliver ABC,XYZ --mine`) work only here, and open one session per project.
 
 ## Arguments and modes
 

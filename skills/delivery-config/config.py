@@ -385,9 +385,18 @@ def recommend_branch(branches, default, counts):
 
 def load_standards(root):
     """Branch values from the standards kit, so both tools share one answer."""
+    text = None
     try:
-        data = json.loads((root / STANDARDS_PATH).read_text(encoding="utf-8-sig"))
-    except (OSError, ValueError):
+        text = (root / STANDARDS_PATH).read_text(encoding="utf-8-sig")
+    except OSError:
+        # The checkout may be on an old branch, so also read the shared branches.
+        for ref in ("origin/staging", "origin/develop", "origin/HEAD", "origin/main", "origin/master"):
+            text = git_out(root, "show", f"{ref}:{STANDARDS_PATH.as_posix()}")
+            if text:
+                break
+    try:
+        data = json.loads(text) if text else {}
+    except ValueError:
         return {}
     if not isinstance(data, dict):
         return {}
