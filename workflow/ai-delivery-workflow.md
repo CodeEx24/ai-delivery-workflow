@@ -157,6 +157,7 @@ The approver reads every verdict and the AC table. The decision is posted as a P
 3. Make sure the ticket record's link block has the ticket and every PR, then post the proof where section 7 says: AC results and step-by-step screenshots on the **ticket**; test and review results, CI and **cost of the ticket's agents** on the **PR**. Update the ticket record's "Outcome" section (deviations, known limitations, follow-ups).
 4. Move the ticket to Done; note deferred checks on their follow-up ticket.
 5. **Re-sync every other open PR** with the base branch, re-run their checks, push.
+6. **Delete what the ticket left:** the merged branch on GitHub, the local branch and the worktree. Confirm each one is gone, and keep anything with unpushed or newer work.
 6. **Clean up:** delete the worktree (with its dependencies folder) and the local branch, prune worktree records, delete leftover downloads and local services started for the ticket.
 
 ---

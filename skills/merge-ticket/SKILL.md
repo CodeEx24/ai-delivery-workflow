@@ -235,9 +235,13 @@ mechanically → abort, report the PR and files, leave it for its builder. Recip
    anything left → stop and report, never discard. Prefer the tool that manages it (e.g. the
    Orca CLI for Orca worktrees) over raw `git worktree remove`. Stop any process still running
    in it first.
-2. **Local branch:** delete it (`git branch -D` is needed after a squash merge — only once the
-   PR is confirmed `MERGED`). Remote branch: deleted by `--delete-branch`, else delete it.
-3. `git worktree prune`.
+2. **Branches: delete all three, then confirm they are gone.** This runs on every path, including
+   a merge someone did by hand on GitHub. Details: `references/after-merge.md`, section 3.
+   - **Remote branch:** usually deleted by `--delete-branch`. Check it is gone. If it is still
+     there and its tip equals the PR's final commit, delete it. Newer commits → keep it and report.
+   - **Local branch:** `git branch -D` (needed after a squash merge), once the PR is `MERGED`.
+   - Never delete the base, release or any protected branch.
+3. `git worktree prune` and `git fetch --prune`.
 4. **Leftovers:** stop dev servers, simulators/emulators and local backends started for the
    ticket (`job.json.services` entries still `running`, or the local backend recipe); delete
    downloads made for it (e.g. dev build archives).
