@@ -39,6 +39,27 @@ python "$HOME/.claude/skills/delivery-config/config.py" --repo . branch [--base 
 
 A repo with no `staging` is normal: the AI offers its default branch, usually `main`, and asks once. An unattended `/loop` never picks a branch by itself: it stops and asks. The resolver also reads `.engineering/config.json`, so a repo that already declares its branches is never asked. `--base <branch>` overrides the saved value for one run. Confirm every new PR's `baseRefName` matches.
 
+## Ticket statuses
+
+Never hard-code a status name or transition id. Each project maps its tracker's statuses to
+seven stages in `docs/workflow/delivery.config.json`, and leaves out the ones it does not have:
+`todo` → `inProgress` → `inReview` → `testingStaging` → `doneStaging` → `testingProduction` → `done`.
+Skills move tickets by **event**:
+
+```text
+python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses target --event <start|prOpened|merged|qaPassed|released|verified|qaFailed>
+```
+
+| Result | Do |
+|---|---|
+| `status` | Read the ticket's transitions and pick the one whose target status has that name |
+| `status` is null | The project has no such step. Leave the ticket and say so |
+| `requiresPerson` | `qaPassed` and `verified`: a person moves it. Name the status in the comment |
+| `needsSetup` | No mapping yet. Run `/delivery-config statuses sync`, and ask the owner once |
+
+`merged` goes to the first of Testing (Staging), Done (Staging) or Done that the project has. So
+a 7-status project lands in testing, and a 4-status project lands in Done. Details: `~/.claude/skills/delivery-config/references/statuses.md`.
+
 ## 1. The workflow at a glance
 
 ```

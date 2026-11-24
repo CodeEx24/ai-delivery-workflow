@@ -204,15 +204,15 @@ getTransitionsForJiraIssue(cloudId, key)  →  pick by name  →  transitionJira
 
 | Situation | Status |
 |---|---|
-| Merged, deploy green or none | the done status (`Done` / `Closed` / `Resolved`) |
-| Merged, deploy failed | leave it, or back to `In Progress` — never Done |
+| Merged, deploy green or none | `statuses target --event merged`: Testing (Staging), Done (Staging) or Done, whichever the project has first |
+| Merged, deploy failed | leave it, or `statuses target --event qaFailed` — never Done |
 | Merged, deploy running | wait; if the user cannot wait, leave it and say so |
-| Separate release step tracked | the intermediate status (`Ready for Release`, `In QA`) |
+| Promoted to the release branch | `statuses target --event released` |
 | Waiting for the owner to merge | leave it; add the `ready-to-merge` label (not `needs-human`) |
 
 Wanted status not offered → the workflow needs an intermediate hop; take the obvious two-step
 path if one exists and say so, else report the options. Verify the new status in the response.
-Remove the `ready-to-merge` label once the ticket is Done, and `needs-human` if an escalation
+Remove the `ready-to-merge` label once the ticket has moved, and `needs-human` if an escalation
 on this ticket was resolved and nothing else waits on the owner.
 
 **Other trackers:** Linear — its connector, states fetched the same way. GitHub Issues —

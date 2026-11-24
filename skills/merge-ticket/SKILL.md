@@ -7,7 +7,7 @@ description: >-
   Outcome), merge by the project's chosen merge path — or hand the owner the exact merge command
   and detect the merge afterwards — verify any post-merge deploy, post the proof where it belongs
   (AC results and step-by-step screenshots on the tracker ticket; review rounds, approver
-  decision, CI and agent cost on the PR), move the ticket to Done, note deferrals on their
+  decision, CI and agent cost on the PR), move the ticket to the project's after-merge status (Testing, Done Staging or Done), note deferrals on their
   follow-up tickets, re-sync every other open PR with the base branch, and clean up the worktree, local
   branch, leftover services and the ticket's working folder. Use whenever the user or the
   delivery orchestrator says "merge the ticket", "merge ABC-118", "merge and close it out",
@@ -30,7 +30,7 @@ cost script) is used **if the project has it** and skipped with a one-line note 
 Seven steps, in order:
 
 **Resolve & check state → Ready + re-gate (draft → ready, re-sync, checks) → Close the ticket
-record → Merge (per the merge path) → Post the proof → Move to Done → Re-sync other PRs & clean
+record → Merge (per the merge path) → Post the proof → Move the ticket → Re-sync other PRs & clean
 up.**
 
 The order matters. Everything after the merge assumes the merge happened and worked; calling a
@@ -206,11 +206,18 @@ ticket** too: what was deferred from which ticket, the owner's decision, the lin
 (`~/.claude/skills/evidence-pack/references/tracker-delivery.md`). If it is missing, upload it. If that fails, say
 `Evidence incomplete` and keep the local files.
 
-## Step 6 — Move the ticket to Done
+## Step 6 — Move the ticket
 
-Fetch transitions and pick by **name**, never a hardcoded id. Merged + deploy green (or no
-deploy) → the done status; deploy failed or pending → leave it and say why; a separate release
-step the team tracks → its intermediate status. Remove `ready-to-merge` (and `needs-human`
+Merged + deploy green (or no deploy) → move it by the `merged` event:
+
+```text
+python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses target --event merged
+```
+
+It returns the first of the project's Testing (Staging), Done (Staging) or Done statuses. A
+7-status project lands in testing, and a 4-status project lands in Done. Pick the transition
+by that **name**, never a hardcoded id. Deploy failed or pending → leave it and say why.
+`needsSetup` → run `/delivery-config statuses sync` first, or leave it and report. Rules: `~/.claude/skills/delivery-config/references/statuses.md`. Remove `ready-to-merge` (and `needs-human`
 if this run added it).
 
 ## Step 7 — Re-sync the other open PRs, then clean up

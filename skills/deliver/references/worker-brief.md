@@ -59,7 +59,8 @@ pending owner question.
 {{TRACKER_NOTE}} <!-- PM tool: "Jira ABC via the Atlassian MCP" etc. Local backlog: "This
 project uses the local backlog docs/tickets/backlog.md. Read your ticket there; do not edit
 that file (In Progress / In Review are derived from your branch and PR; merge-ticket sets
-Done). Comments go on the PR." -->
+the after-merge status). Comments go on the PR. With a PM tool, move the ticket by event:
+`statuses target --event <start|prOpened>` (`~/.claude/skills/delivery-config/references/statuses.md`)." -->
 
 ## Owned paths
 - **Owns (may edit):** {{OWNED_PATHS}}

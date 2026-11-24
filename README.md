@@ -158,6 +158,21 @@ Each repo saves where PRs point as `baseBranch`. If it is not set, the workflow 
 /deliver ABC --mine --base develop       Use another branch for one run
 ```
 
+## Ticket statuses
+
+Projects name their statuses differently, and have 4 or 7 or more. Each repo maps its own
+statuses to the workflow's stages in `docs/workflow/delivery.config.json`, and the skills move
+tickets by event: start, PR opened, merged, QA failed, released.
+
+```text
+/delivery-config statuses             Show the mapping
+/delivery-config statuses sync        Read the tracker's statuses, suggest a mapping, ask, save
+```
+
+After a merge, a 7-status project goes to Testing (Staging), and a 4-status project goes to Done.
+QA passing, and the final production check, are moved by a person. Details:
+`skills/delivery-config/references/statuses.md`.
+
 ## Per-project setup
 
 1. Add the import line to the project's `CLAUDE.md`, plus a `# Compact instructions` section — copy from `settings/claude-md-snippet.md`:

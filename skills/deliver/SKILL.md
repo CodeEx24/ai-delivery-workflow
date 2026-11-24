@@ -95,7 +95,7 @@ These hold in every mode, every cycle. If a step would break one, stop that step
    owned paths no running worker owns).
 3. **Never change tracker structure without approval** — no new statuses, fields, workflows,
    saved filters, link types, waves applied, or tickets created/deleted. Normal ticket traffic
-   done by the skills you call (In Progress / In Review / Done transitions, comments, the
+   done by the skills you call (status moves by event from the project's mapping, comments, the
    `needs-human` and `ready-to-merge` labels, attachments) is allowed.
 4. **Respect the concurrency cap and the machine.** Count tickets being built or in the
    review loop; tickets waiting on the owner do not hold a slot. One gate run at a time, one
