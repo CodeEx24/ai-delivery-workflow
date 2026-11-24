@@ -254,7 +254,7 @@ the ticket (tracker API; signed-in browser session if the API cannot upload file
 comment: each AC with its numbered steps and the matching screenshot names, plus the result.
 Idempotent: update or skip if a device-test comment for this round exists. The PR then **links to
 that comment** (add the link to the PR description or the round summary) instead of duplicating
-images. Match the tracker's markup. Never change the ticket status.
+images. Use Markdown with clickable links (Jira: `contentFormat: "markdown"`). Never change the ticket status.
 
 **Evidence PDF.** Give each walked path a named `flow`, write `scenarios.json` beside the round's
 screenshots, and build a `DEV` PDF with `~/.claude/skills/evidence-pack/SKILL.md`. Deliver it with

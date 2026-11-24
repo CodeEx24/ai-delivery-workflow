@@ -82,46 +82,46 @@ Re-runs are normal (owner-merge path, crashed session). Before writing anything:
   `gh pr view <n> --json comments --jq '.comments[] | select(.body | contains("merge-ticket:close-out")) | .url'`.
   Found → edit it in place if facts changed (`gh api -X PATCH repos/{owner}/{repo}/issues/comments/<id> -f body=@file`)
   or skip. Not found → post.
-- **Tracker:** wikimarkup has no hidden comments, so use a fixed heading `Close-out — <KEY>-<n>`
+- **Tracker:** tracker comments have no hidden markers, so use a fixed heading `Close-out — <KEY>-<n>`
   and search the issue's comments for it (and for the PR URL). Found → post only a short delta
   (deploy finished, follow-up filed) or nothing.
 - **Attachments:** list the issue's attachments and upload only filenames not already there.
 
 ## Ticket close-out comment
 
-Jira wikimarkup shown; use Markdown for Linear / GitHub Issues.
+Markdown with clickable links, for every tracker. Post to Jira with `contentFormat: "markdown"`. Link rules: `~/.claude/skills/evidence-pack/references/tracker-delivery.md` (Links in comments).
 
 ```
-h2. Close-out — <KEY>-<n>
+## Close-out — <KEY>-<n>
 
-*Merged* via PR [#<n>|<url>] to {{main}} on <date> (squash {{<sha7>}}). Follow-up PRs: <list or none>.
-Deploy: <workflow> [run <id>|<url>] — *success* | no post-merge deploy.
+**Merged** via [PR #<n>](<PR URL>) to `<base branch>` on <date> (squash `<sha7>`). Follow-up PRs: <linked PRs, or none>.
+Deploy: [<workflow> run <id>](<run URL>) — **success** | no post-merge deploy.
 
-h3. Acceptance criteria
+### Acceptance criteria
 
-||#||Criterion (verbatim)||Result||Evidence||
-|AC1|<text>|PASS|<KEY>-<n>-AC1-step-01.png … step-04.png|
-|AC2|<text>|PASS|test {{<test name>}} (functional)|
-|AC3|<text>|Deferred → <KEY>-<m>|owner decision <date>|
+| # | Criterion (verbatim) | Result | Evidence |
+|---|---|---|---|
+| AC1 | <text> | PASS | <KEY>-<n>-AC1-step-01.png … step-04.png |
+| AC2 | <text> | PASS | test `<test name>` (functional) |
+| AC3 | <text> | Deferred → [<KEY>-<m>](<ticket URL>) | owner decision <date> |
 
-h3. Step-by-step proof
+### Step-by-step proof
 
-Screenshots are attached to this ticket; steps per criterion are in the device test comment
-[<link to tester-device comment>] (or listed here if none exists: AC → numbered steps → file).
+[📁 Evidence Index](<comment URL>) · [Device test comment](<comment URL>)
 
-h3. Decisions and deferrals
+### Decisions and deferrals
 
-* <decision> — <who>, <date>
-* AC3 deferred to <KEY>-<m> — <owner>, <date>
+- <decision> — <who>, <date>
+- AC3 deferred to [<KEY>-<m>](<ticket URL>) — <owner>, <date>
 
-h3. Final status
+### Final status
 
-Done. Ticket record: {{docs/tickets/<KEY>-<n>-<slug>.md}} · Feature guide: {{docs/features/<area>.md}}
+Done. [Ticket record](<GitHub URL of docs/tickets/<KEY>-<n>-<slug>.md>) · [Feature guide](<GitHub URL of docs/features/<area>.md>)
 ```
 
 Variants:
 - **Deploy failed** → heading `Merged — deploy FAILED, change is not live`, the failing step in
-  `{noformat}`, "Leaving this ticket in <status> until the deploy succeeds." No Done.
+  a code block, "Leaving this ticket in <status> until the deploy succeeds." No Done.
 - **Already merged by someone else, proof already posted** → a two-line delta: merge fact + deploy.
 
 ## Attaching screenshots
@@ -165,7 +165,7 @@ Markdown. Links to the ticket proof instead of embedding images.
 APPROVE — <one-line reason> (<link to decision comment>)
 
 ### CI and deploy
-CI: green on `<sha7>` (<checks link>) · Deploy: <run link> success | none
+CI: green on `<sha7>` ([checks](<checks URL>)) · Deploy: [run <id>](<run URL>) success | none
 
 ### Cost of this ticket's agents
 <total> (<model: tokens, cost> …) — from `<cost script>` | not tracked in this project
@@ -177,10 +177,10 @@ For each deferred criterion, comment on the follow-up ticket (idempotent: search
 key first):
 
 ```
-h3. Deferred from <KEY>-<n>
+### Deferred from [<KEY>-<n>](<ticket URL>)
 
-AC<k> of <KEY>-<n> ("<verbatim text>") was deferred here by <owner> on <date>. Reason: <…>.
-Source PR: <url> · Close-out: <ticket comment url>
+AC<k> of [<KEY>-<n>](<ticket URL>) ("<verbatim text>") was deferred here by <owner> on <date>. Reason: <…>.
+[Source PR #<n>](<PR URL>) · [Close-out comment](<comment URL>)
 ```
 
 Make sure the follow-up ticket is linked to the source ("relates to" / "is blocked by" as the
@@ -188,20 +188,11 @@ project uses) and listed under `Related:` in the ticket record.
 
 ## Tracker markup
 
-Jira comment bodies use **wikimarkup**, not Markdown:
-
-| Want | Write | Not |
-|---|---|---|
-| Heading | `h2. Title` | `## Title` |
-| Bold | `*bold*` | `**bold**` |
-| Inline code | `{{code}}` | `` `code` `` |
-| Code / log block | `{noformat}` … `{noformat}` | fences |
-| Link | `[text|https://url]` | `[text](url)` |
-| Table header / row | `||a||b||` / `|a|b|` | Markdown tables |
-| Bullet / numbered | `* item` / `# item` | `- item` / `1. item` |
-
-Blank line before a list; avoid `*` and `_` inside `{{…}}`. Some connectors accept Markdown or
-ADF instead — check the connector's description. Linear and GitHub Issues use Markdown.
+Write every comment in **Markdown**, and post it to Jira with `contentFormat: "markdown"`: the
+Atlassian connector converts headings, tables, lists and links. **Do not use Jira wiki markup**
+(`h2.`, `{{code}}`, `[text|url]`): the connector posts it as plain text, so links are not clickable.
+Use wiki markup only with the older Jira REST API that expects it. Linear and GitHub Issues use
+Markdown too. Link rules: `~/.claude/skills/evidence-pack/references/tracker-delivery.md` (Links in comments).
 
 ## Transitions
 

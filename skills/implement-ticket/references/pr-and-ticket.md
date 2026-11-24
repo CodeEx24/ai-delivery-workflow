@@ -102,7 +102,7 @@ appended to that line.
 Comment once, then transition:
 
 > **Built — draft PR ready for review.** <one-line summary>
-> **PR:** <link> · **Branch:** `<branch>` · **Record:** `docs/tickets/<KEY>-<n>-<slug>.md`
+> **PR:** [PR #<n>](<PR URL>) · **Branch:** `<branch>` · **Record:** `docs/tickets/<KEY>-<n>-<slug>.md`
 > **Owner actions:** <guides, or none>
 
 - **Jira:** `addCommentToJiraIssue`, then `getTransitionsForJiraIssue` and

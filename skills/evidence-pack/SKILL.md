@@ -73,8 +73,8 @@ Follow `references/tracker-delivery.md`. Upload the PDF, `scenarios.json`, every
 After upload, read the file names the tracker holds into a file, one per line, then:
 
 ```text
-python "$P" index --ticket <KEY-n> --names names.txt --focus "<firstFailure>" --format <markdown|jira|text>
+python "$P" index --ticket <KEY-n> --names names.txt --focus "<firstFailure>" --format <markdown|text>
 ```
 
-Post the output as the ticket's single `📁 Evidence Index` comment. `checkFirst` is the document to
+Use `--format markdown` for Jira through the Atlassian connector too (`jira` is only for the older wiki-markup API). Post the output as the ticket's single `📁 Evidence Index` comment, and link each document to its attachment URL when the tracker gives one. `checkFirst` is the document to
 open first, and `openFailure` is the newest QA or retest that has not passed.

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-24 (links) — clickable links in tracker comments
+
+- **Clickable links everywhere:** ticket, QA, fix and close-out comments link PRs, tickets, runs and evidence with readable text, in every tracker.
+- **Jira fix:** templates now use Markdown with `contentFormat: "markdown"`. The old Jira wiki links posted as plain text through the Atlassian connector.
+
 ## 2026-11-24 (workspace) — run /deliver from a multi-repo folder
 
 - **Root router:** `/deliver ABC --mine` now works from a folder holding several repos. It finds the repo, asks anything unclear and opens a dedicated session there, so the repo's rules, hooks and permissions apply.
