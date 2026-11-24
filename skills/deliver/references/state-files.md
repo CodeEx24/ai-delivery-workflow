@@ -34,6 +34,7 @@ copies what matters into it. The orchestrator writes only *other* files inside a
 ├─ changes.json                 explainer; per-file and per-function explanations (change-report.md)
 └─ report.html                  the owner's change report (board.py report; never committed)
 
+<main checkout>/.delivery/evidence/<KEY>-<n>/ evidence PDFs by stage and round; kept after cleanup
 <main checkout>/.delivery/reports/<KEY>/       archived change report + its screenshots; kept after cleanup
 ```
 

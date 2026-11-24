@@ -10,7 +10,7 @@ is skipped. `--dry-run` runs all detection and prints the result without writing
 |---|---|---|
 | Tracker kind + project key | `CLAUDE.md` / `AGENTS.md` ("PM project: … key `ABC`"), `docs/workflow/README.md`, issue keys in `git log --oneline -15` | `tracker.kind`, `projectKey` |
 | No tracker at all | No tracker named in the docs and no connector loads | **Default: GitHub Issues** on the repo when it is on GitHub and `gh` works (`tracker.kind: "github"`). Otherwise — offline, private experiment, no forge — the **local backlog** `docs/tickets/backlog.md` (`tracker.kind: "local"`, IDs `T-001…`; format and rules in `import-tasks.md`). State the default in the setup table; the owner may pick the other. Record the choice in `tracker` |
-| Tracker connector | Jira → Atlassian MCP (`getAccessibleAtlassianResources` for the cloud id); Linear → Linear MCP; GitHub Issues → `gh`. Tools are often deferred: load with ToolSearch before concluding they are missing | `tracker.site`, `tracker.cloudId` |
+| Tracker connector | Jira → Atlassian MCP (`getAccessibleAtlassianResources` for the cloud id); Linear → Linear MCP; GitHub Issues → `gh`; any other tool → its connector or CLI. Tools are often deferred: load with ToolSearch before concluding they are missing | `tracker.site`, `tracker.cloudId` |
 | Key exists | Direct lookup of one issue (`<KEY>-1` or a JQL `project = <KEY>` with `maxResults: 1`). "No issues" vs "no permission" must be told apart | — |
 | Status names + transitions | The workflow doc's status table, else read transitions on one issue. Never hard-code ids | `tracker.statuses` |
 | Readiness rule | Workflow doc ("carries the `ready` label", Definition of Ready) | `tracker.readyRule` |

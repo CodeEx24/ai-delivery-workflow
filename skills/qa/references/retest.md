@@ -99,6 +99,10 @@ Never override this result by hand. A required scenario that was not run is neve
   the groups and tested SHA as a comment on the bug. Do not change QA result labels, and never move
   a ticket to Done. Scan evidence with `qa_evidence.py scan` before attaching anything.
 
+Build the evidence PDF with `~/.claude/skills/evidence-pack/SKILL.md`: stage `RETEST` for `/qa`, or `FIX` for an
+engineering worker. Pass `--before prior-scenarios.json` and `--responds-to <failed PDF>`, so
+every failed step is shown before and after.
+
 | Result | Worker does |
 |---|---|
 | `PASSED` | Continue to review |

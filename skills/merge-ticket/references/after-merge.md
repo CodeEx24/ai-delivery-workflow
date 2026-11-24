@@ -100,7 +100,7 @@ remove any temporary re-sync worktrees from the step above.
 
 Delete `.delivery/jobs/<KEY>-<n>/`. It is gitignored, so it may live in the ticket's worktree
 (already gone) or in the main checkout — check both. Do not delete it if any proof upload failed;
-report the paths instead.
+report the paths instead. Never remove `<main checkout>/.delivery/evidence/` during cleanup.
 
 ### Report
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-24 (evidence) — evidence PDFs for any tracker
+
+- **Evidence PDFs:** dev tests, QA, fixes and retests create a timestamped PDF labeled by flow, with failed steps highlighted and before and after on fixes.
+- **Evidence Index:** one comment on each ticket lists every document and which to check first. `/fix-ticket` reads it first.
+- **Any tracker:** delivery adapts to Jira, Linear, GitHub Issues, local backlogs and other tools. `/delivery-init` recommends a tracker when none is set.
+
 ## 2026-11-23 (fix) — QA issues and /fix-ticket
 
 - **`/qa` on failure:** posts a `🐞 Issues Found` comment with step-by-step failures and severity emoji, then moves the ticket using the project's `QA failed status` lines. It leaves the status alone if none is set, and never moves a ticket to Done.

@@ -118,6 +118,13 @@ Verdict rules:
   `Blocked: <reason>`. Not a code failure: the approver escalates it with one owner question.
 - Any BLOCKED criterion adds the `Blocked: <reason>` line 2, whatever the verdict.
 
+## Evidence PDF
+
+Build the `DEV` PDF from `round-<N>/scenarios.json` with `~/.claude/skills/evidence-pack/SKILL.md`, then deliver it
+with `~/.claude/skills/evidence-pack/references/tracker-delivery.md`. Name the PDF in `test-device.md` and in the step comment,
+and update the ticket's `📁 Evidence Index`. The steps below are the fallback for trackers or
+runs where only individual screenshots can be attached.
+
 ## Attaching screenshots to the ticket
 
 1. List the issue's existing attachments; upload only names not already there (re-runs and later

@@ -15,6 +15,8 @@ never an email or password.
 ### Source
 - Source ticket: ABC-123
 - QA run: 20261123-101500
+- Evidence PDF: ABC-123_QA_R1_FAILED_export-csv_20261123-1015Z_abc1234.pdf
+- Failed flow: Export Flow, AC2-N1 step 2
 
 ### Environment
 - Environment: staging
@@ -54,7 +56,7 @@ never an email or password.
 
 ### Evidence
 - Evidence status: complete
-- Attached: report.md, scenarios.json, AC2-N1-step-01.png, AC2-N1-step-02-FAIL.png, console.txt, network.txt
+- Attached: evidence PDF, report.md, scenarios.json, AC2-N1-step-02-FAIL.png, console.txt, network.txt
 ```
 
 If evidence did not all reach the tracker, the Evidence section instead reads:
@@ -70,10 +72,14 @@ and the bug carries the `qa:evidence-missing` label.
 
 ## Attach, in this order
 
-1. Every step screenshot, in step order.
+1. The evidence PDF (`~/.claude/skills/evidence-pack/SKILL.md`).
 2. `report.md`
 3. `scenarios.json`
-4. Sanitized logs from `logs/`
+4. Every `-FAIL` screenshot.
+5. Sanitized logs from `logs/`
+
+Use `~/.claude/skills/evidence-pack/references/tracker-delivery.md` for the tracker in use. If no PDF can be built,
+attach every step screenshot instead and mark the evidence incomplete.
 
 ## Before attaching
 
@@ -97,7 +103,7 @@ Write the names the tracker confirms it holds (re-read the attachment list, do n
 file, one per line, then:
 
 ```text
-python "$E" evidence --run .delivery/qa/ABC-123/<run-id> --uploaded uploaded.txt --repo . --json
+python "$E" evidence --run .delivery/qa/ABC-123/<run-id> --uploaded uploaded.txt --pdf <pdf name> --repo . --json
 python "$E" handoff --bug bug-body.md --repo . --json
 ```
 

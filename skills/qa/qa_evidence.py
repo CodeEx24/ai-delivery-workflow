@@ -2,7 +2,7 @@
 """Check QA evidence, bug handoffs and retest results.
 
   python qa_evidence.py scan --run DIR [--repo .] [--json]
-  python qa_evidence.py evidence --run DIR --uploaded FILE [--repo .] [--json]
+  python qa_evidence.py evidence --run DIR --uploaded FILE [--pdf NAME] [--repo .] [--json]
   python qa_evidence.py handoff --bug FILE [--repo .] [--json]
   python qa_evidence.py retest --prior FILE --current FILE [--tested-sha SHA] [--out FILE] [--json]
 
@@ -147,28 +147,33 @@ def inventory(run):
     return required, shots, logs
 
 
-def check_evidence(run, uploaded_file, repo):
+def check_evidence(run, uploaded_file, repo, pdf=None):
+    """With pdf, the PDF carries the step images, so only -FAIL screenshots must be uploaded."""
     scan = scan_run(run, repo)
     required, shots, logs = inventory(run)
+    all_shots = shots
+    if pdf:
+        pdf = pdf.replace("\\", "/").rsplit("/", 1)[-1]
+        shots = [shot for shot in shots if "-FAIL" in shot.rsplit("/", 1)[-1]]
     try:
         uploaded = {line.strip().replace("\\", "/").rsplit("/", 1)[-1]
                     for line in uploaded_file.read_text(encoding="utf-8-sig").splitlines()
                     if line.strip()}
     except OSError:
         raise EvidenceError("cannot read --uploaded")
-    expected = required + shots + logs
+    expected = required + ([pdf] if pdf else []) + shots + logs
     missing = [name for name in expected if name.rsplit("/", 1)[-1] not in uploaded]
     for name in ("report.md", "scenarios.json"):
         if name not in required:
             missing.append(f"{name} (not in the run folder)")
-    if not shots:
+    if not all_shots:
         missing.append("step screenshots (none in the run folder)")
     if not logs:
         missing.append("sanitized logs (none in the run folder)")
     complete = not missing and scan["ok"]
     return {"status": "complete" if complete else "Evidence incomplete",
             "label": None if complete else "qa:evidence-missing", "missing": missing,
-            "screenshotsInOrder": shots, "unsafe": scan["findings"],
+            "screenshotsInOrder": all_shots, "unsafe": scan["findings"],
             "unscannable": scan["unscannable"], "needsVisualReview": scan["needsVisualReview"]}
 
 
@@ -308,6 +313,7 @@ def build_parser():
     evidence = sub.add_parser("evidence")
     evidence.add_argument("--run", required=True, type=Path)
     evidence.add_argument("--uploaded", required=True, type=Path)
+    evidence.add_argument("--pdf")
     handoff = sub.add_parser("handoff")
     handoff.add_argument("--bug", required=True, type=Path)
     retest = sub.add_parser("retest")
@@ -338,7 +344,7 @@ def main(argv=None):
             body = scan_run(args.run, args.repo)
             code = 0 if body["ok"] else 1
         elif args.command == "evidence":
-            body = check_evidence(args.run, args.uploaded, args.repo)
+            body = check_evidence(args.run, args.uploaded, args.repo, args.pdf)
             code = 0 if body["status"] == "complete" else 1
         elif args.command == "handoff":
             body = check_handoff(args.bug, args.repo)

@@ -31,6 +31,7 @@ powershell -ExecutionPolicy Bypass -File "$HOME\.ai-delivery-workflow\install.ps
 | `skills/qa/` | `/qa` — tests a deployed ticket: scenario matrix, a screenshot per step, evidence report, tracker result. Never moves a ticket to Done (manual-only command). |
 | `skills/qa-config/` | `/qa-config` — where `/qa` may test: environments, access levels, QA account variable names, personal local settings (manual-only command). |
 | `skills/report-bug-ticket/` | `/report-bug-ticket "<description>"` — one clean bug ticket, after searching for duplicates and regressions. |
+| `skills/evidence-pack/` | Shared: builds labeled, timestamped evidence PDFs and delivers them to any tracker (Jira, Linear, GitHub Issues, local and others). |
 | `skills/fix-ticket/` | `/fix-ticket <KEY-n>` — fixes what QA found: updates the open PR, or opens a linked fix PR when the work is already merged (manual-only command). |
 | `skills/merge-ticket/` | `/merge-ticket` — re-checks, merges (or hands you the merge), posts proof, cleans up. |
 | `skills/senior-pr-reviewer/` | Senior code review; used by the `reviewer-code` agent. |
@@ -93,7 +94,7 @@ git pull
 Each run leaves a backup folder `~/.claude/backups/ai-delivery-workflow-<timestamp>/` with the same layout as `~/.claude` (`skills/`, `agents/`, `workflows/`).
 
 - **Roll back to what you had before:** copy the contents of that backup folder back over `~/.claude`.
-- **Remove the kit:** delete `~/.claude/delivery-board/`, the kit's skill folders (`deliver`, `factory`, `plan-waves`, `wave-status`, `implement-ticket`, `verify-ticket`, `qa`, `qa-config`, `report-bug-ticket`, `fix-ticket`, `merge-ticket`, `senior-pr-reviewer`), the eight agent files and `~/.claude/workflows/ai-delivery-workflow.md`, then restore anything you want back from the backup. Third-party skills are removed with the skills CLI (`npx skills remove <name> -g`).
+- **Remove the kit:** delete `~/.claude/delivery-board/`, the kit's skill folders (`deliver`, `factory`, `plan-waves`, `wave-status`, `implement-ticket`, `verify-ticket`, `qa`, `qa-config`, `report-bug-ticket`, `fix-ticket`, `evidence-pack`, `merge-ticket`, `senior-pr-reviewer`), the eight agent files and `~/.claude/workflows/ai-delivery-workflow.md`, then restore anything you want back from the backup. Third-party skills are removed with the skills CLI (`npx skills remove <name> -g`).
 
 ## Quick start
 

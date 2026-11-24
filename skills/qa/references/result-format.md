@@ -120,6 +120,7 @@ keep the steps and expected results complete enough to run again on another mach
   "scenarios": [
     {
       "id": "AC1-P1",
+      "flow": "Export Flow",
       "ac": "AC1",
       "type": "positive",
       "required": true,
@@ -176,6 +177,7 @@ Possible security issues name the area and bug only, with no exploit detail.
 
 **Bug status:** 🔴 2 open · Tested on: staging · `abc1234` · role: owner
 **Ticket moved to:** <status> | not moved: <reason>
+**Evidence PDF:** ABC-123_QA_R1_FAILED_filter-quotes_20261123-1015Z_abc1234.pdf
 
 ### 🟠 S2 · ABC-140 · Filter resets after refresh
 Scenario: AC3-P1 · AC3 "<verbatim criterion>"

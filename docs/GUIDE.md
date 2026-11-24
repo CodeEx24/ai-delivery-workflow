@@ -258,6 +258,16 @@ Every QA bug has an **Engineering handoff**, so an AI on another machine can rep
 
 When QA fails, `/qa` posts a `🐞 Issues Found` comment with each failure's steps and moves the ticket back using the `QA failed status` lines in `docs/workflow/README.md`. Run `/fix-ticket ABC-123` to fix it. If the PR is open, the fix goes on that PR. If it is merged, the command creates a new fix branch, worktree and PR linked to the ticket.
 
+### Evidence PDFs
+
+Every test run creates one PDF, grouped by named flows such as `Login Flow`:
+
+```text
+ABC-123_QA_R1_FAILED_quote-status-filter_20261124-1415Z_d4e5f6a.pdf
+```
+
+The name shows the ticket, stage (`DEV`, `QA`, `FIX`, `RETEST`), round, result, title, UTC time and commit. The ticket's `📁 Evidence Index` comment lists every document and which to check first. Delivery adapts to your tracker: native attachment, file in a comment, signed-in browser, then the PR. If none works, the evidence is marked incomplete and stays on your computer.
+
 ### Where QA may test
 
 | Access | What QA may do |

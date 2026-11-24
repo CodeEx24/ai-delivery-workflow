@@ -82,6 +82,10 @@ Glob absolute paths under the worktree.
    stale is not a pass: send it back for a retest or escalate. No owner deferral can replace a
    previously failed scenario.
 
+8. **Device evidence reached the tracker.** When tester-device ran, `test-device.md` names the
+   round's evidence PDF, or plainly says `Evidence incomplete`. A missing record is
+   `WAIT — missing: evidence PDF`. Incomplete evidence is escalated to the owner.
+
 **Always ESCALATE when** (the default list; a project tailors it in its own
 copy of this agent or in `docs/workflow/README.md`, which wins):
 
