@@ -127,7 +127,7 @@ Follow `implement-ticket`'s Bug path, including its standards checks and project
 Move the ticket to the review status, add `qa:fix-ready`, and post:
 
 ```markdown
-🛠️ Fix ready for review · <PR link>
+🛠️ Fix ready for review · [PR #<n>](<PR URL>)
 Fixed: 🐞 <bug keys> · Root cause: <one line>
 Evidence: <FIX PDF name> · Responds to: <failed PDF name>
 Engineering retest: <result> on <sha>

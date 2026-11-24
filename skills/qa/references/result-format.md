@@ -144,7 +144,7 @@ keep the steps and expected results complete enough to run again on another mach
 
 ## Tracker comment
 
-Markdown is shown. Use the tracker's own markup (Jira wiki markup, for instance). The first line
+Write Markdown with clickable links, and post it to Jira with `contentFormat: "markdown"`. The first line
 is the result.
 
 ```markdown
@@ -157,7 +157,7 @@ is the result.
 |---|---|---|
 | AC1 <verbatim> | PASS | AC1-P1-step-01..04 |
 
-**Bugs:** ABC-140 (S2)
+**Bugs:** [ABC-140](<ticket URL>) (S2)
 **Blocked:** <scenario and reason, or none>
 **💡 Improvements:** <or none>
 **Leftover test data:** none
@@ -169,7 +169,7 @@ Waiting for a person to sign off. QA does not move tickets to Done.
 ## Issues Found comment
 
 Post this as a second comment on every `❌ QA FAILED` run, so a developer can see the problem
-without opening the report. Use the tracker's own markup. Give every failure its numbered steps.
+without opening the report. Use Markdown with clickable links. Give every failure its numbered steps.
 Possible security issues name the area and bug only, with no exploit detail.
 
 ```markdown
@@ -179,7 +179,7 @@ Possible security issues name the area and bug only, with no exploit detail.
 **Ticket moved to:** <status> | not moved: <reason>
 **Evidence PDF:** ABC-123_QA_R1_FAILED_filter-quotes_20261123-1015Z_abc1234.pdf
 
-### 🟠 S2 · ABC-140 · Filter resets after refresh
+### 🟠 S2 · [ABC-140](<ticket URL>) · Filter resets after refresh
 Scenario: AC3-P1 · AC3 "<verbatim criterion>"
 
 | # | Step | Expected | Actual | Screenshot |

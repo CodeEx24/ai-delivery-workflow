@@ -101,7 +101,7 @@ Severity: S2 (High)
 <required: every section from the handoff reference below>
 
 ## Links
-Regression of: ABC-98 · Relates to: ABC-123
+Regression of: [ABC-98](<ticket URL>) · Relates to: [ABC-123](<ticket URL>)
 ```
 
 The **Engineering handoff** section is required on every bug. Its exact format is in

@@ -271,6 +271,6 @@ or left (with the reason).
   verification, non-GitHub forges.
 - `references/proof-and-comments.md` — ticket record close-out, ticket and PR comment templates,
   screenshot attachment (API and browser fallback), idempotency markers, deferral notes, tracker
-  markup (Jira wikimarkup vs Markdown), transitions.
+  markup (Markdown with clickable links), transitions.
 - `references/after-merge.md` — re-syncing other open PRs safely, worktree/branch cleanup
   (Orca or raw git), stopping leftover services, deleting the working folder.

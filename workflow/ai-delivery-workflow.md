@@ -295,6 +295,8 @@ Every ticket has one type, set in the PM tool as a `type:<name>` label (or the i
 
 ## 7. Where things go
 
+**Links in comments.** Every link posted to a tracker or a PR is clickable Markdown, such as `[PR #456](https://…)`, never a bare URL, a URL in backticks, or a Jira wiki link. Post to Jira with `contentFormat: "markdown"`. Details: `~/.claude/skills/evidence-pack/references/tracker-delivery.md` (Links in comments).
+
 The repo keeps only what a future developer or agent needs to understand **why the code is the way it is**. Evidence that a ticket worked goes to the tools people already look at: the ticket for the owner, the PR for the technical trail.
 
 | What | Where | Why there |

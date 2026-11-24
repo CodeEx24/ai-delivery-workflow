@@ -116,7 +116,7 @@ asking for such things is a *Needs info* to the owner, quoted.
 | Worker started | + `factory:building` | "Picked up. Branch `<branch>`." |
 | Asked the author | + `factory:needs-info` | the numbered questions |
 | Reply arrived | − `factory:needs-info` | — |
-| Draft PR opened | (keep) | "Draft PR <url>" (the PR body says `Closes #<n>`) |
+| Draft PR opened | (keep) | "[Draft PR #<n>](<PR URL>)" (the PR body says `Closes #<n>`) |
 | Escalated | + `needs-human` | the approver's question (also on the PR) |
 | Approved, owner merges | + `ready-to-merge` | "Ready for your review: <PR url>" |
 | Merged | − `factory`, − `factory:building`, − `ready-to-merge` | merge-ticket's proof comment; the issue closes through `Closes #<n>` |

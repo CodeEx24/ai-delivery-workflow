@@ -141,33 +141,34 @@ runs where only individual screenshots can be attached.
 
 ## The per-AC step comment
 
-One comment per round, on the ticket (Jira wikimarkup shown; Markdown for Linear / GitHub
-Issues). Fixed heading for idempotency: search the comments for `Device test — <KEY>-<n> — round <N>`;
+One comment per round, on the ticket, in Markdown with clickable links (`~/.claude/skills/evidence-pack/references/tracker-delivery.md` (Links in comments); Jira:
+`contentFormat: "markdown"`). Fixed heading for idempotency: search the comments for `Device test — <KEY>-<n> — round <N>`;
 if found, edit or skip.
 
 ```
-h2. Device test — <KEY>-<n> — round <N>
+## Device test — <KEY>-<n> — round <N>
 
-Result: *PASS* | *CHANGES* | *BLOCKED* · Target: <…> · Driver: <…> · E2E flow: {{<path>}}
+Result: **PASS** | **CHANGES** | **BLOCKED** · Target: <…> · Driver: <…> · E2E flow: `<path>`
+[PR #<n>](<PR URL>) · Evidence PDF: [<file name>](<attachment URL>)
 
-h3. AC1 — <verbatim criterion> — PASS
+### AC1 — <verbatim criterion> — PASS
 
-# <action> — <KEY>-<n>-AC1-step-01.png
-# <action> — <KEY>-<n>-AC1-step-02.png
-# <result seen> — <KEY>-<n>-AC1-step-03.png
+1. <action> — <KEY>-<n>-AC1-step-01.png
+2. <action> — <KEY>-<n>-AC1-step-02.png
+3. <result seen> — <KEY>-<n>-AC1-step-03.png
 
-h3. AC2 — <verbatim criterion> — FAIL
+### AC2 — <verbatim criterion> — FAIL
 
-# …
+1. …
+
 Expected: … · Saw: …
 
-h3. Console / network
+### Console / network
 
 <none | list>
 ```
 
-Jira can show an attached image inline with `!<filename>|thumbnail!`; use it if the project
-likes inline images, otherwise filenames are enough. Never include credentials or the test
+Filenames are enough: the images are attachments, and the evidence PDF shows them in order. Never include credentials or the test
 account's password. Never change the ticket's status.
 
 ## Linking from the PR
