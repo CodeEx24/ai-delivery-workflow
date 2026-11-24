@@ -308,3 +308,13 @@ Each repo has a **base branch**, where tickets start and PRs point, and a **rele
 | Only `main` | `main` | `main` |
 
 The first run checks the repo's branches and recent PRs, recommends one, asks once and saves it. If no `staging` exists, it offers the default branch. Run `/delivery-config baseBranch=<branch>` to change it, or add `--base <branch>` for one run. Choosing production while an integration branch exists needs a clear yes.
+
+## Running from a folder with several repos
+
+Start Claude Code in the parent folder and run `/deliver ABC --mine`. The session there only routes the work:
+
+1. It finds the repo from `docs/workflow/README.md` or `.engineering/config.json`.
+2. It asks if the repo, ticket scope or PR target is unclear, or if the checkout must switch branch.
+3. It opens a dedicated Claude session in that repo, with the repo's own rules, hooks and permissions.
+
+Later questions appear in that project's Orca chat. If Orca is not running, it prints the command to run instead. It never stashes or discards uncommitted work, and never opens a second session for a repo that is already running.

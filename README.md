@@ -139,6 +139,16 @@ You can also run any step on its own: `/plan-waves`, `/wave-status`, `/implement
 | `/fix-ticket ABC --mine` | Lists your failed tickets and fixes them one at a time. Add `--dry-run` to preview. |
 | `/qa ABC-123 --retest --env local` | After a fix: re-verifies what failed, reruns every scenario and checks for regressions. |
 
+## Run from a multi-repo folder
+
+You can run `/deliver` from a folder that holds several repos. It finds the repo for the project key, asks anything unclear, then opens a dedicated Claude session in that repo, so its own rules, hooks and permissions apply. Questions from the run appear in that session.
+
+```text
+/deliver ABC --mine            One project
+/deliver ABC,XYZ --mine        One session per project
+/deliver                       Choose a project
+```
+
 ## PR target branch
 
 Each repo saves where PRs point as `baseBranch`. If it is not set, the workflow recommends a branch from the repo and asks once. A repo with no `staging` is normal: it offers the default branch, usually `main`.

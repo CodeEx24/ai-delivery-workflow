@@ -209,6 +209,7 @@ Shortcuts:
 | Pause everything right now | `/deliver ABC --pause --now` |
 | Pause one ticket | `/deliver ABC --pause ABC-42` |
 | Pause from another terminal | `python "$HOME/.claude/delivery-board/board.py" pause --repo . [--now] [--reason "…"]` |
+| Run from a folder with several repos | `/deliver ABC --mine` or `/deliver ABC,XYZ --mine`. It opens one session in each repo |
 | See or change the PR target branch | `/delivery-config`, then `/delivery-config baseBranch=<branch>`. One run only: `--base <branch>` |
 | Find the proof for a ticket | Open its `📁 Evidence Index` comment. `Check first` names the document to read |
 | See what a ticket changed (files, functions, screenshots) | `python "$HOME/.claude/delivery-board/board.py" report --repo . --ticket ABC-42 --open` (or "Change report" in the board's ticket drawer) |
