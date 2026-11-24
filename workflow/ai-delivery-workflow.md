@@ -8,7 +8,7 @@ Legend: **(human)** owner decision or action · **(agent)** Claude Code skill or
 
 ## Quick start (existing projects)
 
-- **`/deliver <PROJECT-KEY>`** — manual-only (you type it; it never starts from a phrase). Runs the whole flow for a project that already has tickets. It checks the project setup first (bootstrap), plans waves with `/plan-waves` if there are none (you approve the plan), then keeps building, testing, reviewing and merging ready tickets within the two-wave window. Recommended form: **`/loop /deliver <PROJECT-KEY>`**, so it keeps going without you prompting it.
+- **`/deliver <PROJECT-KEY>`** — owner-started (you type it, or `/loop /deliver <KEY>`; it never starts from a phrase). Runs the whole flow for a project that already has tickets. It checks the project setup first (bootstrap), plans waves with `/plan-waves` if there are none (you approve the plan), then keeps building, testing, reviewing and merging ready tickets within the two-wave window. Recommended form: **`/loop /deliver <PROJECT-KEY>`**, so it keeps going without you prompting it.
   - `--watcher` — runs the loop in its own Orca chat, so this chat stays free.
   - `--status` — read-only: what is running, waiting and ready. Changes nothing.
   - `--dry-run` — shows what one cycle would start, advance, merge and ask. Writes nothing.

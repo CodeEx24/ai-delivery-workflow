@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-24 (loop) — `/loop /deliver` works
+
+- **Fixed:** `/loop 5m /deliver <KEY>` and `/loop /factory run` were refused with "can't be invoked from inside /loop". Both skills had `disable-model-invocation: true`, which blocks the loop from running them.
+- **Still owner-started:** the two skills now say to run only when the owner typed the command or a `/loop` of it, never from a phrase. `/qa`, `/fix-ticket`, `/delivery-config` and `/qa-config` keep the stricter setting.
+
 ## 2026-11-24 (statuses) — each project's own ticket statuses
 
 - **No hard-coded statuses:** each repo maps its tracker statuses to seven stages (To Do, In Progress, In Review, Testing (Staging), Done (Staging), Testing (Production), Done) in `docs/workflow/delivery.config.json`, and leaves out the ones it does not have.

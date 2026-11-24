@@ -10,10 +10,11 @@ description: >-
   showing every job's step, blockers and questions. `/factory <anything>` is talk mode: answer a
   question ("Q3: B"), give feedback on an issue, reject one, or file a new feature as a labeled
   issue. Workers run as Orca worktree sessions when Orca is up, otherwise as background
-  subagents. Manual-only: it runs when the owner types `/factory …` (best as `/loop /factory run`).
+  subagents. Owner-started only: invoke this skill only when the owner typed `/factory …`, or typed
+  `/loop … /factory run` and the loop is running its next cycle. Never start it from a phrase or on
+  your own judgment: if asked in words, tell the owner the command to type.
 argument-hint: "run [#n …] | plan | board | status | <answer / feedback / new feature> [--cap N] [--label L] [--engine orca|subagents] [--dry-run] [--watcher]"
 user-invocable: true
-disable-model-invocation: true
 ---
 
 # /factory — GitHub issues in, merged PRs out
