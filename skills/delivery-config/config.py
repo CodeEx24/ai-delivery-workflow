@@ -4,23 +4,31 @@
   python config.py --repo . show [--json]
   python config.py --repo . set [--me] key=value [key=value ...]
   python config.py --repo . reset [--me] key [key ...] | --all
+  python config.py --repo . branch [--base BRANCH] [--json]
 
 Team settings live in docs/workflow/delivery.config.json and are committed.
 Personal settings (--me) live in ~/.claude/delivery.machine.json and win over the project's.
 Only values that differ from the defaults are stored for a project. Standard library only.
+branch exits 0 when resolved, 1 when a person must choose, 2 on error, 3 when a target needs a yes.
 """
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
+from collections import Counter
 from pathlib import Path
 
 CONFIG_PATH = Path("docs") / "workflow" / "delivery.config.json"
+STANDARDS_PATH = Path(".engineering") / "config.json"
+STANDARDS_KEYS = {"baseBranch": "baseBranch", "releaseBranch": "productionBranch"}
 SCHEMA = "delivery-config/1"
 MACHINE_SCHEMA = "delivery-machine-config/1"
 MERGE_RULES = ("Bash(gh pr merge:*)", "Bash(gh pr merge *)", "Bash(gh pr merge)")
+BRANCH_RE = re.compile(r"^(?!-)(?!.*\.\.)(?!.*//)(?!.*\.lock$)[A-Za-z0-9._/-]{1,100}(?<![./])$")
+LONG_LIVED = ("staging", "develop", "development", "dev", "next")
 
 # key: (default, type or choices, minimum, maximum, what it controls)
 SETTINGS = {
@@ -35,6 +43,8 @@ SETTINGS = {
     "deviceLane": (True, bool, None, None, "Run the browser or device tester"),
     "engine": ("orca", ("orca", "subagents"), None, None, "How workers run"),
     "diskWarnGb": (15, int, 1, 1000, "Warn when free disk falls below this many GB"),
+    "baseBranch": (None, "branch", None, None, "Branch tickets start from and PRs target"),
+    "releaseBranch": (None, "branch", None, None, "Production branch; unset means the repo default"),
 }
 
 # Settings about one computer. Everything else is a team rule and cannot be set personally.
@@ -74,6 +84,10 @@ def parse_value(key, raw):
     require_known(key)
     _, kind, low, high, _ = SETTINGS[key]
     text = str(raw).strip()
+    if kind == "branch":
+        if not BRANCH_RE.match(text):
+            raise ConfigError(f"{key} is not a valid branch name")
+        return text
     if kind is bool:
         lowered = text.lower()
         if lowered in ("true", "yes", "on"):
@@ -99,6 +113,8 @@ def parse_value(key, raw):
 
 def allowed_values(key):
     _, kind, low, high, _ = SETTINGS[key]
+    if kind == "branch":
+        return "branch name"
     if kind is bool:
         return "on, off"
     if isinstance(kind, tuple):
@@ -273,6 +289,7 @@ def print_rows(keys, values, sources):
     for key in keys:
         value = values[key]
         shown = ("on" if value else "off") if isinstance(value, bool) else str(value)
+        shown = "not set" if value is None else shown
         print(f"{key:<23}{shown:<10}{sources[key]:<9}{allowed_values(key):<22}{SETTINGS[key][4]}")
 
 
@@ -307,9 +324,166 @@ def show(root, as_json):
     print("  Undo mine:         /delivery-config reset --me cap")
     print("  Undo all mine:     /delivery-config reset --me --all")
     print("  For the team:      /delivery-config maxRounds=4")
+    print("  PR target branch:  /delivery-config baseBranch=staging")
     print("  Undo team value:   /delivery-config reset maxRounds")
     for warning in warnings:
         print(f"WARNING: {warning}")
+
+
+def git_out(root, *args):
+    try:
+        done = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True,
+                              encoding="utf-8", errors="replace", timeout=30, check=False)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    return done.stdout if done.returncode == 0 else None
+
+
+def repo_branches(root):
+    """Return (branches, default branch), from origin when it exists, else from local branches."""
+    branches, default = [], None
+    remote = git_out(root, "ls-remote", "--symref", "origin", "HEAD", "refs/heads/*") or ""
+    for line in remote.splitlines():
+        if line.startswith("ref: refs/heads/") and line.endswith("\tHEAD"):
+            default = line[len("ref: refs/heads/"):-len("\tHEAD")]
+        elif "\trefs/heads/" in line:
+            branches.append(line.split("\trefs/heads/", 1)[1])
+    if not branches:
+        local = git_out(root, "for-each-ref", "--format=%(refname:short)", "refs/heads") or ""
+        branches = [line.strip() for line in local.splitlines() if line.strip()]
+    if default not in branches:
+        default = next((name for name in ("main", "master") if name in branches), None)
+        default = default or (branches[0] if branches else None)
+    return branches, default
+
+
+def merged_pr_targets(root):
+    try:
+        done = subprocess.run(["gh", "pr", "list", "--state", "merged", "--limit", "50", "--json", "baseRefName"],
+                              cwd=str(root), capture_output=True, text=True, encoding="utf-8",
+                              errors="replace", timeout=30, check=False)
+        rows = json.loads(done.stdout) if done.returncode == 0 else []
+    except (OSError, ValueError, subprocess.TimeoutExpired):
+        return Counter()
+    return Counter(row.get("baseRefName") for row in rows if isinstance(row, dict))
+
+
+def branch_candidates(branches, default):
+    names = [name for name in LONG_LIVED if name in branches]
+    if default and default not in names:
+        names.append(default)
+    return names
+
+
+def recommend_branch(branches, default, counts):
+    names = branch_candidates(branches, default)
+    used = [name for name in names if counts.get(name)]
+    if used:
+        return max(used, key=lambda name: (counts[name], name != default))
+    return names[0] if names else None
+
+
+def load_standards(root):
+    """Branch values from the standards kit, so both tools share one answer."""
+    try:
+        data = json.loads((root / STANDARDS_PATH).read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError):
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    found = {}
+    for key, name in STANDARDS_KEYS.items():
+        value = data.get(name)
+        if isinstance(value, str) and BRANCH_RE.match(value):
+            found[key] = value
+    return found
+
+
+def sync_standards(root, changes):
+    """Keep .engineering/config.json in step, so PR checks accept the saved target."""
+    path = root / STANDARDS_PATH
+    wanted = {STANDARDS_KEYS[k]: v for k, v in changes.items() if k in STANDARDS_KEYS}
+    if not wanted or not path.exists():
+        return
+    text = path.read_bytes().decode("utf-8-sig")
+    for name, value in wanted.items():
+        pattern = rf'("{name}"\s*:\s*)"[^"]*"'
+        if re.search(pattern, text):
+            text = re.sub(pattern, lambda m: f'{m.group(1)}"{value}"', text, count=1)
+        else:
+            text = text.replace("{", f'{{\n  "{name}": "{value}",', 1)
+    json.loads(text)
+    path.write_bytes(text.encode("utf-8"))
+
+
+def branch_state(root, override=None):
+    stored = {**load_standards(root), **load(root)}
+    own = load(root)
+    branches, default = repo_branches(root)
+    if not branches:
+        raise ConfigError("this repository has no branches yet. Make a first commit, then run this again")
+    release = stored.get("releaseBranch") or default
+    configured = stored.get("baseBranch")
+    counts = merged_pr_targets(root)
+    recommended = recommend_branch(branches, default, counts)
+    body = {"base": None, "release": release, "default": default, "source": None, "needsChoice": False,
+            "requiresConfirmation": False, "recommended": recommended, "reason": None,
+            "candidates": [{"branch": name, "mergedPrs": counts.get(name, 0), "production": name == release}
+                           for name in branch_candidates(branches, default)],
+            "saveCommand": f"/delivery-config baseBranch={recommended}", "warnings": []}
+    if release not in branches:
+        body["warnings"].append(f"releaseBranch '{release}' does not exist")
+    standards = load_standards(root)
+    for key in STANDARDS_KEYS:
+        if key in own and key in standards and own[key] != standards[key]:
+            body["warnings"].append(f"{key} is {own[key]} here but {standards[key]} in {STANDARDS_PATH.as_posix()}. "
+                                    f"Run /delivery-config {key}={own[key]} to align them")
+    if override:
+        value = parse_value("baseBranch", override)
+        if value not in branches:
+            raise ConfigError(f"branch '{value}' does not exist")
+        body.update(base=value, source="run")
+        separate = (configured and configured != release) or any(n != release for n in branch_candidates(branches, default))
+        if value == release and separate:
+            body["requiresConfirmation"] = True
+            body["reason"] = f"'{value}' is the production branch and this repo has a separate integration branch"
+    elif configured and configured in branches:
+        body.update(base=configured, source="project" if "baseBranch" in own else "standards")
+    elif configured:
+        body.update(needsChoice=True, reason=f"the saved base branch '{configured}' no longer exists")
+    else:
+        body.update(needsChoice=True, reason="this repo has no saved base branch")
+    return body
+
+
+def show_branch(root, override, as_json):
+    body = branch_state(root, override)
+    if as_json:
+        print(json.dumps(body, indent=2))
+    elif body["needsChoice"]:
+        print(f"Choose a base branch: {body['reason']}.")
+        for row in body["candidates"]:
+            mark = " (Recommended)" if row["branch"] == body["recommended"] else ""
+            note = ", production" if row["production"] else ""
+            print(f"  {row['branch']}{mark}: {row['mergedPrs']} recent merged PRs{note}")
+        print(f"Save it with: {body['saveCommand']}")
+    else:
+        print(f"Base branch: {body['base']} ({body['source']})  Release branch: {body['release']}")
+        if body["requiresConfirmation"]:
+            print(f"Needs a yes: {body['reason']}")
+    if not as_json:
+        for warning in body["warnings"]:
+            print(f"WARNING: {warning}")
+    return 1 if body["needsChoice"] else 3 if body["requiresConfirmation"] else 0
+
+
+def check_branches_exist(root, changes):
+    wanted = {k: v for k, v in changes.items() if k in ("baseBranch", "releaseBranch")}
+    if wanted:
+        branches, _ = repo_branches(root)
+        for key, value in wanted.items():
+            if branches and value not in branches:
+                raise ConfigError(f"{key}: branch '{value}' does not exist. Branches: {', '.join(branches[:20])}")
 
 
 def parse_pairs(pairs):
@@ -335,10 +509,15 @@ def main(argv=None):
     reset_cmd.add_argument("--me", action="store_true", help="only this computer")
     reset_cmd.add_argument("keys", nargs="*")
     reset_cmd.add_argument("--all", action="store_true")
+    branch_cmd = sub.add_parser("branch")
+    branch_cmd.add_argument("--base")
+    branch_cmd.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
 
     try:
         root = repo_root(args.repo)
+        if args.command == "branch":
+            return show_branch(root, args.base, args.json)
         if args.command == "show":
             show(root, args.json)
         elif args.command == "set":
@@ -346,6 +525,9 @@ def main(argv=None):
             if args.me:
                 for key in changes:
                     require_machine_key(key)
+            else:
+                check_branches_exist(root, changes)
+            if args.me:
                 machine, _ = load_machine()
                 machine.update(changes)
                 save_machine(machine)
@@ -353,6 +535,7 @@ def main(argv=None):
                 stored = load(root)
                 stored.update(changes)
                 save(root, stored)
+                sync_standards(root, changes)
             show(root, False)
         else:
             if not args.all and not args.keys:

@@ -1,6 +1,6 @@
 # Delivery workflow — <Product>
 
-PM tool: `<Jira | Linear | GitHub Issues | local | other>` · PM project: <PM tool project link> · Key: `<KEY>` · Main branch: `main`
+PM tool: `<Jira | Linear | GitHub Issues | local | other>` · PM project: <PM tool project link> · Key: `<KEY>` · Base branch (PR target): `<base>` · Release branch: `<release>`
 
 This project follows the AI delivery workflow (`~/.claude/workflows/ai-delivery-workflow.md`, imported from `CLAUDE.md`). This file holds the project's own values; where it is silent, the workflow's defaults apply. Review rules: `docs/workflow/REVIEW.md`.
 

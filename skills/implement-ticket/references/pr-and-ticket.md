@@ -22,9 +22,9 @@ Where docs and recent history disagree, follow history and mention the discrepan
 ## 2. Branch
 
 Already on a branch that names this ticket (common in a per-ticket worktree)? **Stay on
-it.** Otherwise create one from the default branch in the repo's format, with the prefix the
+it.** Otherwise create one from the base branch in the repo's format, with the prefix the
 ticket type implies (`references/ticket-types.md`), e.g. `feat/<key>-<n>/<slug>`,
-`fix/…`, `chore/…`, `refactor/…`, `docs/…`, `spike/…`. Never commit to the default branch.
+`fix/…`, `chore/…`, `refactor/…`, `docs/…`, `spike/…`. Never commit to the base branch.
 
 ## 3. Commit
 
@@ -47,7 +47,7 @@ Check the diff for secrets one last time. A committed credential is a rotation i
 
 ```bash
 git push -u origin <branch>
-gh pr create --draft --title "<title>" --body-file <body-file> --base <default-branch>
+gh pr create --draft --title "<title>" --body-file <body-file> --base <base-branch>
 ```
 
 Title in the repo's PR style, usually the commit subject. If the repo has a PR template, fill
@@ -87,6 +87,8 @@ Do not put an AC results table, E2E evidence or review verdicts in the body — 
 loop adds those (round summary comments, approver decision, explainer walkthrough). Add the
 PR-description attribution line if this session's instructions require one. Report the PR
 link as soon as it exists.
+
+Then confirm the target: `gh pr view --json baseRefName`. If it is wrong, fix it with `gh pr edit --base <base-branch>`.
 
 ## 5. Link the PR in the ticket record
 

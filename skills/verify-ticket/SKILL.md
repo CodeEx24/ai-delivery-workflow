@@ -69,7 +69,7 @@ Resolve the ticket (the ref given; else the key in the branch name or the branch
 the criteria **verbatim** as AC1, AC2, … A paraphrase quietly turns "updates without a reload"
 into "is correct". No explicit AC → derive a list, show it, say it is derived.
 
-Note the ticket **type**: a **Bug** needs **before and after** screenshots (reproduce on `main`
+Note the ticket **type**: a **Bug** needs **before and after** screenshots (reproduce on the base branch
 or the pre-fix build first when feasible); a **Spike** gets no device test.
 
 Sort each criterion: **app-verifiable** (a user could see it happen — test it) or **not

@@ -82,7 +82,7 @@ this file alone and say so in Scope.
 ## Checks are already done
 
 `round-<N>/checks.md` records the gate (lint, typecheck, tests, build, ticket
-record check) run from `main`'s copy of the checks script. Do not re-run the
+record check) run from the base branch's copy of the checks script. Do not re-run the
 whole suite. Run a command only to **confirm a specific finding** (one test
 file, the typechecker, a grep of callers). Never use a mode that rewrites
 files (`--fix`, `--write`, `-u` snapshot updates).

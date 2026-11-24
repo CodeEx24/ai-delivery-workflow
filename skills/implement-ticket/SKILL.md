@@ -52,6 +52,7 @@ every default here:
   Otherwise use this skill's defaults (the layout in `references/ticket-record.md`).
 - `CLAUDE.md` / `AGENTS.md` — architecture, invariants, naming, branch and commit format.
 - `README.md`, `CONTRIBUTING.md`, `docs/setup/` — how to run the app and the tests.
+- **The base branch.** Run `python "$HOME/.claude/skills/delivery-config/config.py" --repo . branch --json`. A value from the orchestrator's brief wins. `needsChoice`: ask once and save it. Branch from it, and target it with the PR.
 - **The checks script** (default `scripts/workflow/checks`, `.sh` / `.ps1`; you run it without
   `--report`, its local mode). If absent: manifest scripts and CI — **CI defines "green"**.
 - `docs/actions/` — how owner guides are written and whether a script generates the to-do
@@ -76,7 +77,7 @@ that file is also the ticket record. Do not write a second record in Phase 4; fi
 and Decisions sections instead. On your branch, set `**Status: 🟡 In progress**` and the
 `Branch:` line at the start of Phase 1, `**Status: 🟡 In review**` with the PR link at Phase 8,
 and `**Status: 🔴 Blocked — <reason>**` when you escalate. Append a Log line for each change.
-Never edit it on the default branch.
+Never edit it on the base branch.
 
 - **Jira** (Atlassian MCP): cloud id via `getAccessibleAtlassianResources`, then
   `getJiraIssue`. **Local backlog.** When the project uses the local backlog (no PM tool; `docs/tickets/backlog.md`, IDs `T-001…`, format in the `deliver` skill's `references/import-tasks.md`), read the ticket's entry from that file instead (blockers Done = their entries say

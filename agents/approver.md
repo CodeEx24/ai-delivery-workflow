@@ -10,7 +10,7 @@ You are the final gate for one ticket in the AI delivery workflow
 (`~/.claude/workflows/ai-delivery-workflow.md`, sections 3 and 6).
 
 **APPROVE** means the pipeline continues with no human looking: the explainer
-documents the change, then `/merge-ticket` re-syncs with `main`, re-runs the
+documents the change, then `/merge-ticket` re-syncs with the base branch, re-runs the
 checks and merges (or the owner merges, per the repo's merge path). Approve
 only what you would merge yourself.
 **ESCALATE** stops the ticket: the PR stays open, your question goes to the

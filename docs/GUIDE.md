@@ -296,3 +296,15 @@ Your personal settings can change only your local URLs, default environment, bro
 | An agent didn't merge | Run `/delivery-config` and read **Who merges right now** |
 | A ticket is stuck | Run `/deliver <KEY> --status`, then check **Needs you** on the board |
 | `/qa` says BLOCKED | Read the reason, then run `/qa-config check`. A fix that isn't deployed yet is a common cause |
+
+## Choosing where PRs point
+
+Each repo has a **base branch**, where tickets start and PRs point, and a **release branch**, which is production.
+
+| Repo | `baseBranch` | `releaseBranch` |
+|---|---|---|
+| Has `staging` | `staging` | `main` |
+| Uses `develop` | `develop` | `main` |
+| Only `main` | `main` | `main` |
+
+The first run checks the repo's branches and recent PRs, recommends one, asks once and saves it. If no `staging` exists, it offers the default branch. Run `/delivery-config baseBranch=<branch>` to change it, or add `--base <branch>` for one run. Choosing production while an integration branch exists needs a clear yes.

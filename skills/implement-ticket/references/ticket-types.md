@@ -79,7 +79,7 @@ Research, prototype, choose between options.
 - **Ends with:** the owner decides on the recommendation; follow-up tickets are created and
   placed in waves (`/plan-waves`); the spike closes without a product merge. The record
   **always** lands on the main branch as a docs-only change (a `docs/…` PR carrying only
-  `docs/tickets/<KEY>-<n>-<slug>.md`, opened from the default branch); no need to ask.
+  `docs/tickets/<KEY>-<n>-<slug>.md`, opened from the base branch); no need to ask.
 - **Review loop:** the code reviewer reads the findings, not product code; no device test.
   Do not create the follow-up tickets yourself unless the owner says so.
 

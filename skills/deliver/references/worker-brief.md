@@ -18,8 +18,8 @@ ORCA orchestration worker-start --run {{RUN_ID}} --spec-file .delivery/briefs/{{
 - **Local backlog** (`tracker.kind: "local"`): `{{TICKET_URL}}` is
   `docs/tickets/backlog.md#<id>`; the brief's tracker steps read that file and write nothing to
   it (see the note in the brief).
-- `{{WORKTREE_NAME}}`: short and filesystem-safe, e.g. `abc-027-today-inbox`. Omit
-  `--base-branch` so Orca uses the repo default base. Add `--model` only if
+- `{{WORKTREE_NAME}}`: short and filesystem-safe, e.g. `abc-027-today-inbox`. Always pass
+  `--base-branch origin/<repo.baseBranch>`, and put that branch in the brief, so the worker never falls back to the repo default. Add `--model` only if
   `policy.workerModel` is set.
 - From the receipt store `taskId`, `dispatchId`, the worktree id and path in
   `orchestrator.json`. If it fails, do not rerun: read `failedStage` and the recovery reference.
@@ -153,7 +153,7 @@ and say so in your report.
 - **STOP** — commit work in progress to your branch, push, report what is unfinished, end.
 - **PAUSE** — finish the step you are in, commit, push, update `job.json` (stage and
   `progress`), report, then wait; start nothing new until **CONTINUE**.
-- **CONTINUE** — re-sync with the default branch if behind, then carry on from the stage the
+- **CONTINUE** — re-sync with the base branch if behind, then carry on from the stage the
   message names.
 
 ## job.json (`deliver-job/1`)

@@ -23,7 +23,7 @@ gh pr list --search "<KEY>-<n>" --state all --json number,state,title,url,headRe
 git worktree list --porcelain     # match "branch refs/heads/<headRefName>"
 ```
 
-## Re-sync the branch with main
+## Re-sync the branch with the base branch
 
 Work in the ticket's own worktree (from `git worktree list`). First make sure it is clean; if it
 has uncommitted changes, stop — someone is still working there.
@@ -31,9 +31,9 @@ has uncommitted changes, stop — someone is still working there.
 ```bash
 git -C <worktree> status --porcelain          # must be empty
 git -C <worktree> fetch origin
-git -C <worktree> merge --no-edit origin/main # repo merges main into branches (squash-merge repos usually do)
+git -C <worktree> merge --no-edit origin/<base> # repo merges the base branch into branches (squash-merge repos usually do)
 # or: gh pr update-branch <n>                 # server-side merge of base into the PR
-# or: git -C <worktree> rebase origin/main && git push --force-with-lease   # only if the repo rebases
+# or: git -C <worktree> rebase origin/<base> && git push --force-with-lease   # only if the repo rebases
 ```
 
 On conflict: `git merge --abort` (or `git rebase --abort`), list the conflicted files, stop, and
@@ -44,17 +44,17 @@ to regenerate): run the generator, stage, continue — and say you did.
 Push after the checks pass (below), not before, so a red re-gate does not leave a broken head on
 the PR.
 
-## Run main's copy of the checks script
+## Run the base branch's copy of the checks script
 
-The gate must use the default branch's version of the script, not the branch's.
+The gate must use the base branch's version of the script, not the branch's.
 
 ```bash
-git -C <worktree> show origin/main:scripts/workflow/checks.sh > "$TMP/checks-main.sh"
+git -C <worktree> show origin/<base>:scripts/workflow/checks.sh > "$TMP/checks-main.sh"
 (cd <worktree> && bash "$TMP/checks-main.sh")           # PowerShell variant: checks.ps1
 ```
 
 Adjust the path to the project's script name. If the script reads companion files from
-`scripts/workflow/`, check those out from `origin/main` into a temp dir and run from there with
+`scripts/workflow/`, check those out from `origin/<base>` into a temp dir and run from there with
 the worktree as the working directory. Run it in **local mode** (no `--report`, workflow 1b): it
 only prints, so no round file is written; quote the result in your report and the PR close-out.
 
@@ -133,13 +133,13 @@ gh pr view <n> --json state,mergedAt,mergeCommit --jq '{state, mergedAt, sha: .m
 ```
 
 `MERGED` → continue with post-merge verification and the rest. Still `OPEN` → report it is still
-waiting (the ticket keeps `ready-to-merge`; `needs-human` is only for real escalations). If new commits landed on `main` while
+waiting (the ticket keeps `ready-to-merge`; `needs-human` is only for real escalations). If new commits landed on the base branch while
 waiting, the PR may show `BEHIND` again: re-gate before telling the owner again.
 
 ## Post-merge verification
 
 ```bash
-# workflows that run on push to the default branch
+# workflows that run on push to the base branch
 rg -l "push:" .github/workflows/ | xargs rg -l "main"
 gh run list --workflow=<name>.yml --limit 5 \
   --json status,conclusion,headSha,createdAt,databaseId \
@@ -160,5 +160,5 @@ Match `headSha` to the merge SHA.
 
 - **GitLab** — `glab mr view <n>`, `glab mr merge <n>`; same shape, pipeline first.
 - **Bitbucket / Azure DevOps / Gitea** — no assumed CLI: use the owner path (ask the user to merge
-  in the UI), then detect with `git fetch && git log origin/main --oneline | grep <KEY>-<n>`.
+  in the UI), then detect with `git fetch && git log origin/<base> --oneline | grep <KEY>-<n>`.
 - **No forge** — `git merge --ff-only` plus push; confirm explicitly, and say there is no CI gate.

@@ -139,6 +139,7 @@ gh pr list --state all --limit 300 --json number,title,headRefName,baseRefName,s
   newest first, so an older merged PR can fall off the end. If a ticket in the wave has no
   match and the list was truncated, search for it specifically before concluding there is no
   PR: `gh pr list --state all --search "VD-41" --json number,title,headRefName,state,mergedAt,url`.
+- The base branch: `python "$HOME/.claude/skills/delivery-config/config.py" --repo . branch --json` (`base`, else `recommended`). This report never saves it.
 - The default branch: `gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`.
 
 For an open PR that is the candidate for "finish this first", its readiness is cheap to add:
@@ -164,12 +165,12 @@ appears in the body may be a passing mention ("follow-up to VD-12").
   keywords (`Closes`, `Fixes`, `Resolves`) to tell a PR that delivers the issue from one that
   mentions it.
 - **Several PRs for one key** is normal (a fix-up, a split delivery, a revert). Read them
-  together: the ticket has landed only when at least one merged into the default branch and
+  together: the ticket has landed only when at least one merged into the project's base branch and
   none is still open. A PR whose title starts with `Revert` and names the same key means the
   work was backed out — treat the ticket as not landed and say so.
-- **Base branch.** `baseRefName` must be the default branch (or the release branch the repo's
+- **Base branch.** `baseRefName` must be the project's base branch (or the release branch the repo's
   docs name) for a merge to count. A PR merged into another feature branch is part of a
-  stack; follow it to the PR that carries it into the default branch.
+  stack; follow it to the PR that carries it into the project's base branch.
 - **A body-only match** is weak evidence. Report the mismatch as "possibly" and show the PR
   title so the user can judge.
 

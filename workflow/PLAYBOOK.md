@@ -91,7 +91,7 @@ window still apply: if ABC-42 is blocked, it says by what instead of starting it
 
 | Step | You type | Result |
 |---|---|---|
-| 0 | *(optional)* `git worktree add ../myapp.worktrees/ABC-42 -b feat/abc-042/<slug> origin/main`, then open Claude Code in that folder (or use an Orca "new worktree") | Isolated checkout |
+| 0 | *(optional)* `git worktree add ../myapp.worktrees/ABC-42 -b feat/abc-042/<slug> origin/<base>`, then open Claude Code in that folder (or use an Orca "new worktree") | Isolated checkout |
 | 1 | `/implement-ticket ABC-42` | Intake (type, AC word for word), explore, questions to you, ticket record `docs/tickets/ABC-42.md`, plan, build, checks, draft PR, Jira → In Review. `job.json` and progress are written from the first minute |
 | 2 | `python "$HOME/.claude/delivery-board/board.py" serve --repo . --open` | The board shows ABC-42's card and task progress (no orchestrator needed) |
 | 3 | "run the review loop for ABC-42" | The same session runs the round by hand (implement-ticket `references/review-loop.md`): **gate** (main's checks script with `--report`) → **tester-functional** (+ **tester-device**) → **reviewers** → any CHANGES → it fixes and repeats (max 3 rounds) → **approver** → **explainer** |
@@ -209,6 +209,7 @@ Shortcuts:
 | Pause everything right now | `/deliver ABC --pause --now` |
 | Pause one ticket | `/deliver ABC --pause ABC-42` |
 | Pause from another terminal | `python "$HOME/.claude/delivery-board/board.py" pause --repo . [--now] [--reason "…"]` |
+| See or change the PR target branch | `/delivery-config`, then `/delivery-config baseBranch=<branch>`. One run only: `--base <branch>` |
 | Find the proof for a ticket | Open its `📁 Evidence Index` comment. `Check first` names the document to read |
 | See what a ticket changed (files, functions, screenshots) | `python "$HOME/.claude/delivery-board/board.py" report --repo . --ticket ABC-42 --open` (or "Change report" in the board's ticket drawer) |
 | Resume after a pause | `/loop /deliver ABC --resume` · `/factory resume` (or `--resume ABC-42` for one) |

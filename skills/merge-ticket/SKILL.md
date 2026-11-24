@@ -2,13 +2,13 @@
 name: merge-ticket
 description: >-
   Close out a ticket whose PR is ready, end to end: mark the draft PR ready for review, re-sync
-  the branch with main and re-run the
+  the branch with the base branch and re-run the
   project's checks script (refusing on red), close the ticket record (links block, Status: Merged,
   Outcome), merge by the project's chosen merge path — or hand the owner the exact merge command
   and detect the merge afterwards — verify any post-merge deploy, post the proof where it belongs
   (AC results and step-by-step screenshots on the tracker ticket; review rounds, approver
   decision, CI and agent cost on the PR), move the ticket to Done, note deferrals on their
-  follow-up tickets, re-sync every other open PR with main, and clean up the worktree, local
+  follow-up tickets, re-sync every other open PR with the base branch, and clean up the worktree, local
   branch, leftover services and the ticket's working folder. Use whenever the user or the
   delivery orchestrator says "merge the ticket", "merge ABC-118", "merge and close it out",
   "ship it", "I merged it — update the ticket", "close out the ticket", "update Jira with the
@@ -58,9 +58,9 @@ One pass, then say in one line what you found:
   `scripts/workflow/cost`), the worktree tool
   (e.g. Orca), the PM tool and its done status, the `ready-to-merge` label (waiting for the
   owner's merge) and the `needs-human` label (real escalations).
-- `.github/workflows/` — gating checks, and **what runs on push to the default branch** (deploy,
+- `.github/workflows/` — gating checks, and **what runs on push to the base branch** (deploy,
   migration-apply, release): that run is part of this job (step 4b).
-- `git log --oneline -10` on the default branch — the real merge style.
+- `git log --oneline -10` on the base branch — the real merge style.
 
 Report: merge strategy, merge path, checks script found or not, post-merge workflow found or not.
 
@@ -97,19 +97,21 @@ In a workflow project, also confirm the approver said **APPROVE** (`decision.md`
 `ESCALATE` or no decision is a stop: the ticket belongs in `needs-human`, not in a merge. Read
 the worktree path, branch, base branch and PR number from `job.json` when it exists.
 
-## Step 2 — Ready + re-gate: mark ready, re-sync with main, re-run the checks
+**Check the target.** Resolve the base branch (`python "$HOME/.claude/skills/delivery-config/config.py" --repo . branch --json`). If the PR's `baseRefName` differs, **stop and report it**, unless it is a recorded hotfix or promotion to the release branch.
+
+## Step 2 — Ready + re-gate: mark ready, re-sync with the base branch, re-run the checks
 
 Another ticket may have merged since the review loop passed, so the green it earned is stale.
 
 1. **Draft → ready.** If the PR is still a draft (`isDraft`), run `gh pr ready <n>`. This skill
    is the only one that does this (builders and the orchestrator leave the PR as a draft), and
    it happens right before the re-gate so CI runs once more on a ready PR.
-2. **Re-sync** the PR branch with the latest `main` in the ticket's worktree, the way the repo
-   does it (merge `origin/main` into the branch, or `gh pr update-branch`, or rebase if the repo
+2. **Re-sync** the PR branch with the latest base branch in the ticket's worktree, the way the repo
+   does it (merge `origin/<base>` into the branch, or `gh pr update-branch`, or rebase if the repo
    rebases). **Conflicts → stop**: abort the merge/rebase, report the files, send it back to the
    builder. Only resolve purely mechanical conflicts (a generated file the repo regenerates by
    script, e.g. a generated owner to-do list) — regenerate, never hand-merge.
-3. **Run the checks script from `main`'s copy** (so a branch cannot weaken the checks it is
+3. **Run the checks script from the base branch's copy** (so a branch cannot weaken the checks it is
    judged by), against the re-synced branch, in local mode (no `--report`: the result goes in
    your report and the PR close-out, not into a round file). `references/merge-checks.md` has
    the recipe. Without a checks script, run the commands `CLAUDE.md` lists. If the repo has
@@ -169,7 +171,7 @@ and continues from 4b. The orchestrator may poll the PR state instead.
 
 ### Step 4b — Verify what the merge triggered
 
-**Do not skip this**, on either path. If a workflow runs on push to the default branch, match
+**Do not skip this**, on either path. If a workflow runs on push to the base branch, match
 its run to the merge SHA and watch it. Success → quote the evidence line (smoke probe,
 migration applied, health check). Failure → the change is merged but **not live**: post that
 on the ticket, do not move it to Done, tell the user plainly. Recipes in `references/merge-checks.md`.
@@ -216,8 +218,8 @@ if this run added it).
 **Scope under `/deliver`** (mine, specific tickets or all available): re-sync only open PRs
 authored by the operator. List other people's PRs as skipped and never push to their branches.
 
-**Re-sync every other open PR** (the merge just moved `main` under them). For each:
-merge `origin/main` into it in **its own worktree**, re-run the checks script (main's copy),
+**Re-sync every other open PR** (the merge just moved the base branch under them). For each:
+merge `origin/<base>` into it in **its own worktree**, re-run the checks script (the base branch's copy),
 push. Skip — and report — any worktree with uncommitted changes or a builder mid-stage (its
 stage file says so): never commit someone else's work in progress. Conflicts you cannot resolve
 mechanically → abort, report the PR and files, leave it for its builder. Recipes in
@@ -264,7 +266,7 @@ or left (with the reason).
 
 ## References
 
-- `references/merge-checks.md` — re-sync recipes, running main's copy of the checks script,
+- `references/merge-checks.md` — re-sync recipes, running the base branch's copy of the checks script,
   merge readiness (`mergeStateStatus`, checks, reviews), the two merge paths, post-merge deploy
   verification, non-GitHub forges.
 - `references/proof-and-comments.md` — ticket record close-out, ticket and PR comment templates,

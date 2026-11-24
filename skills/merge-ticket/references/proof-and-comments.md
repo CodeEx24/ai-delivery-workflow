@@ -52,9 +52,9 @@ description/walkthrough, ticket comments. If a fact is unknown, write what is kn
 in the report — never invent.
 
 **Normal path:** commit on the PR branch before the merge so it lands in the squash.
-**Already-merged path:** if the record on `main` is incomplete, open a tiny follow-up PR
+**Already-merged path:** if the record on the base branch is incomplete, open a tiny follow-up PR
 (`docs/<key>-<n>/close-out-record`, commit `docs(<scope>): close out ticket record (<KEY>-<n>)`),
-add it to the links block itself, and merge it through the same merge path. Do not push to `main`
+add it to the links block itself, and merge it through the same merge path. Do not push to the base branch
 directly unless the project explicitly allows doc commits there.
 
 No ticket record convention in the repo → skip and say so.
@@ -159,7 +159,7 @@ Markdown. Links to the ticket proof instead of embedding images.
 |---|---|---|---|---|---|---|---|
 | 1 | PASS | CHANGES — <one line> | PASS | PASS | – | PASS | CHANGES — <one line> |
 | 2 | PASS | PASS | PASS | PASS | – | PASS | PASS |
-| pre-merge re-gate | PASS on `<sha7>` (re-synced with main) | | | | | | |
+| pre-merge re-gate | PASS on `<sha7>` (re-synced with the base branch) | | | | | | |
 
 ### Approver
 APPROVE — <one-line reason> (<link to decision comment>)

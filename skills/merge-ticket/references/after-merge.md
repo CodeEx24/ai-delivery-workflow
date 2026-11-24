@@ -1,6 +1,6 @@
 # After the merge: re-sync other PRs, then clean up
 
-Two jobs, in this order: keep every other open PR current with the new `main`, then remove
+Two jobs, in this order: keep every other open PR current with the updated base branch, then remove
 everything this ticket left behind. Both are careful by default — they report rather than
 destroy when anything looks like live work.
 
@@ -23,12 +23,12 @@ For each open PR (except ones the user excluded):
 2. **Where to work:** its own worktree if it has one. No worktree → a temporary one:
    `git worktree add "$TMP/resync-<m>" <headRefName>` (remove it afterwards). Never check the
    branch out in the main checkout over other work.
-3. **Merge main in:** `git fetch origin && git merge --no-edit origin/main` (or the repo's
+3. **Merge the base branch in:** `git fetch origin && git merge --no-edit origin/<base>` (or the repo's
    update method; `gh pr update-branch <m>` is an alternative that needs no local checkout but
    skips the local checks).
 4. **Conflicts:** resolve only generated files by re-running their generator. Anything else →
    `git merge --abort`, record the PR and files, move on.
-5. **Checks:** run main's copy of the checks script (see `merge-checks.md`). Red → do not push;
+5. **Checks:** run the base branch's copy of the checks script (see `merge-checks.md`). Red → do not push;
    report it — the PR's builder owns the fix (in the orchestrator, the ticket goes back to its
    builder).
 6. **Push** when green. Draft PRs too: they are someone's next merge.
@@ -64,7 +64,7 @@ git -C <wt> rev-list @{u}..HEAD 2>/dev/null # must be empty (nothing unpushed)
 Untracked files are dependencies and build output only (`node_modules`, `build/`, the gitignored
 working folder)? Fine. Anything else (a stray edit, an unpushed commit) → **stop and report**;
 never discard someone's work. Note: after a squash merge the branch's commits are not ancestors
-of `main`, so "is merged" means the PR state is `MERGED`, not `git branch --merged`.
+of the base branch, so "is merged" means the PR state is `MERGED`, not `git branch --merged`.
 
 Then remove it with the tool that manages it:
 

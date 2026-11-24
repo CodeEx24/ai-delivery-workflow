@@ -91,8 +91,8 @@ implement-ticket, as usual.
    - Record: docs/tickets/T-013.md (description and acceptance criteria live there)
    ```
 
-4. **Get it onto the default branch**, because tickets start only from the default branch:
-   - a tiny commit `docs(tickets): add T-013 — <title>` on the default branch, **only if the
+4. **Get it onto the base branch**, because tickets start only from the base branch:
+   - a tiny commit `docs(tickets): add T-013 — <title>` on the base branch, **only if the
      owner says so** in the approval (solo repos), or
    - a branch `docs/ticket-T-013` with a draft PR the owner merges (team repos, protected `main`).
 
@@ -111,7 +111,7 @@ Ticket: local (no PM tool) · PRs: (none yet) · Branch: (none yet)
 Related: —
 
 > Status key: 🔴 To do / blocked · 🟡 In progress / in review · 🟢 Done
-> The copy on the default branch shows 🔴 or 🟢; 🟡 lives on the ticket's branch and PR while it is built.
+> The copy on the base branch shows 🔴 or 🟢; 🟡 lives on the ticket's branch and PR while it is built.
 
 ## Description
 <problem, who it is for, desired outcome>
@@ -144,15 +144,15 @@ Related: —
 
 | Status line | When | Who sets it, where |
 |---|---|---|
-| `🔴 To do` | Created, not started | new-ticket, on the default branch |
+| `🔴 To do` | Created, not started | new-ticket, on the base branch |
 | `🟡 In progress` | Branch exists, building | implement-ticket, on the ticket branch (Phase 1) |
 | `🟡 In review` | Draft PR open, review loop running | implement-ticket, on the branch (Phase 8), with the PR link |
 | `🔴 Blocked — <reason>` | Escalated, waiting on the owner, or blocked by another ticket | implement-ticket / the loop, on the branch |
 | `🟢 Done` | PR merged | merge-ticket, on the PR branch before merge, with the merge date |
-| `⚪ Won't do` | Dropped by the owner | whoever drops it, on the default branch |
+| `⚪ Won't do` | Dropped by the owner | whoever drops it, on the base branch |
 
 Every status change also appends a Log line (`- 2026-11-12 🟡 draft PR #57`). The default
-branch only ever shows 🔴 or 🟢 (and ⚪), because workers never edit the default branch; the live
+branch only ever shows 🔴 or 🟢 (and ⚪), because workers never edit the base branch; the live
 🟡 state is on the PR and on the live delivery board.
 
 ## Step 5 — Build it?
@@ -173,4 +173,4 @@ Ask once: **build it now?**
 - Invent acceptance criteria that decide product behaviour silently: those go under Assumptions
   or become a question.
 - Put secrets, credentials or personal data in a ticket.
-- Edit the default branch for status changes after creation (🟡 lives on the ticket branch).
+- Edit the base branch for status changes after creation (🟡 lives on the ticket branch).

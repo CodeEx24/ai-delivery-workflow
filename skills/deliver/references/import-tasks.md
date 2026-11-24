@@ -136,11 +136,11 @@ Local tracker (no PM tool connected). IDs `T-<nnn>`. Statuses: To Do · In Progr
 
 Rules for the local backlog (every skill that reads or writes tickets follows them):
 
-- **Committed, on the default branch.** The import writes it in the main checkout and commits
+- **Committed, on the base branch.** The import writes it in the main checkout and commits
   it on a `docs/backlog-import` branch with a draft PR (`docs(backlog): import tickets from
   <doc>`), which the owner merges — or, if the owner said so in the approval, the import
   commits it directly (new repos with no `main` history yet). Tickets start only once the
-  backlog is on the default branch.
+  backlog is on the base branch.
 - **On `main`, Status is only To Do, Done or Won't do.** "In Progress" and "In Review" are
   derived (an open branch, a draft or open PR, or a `.delivery/jobs/<ID>/` folder), so workers
   never edit `backlog.md` on their branches and the main checkout stays clean.
@@ -151,7 +151,7 @@ Rules for the local backlog (every skill that reads or writes tickets follows th
   trail.
 - **Wave markers and new links** (plan-waves, apply step) go through one docs PR, like the
   import.
-- Readiness and blockers are read from `main`'s copy: a blocker is Done when its entry says
+- Readiness and blockers are read from the base branch's copy: a blocker is Done when its entry says
   `Status: Done` (or its PR is merged — wave-status reports that as out of sync).
 - **Short entries with a ticket file.** An entry may carry `- Record: docs/tickets/T-<nnn>.md`
   instead of its own description and acceptance criteria (tickets made by the `new-ticket`
