@@ -74,19 +74,29 @@ Then remove it with the tool that manages it:
 - **Plain git** → `git worktree remove <wt>` (add `--force` only when the remaining untracked
   files are dependency/build folders you checked above).
 
-A long path or locked file on Windows can make removal fail half way: close processes using the
-folder and retry; then delete the leftover directory.
+**Windows long paths** (`Filename too long`, usually in `node_modules`) can stop removal half way.
+Close processes using the folder, then retry with `git -c core.longpaths=true worktree remove <wt>`.
+If Git unregistered the worktree but files remain, and you confirmed above that it was clean,
+delete the leftover folder by its **full literal path**, for example
+`cmd /c rd /s /q "\\?\D:\dev\worktrees\app\abc-123"`, then run `git worktree prune`. Never build
+that path from an unchecked variable.
 
 ### 3. Branches and records
 
 ```bash
 git branch -D <headRefName>                       # -D: squash merges are not "merged" to git
-git push origin --delete <headRefName> 2>/dev/null # only if --delete-branch did not already
+gh api repos/<owner>/<repo>/git/ref/heads/<headRefName> --jq .object.sha   # 404 means it is gone
+gh api -X DELETE repos/<owner>/<repo>/git/refs/heads/<headRefName>         # only if still there
 git worktree prune
 git fetch --prune
 ```
 
-Delete the local branch only after confirming the PR is `MERGED` and the worktree is gone. Also
+Delete the local branch only after confirming the PR is `MERGED` and the worktree is gone.
+
+**Delete the remote branch only when** the PR is `MERGED`, the branch tip still equals the PR's
+final commit (`headRefOid`), no open PR uses it, and it is not the base, release or a protected
+branch. Otherwise keep it and say why. Report all three results: remote branch, local branch and
+worktree, each `deleted`, `already gone` or `kept: <reason>`. Also
 remove any temporary re-sync worktrees from the step above.
 
 ### 4. Leftovers

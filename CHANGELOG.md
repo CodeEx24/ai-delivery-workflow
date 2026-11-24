@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-24 (cleanup) — delete merged branches and worktrees
+
+- **After every merge:** `/merge-ticket` deletes the remote branch, the local branch and the worktree, then confirms each one is gone, including after a merge done by hand on GitHub.
+- **Safe by default:** a branch with newer commits, an open PR or unpushed work is kept and reported. Base and release branches are never deleted.
+- **Windows:** handles `Filename too long` when removing worktrees. Setup also reports when the repo's auto-delete setting is off.
+
 ## 2026-11-24 (links) — clickable links in tracker comments
 
 - **Clickable links everywhere:** ticket, QA, fix and close-out comments link PRs, tickets, runs and evidence with readable text, in every tracker.
