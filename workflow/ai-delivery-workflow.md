@@ -194,7 +194,7 @@ Everything lives in the **gitignored working folder** `.delivery/jobs/<KEY>-<n>/
 1. Take the device lane (one ticket at a time). Install the build from the dev build registry and start the app the way the repo documents it. If the feature needs login or backend data, follow the local backend recipe and sign in as the test account.
 2. For each AC, perform it like a user and capture every step: `<KEY>-<n>-AC1-step-01.png`, `-step-02.png`…, saved in `round-N/screenshots/` in the working folder (not committed). A criterion that can't be reached for a reason the builder can't fix is BLOCKED, with the reason.
 3. Record the same path as a replayable E2E flow (e.g. Maestro, Playwright) so it becomes a regression test — **one flow per ticket** covering its ACs, split per AC only when the ACs are independent flows (or the E2E folder's convention says so); commit it on the ticket branch (`git pull --rebase`, then `git push`).
-4. Attach the screenshots to the ticket in the PM tool (through a browser session if its API can't upload files) and post a comment: each AC with its numbered steps and the matching screenshot names. The PR links to that ticket comment instead of duplicating the images.
+4. Build the labeled evidence PDF (`evidence-pack` skill) and deliver it to the project's tracker: native attachment, file in a comment, browser, then PR. Then post a comment: each AC with its numbered steps and the matching screenshot names. The PR links to that ticket comment instead of duplicating the images.
 5. Release the device lane: stop the dev server, simulator and any local backend started for this ticket.
 
 ---
@@ -284,7 +284,7 @@ The repo keeps only what a future developer or agent needs to understand **why t
 | What | Where | Why there |
 |---|---|---|
 | **Ticket record**: intent, AC (verbatim), design, decisions (who / when), deviations, known limitations, follow-ups; for spikes the findings and recommendation | `docs/tickets/<KEY>-<n>-<slug>.md` (one file, committed) | Long-lived context next to the code; read by future tickets and agents |
-| AC results table, step-by-step screenshots, owner decisions and deferrals, escalation questions, final status | **The ticket** in the PM tool (attachments + comments) | What the owner reads and audits |
+| Evidence PDFs and the Evidence Index, AC results table, owner decisions and deferrals, escalation questions, final status | **The ticket** in the PM tool (attachments + comments) | What the owner reads and audits |
 | What was built and how to test (draft PR description), gate results, test and review verdicts (one summary comment per round), approver decision, CI, cost of the ticket's agents | **The PR** on GitHub | The technical trail, kept with the diff |
 | Acceptance tests and E2E flows written by the testers | The codebase (test folders, e.g. `.maestro/`, `e2e/`) | They are code: they run in CI and guard against regressions |
 | Task plan, stage file, `round-N/` reports, `decision.md`, screenshots before upload | `.delivery/jobs/<KEY>-<n>/` (gitignored), deleted at cleanup | Working state that carries the loop and lets a crashed session resume |

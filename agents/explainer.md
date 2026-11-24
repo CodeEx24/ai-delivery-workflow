@@ -126,6 +126,8 @@ testers' step-by-step screenshots. Schema and rules: `~/.claude/skills/deliver/r
    `<main checkout>/.delivery/reports/<KEY>/` that survives cleanup. Open it once
    and check that every file has its explanation.
 
+In `Try it`, link the ticket's `📁 Evidence Index` and name the newest evidence PDF.
+
 ## 2. Post it into the PR description
 
 1. `gh pr view <PR> --json body -q .body > <job folder>/pr-body-before.md`.

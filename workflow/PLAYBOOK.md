@@ -209,6 +209,7 @@ Shortcuts:
 | Pause everything right now | `/deliver ABC --pause --now` |
 | Pause one ticket | `/deliver ABC --pause ABC-42` |
 | Pause from another terminal | `python "$HOME/.claude/delivery-board/board.py" pause --repo . [--now] [--reason "…"]` |
+| Find the proof for a ticket | Open its `📁 Evidence Index` comment. `Check first` names the document to read |
 | See what a ticket changed (files, functions, screenshots) | `python "$HOME/.claude/delivery-board/board.py" report --repo . --ticket ABC-42 --open` (or "Change report" in the board's ticket drawer) |
 | Resume after a pause | `/loop /deliver ABC --resume` · `/factory resume` (or `--resume ABC-42` for one) |
 | Resume after closing the chat | `/loop /deliver ABC` or `/loop /factory run` |

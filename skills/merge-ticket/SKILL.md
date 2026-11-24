@@ -200,6 +200,10 @@ delta (or nothing). Never post the same summary twice.
 **Deferrals:** for each criterion deferred by the owner, add a comment on the **follow-up
 ticket** too: what was deferred from which ticket, the owner's decision, the link back.
 
+**Evidence PDFs.** Confirm the newest PDF is on the ticket and the `📁 Evidence Index` is current
+(`~/.claude/skills/evidence-pack/references/tracker-delivery.md`). If it is missing, upload it. If that fails, say
+`Evidence incomplete` and keep the local files.
+
 ## Step 6 — Move the ticket to Done
 
 Fetch transitions and pick by **name**, never a hardcoded id. Merged + deploy green (or no

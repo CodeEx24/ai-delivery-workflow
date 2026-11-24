@@ -139,6 +139,11 @@ uploaded them already — upload only the missing ones.
 3. Neither possible → say so, list the local paths, and **do not delete the working folder**;
    the owner needs the files.
 
+## Evidence PDFs
+
+Link the ticket's `📁 Evidence Index` in the close-out instead of listing every screenshot. Use the
+individual screenshot route above only when no PDF exists.
+
 ## PR close-out comment
 
 Markdown. Links to the ticket proof instead of embedding images.

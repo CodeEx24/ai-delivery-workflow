@@ -9,7 +9,7 @@ description: >-
   code. Use when the user says "/delivery-init", "set up this project for the workflow",
   "install the delivery workflow in this repo", "onboard this project to /deliver or /factory",
   or "add the workflow to CLAUDE.md".
-argument-hint: "[<PROJECT-KEY>] [--tracker jira|linear|github|local] [--factory] [--dry-run]"
+argument-hint: "[<PROJECT-KEY>] [--tracker jira|linear|github|local|<other>] [--factory] [--dry-run]"
 user-invocable: true
 ---
 
@@ -41,6 +41,21 @@ Ask (one batched AskUserQuestion) only for what detection could not settle: the 
 the tracker, the merge path (default: **owner merges**), and whether to merge the recommended
 permissions into `.claude/settings.json` (default: **no**, show them instead).
 
+### Recommend a tracker when none is set
+
+If the team already uses a tool, **keep it**. Otherwise recommend one and let them choose:
+
+| Situation | Recommend |
+|---|---|
+| Small product team that wants speed | **Linear** |
+| Larger organization, custom workflows or audit needs | **Jira** |
+| Code-first team, or work already lives on GitHub | **GitHub Issues** |
+| Solo, offline or a short experiment | **Local backlog** |
+| Any other tool the team prefers | That tool, through its connector or CLI |
+
+Check whether the tool's connector is available and say what must be connected. Never create an
+account or workspace. Evidence delivery adapts through the `evidence-pack` skill.
+
 ## Step 2 — Show the plan
 
 A short table: file · action (create / add block / update block / skip, already done) · what
@@ -61,7 +76,7 @@ changes. Then wait for a yes. `--dry-run` stops here.
    If the markers exist, replace only what is between them. If an unmarked import line already
    exists, leave it and add only the missing compact section, wrapped in the markers.
 2. **`docs/workflow/README.md`** from `templates/docs-workflow-README.template.md`: fill
-   `<Product>` (repo name), the PM link, `<KEY>`, the main branch, the merge path, and the
+   `<Product>` (repo name), the PM tool and link, `<KEY>`, the main branch, the merge path, and the
    checks command found in Step 1. Existing file → do not overwrite; list the values that differ
    and offer to update them one by one.
 3. **`.gitignore`**: append `.delivery/` under a `# AI delivery workflow` comment if missing.

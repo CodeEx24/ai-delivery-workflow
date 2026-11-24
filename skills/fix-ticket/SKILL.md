@@ -39,7 +39,8 @@ preview, or a local checkout of the PR branch. **The live PR state decides, not 
 
 Find the tracker the way `report-bug-ticket` does. Read the ticket, then:
 
-1. The newest `🐞 Issues Found` comment and its QA run ID.
+1. The `📁 Evidence Index`. Open its `Open QA failure` document (or `Check first`), then the newest
+   `🐞 Issues Found` comment and its QA run ID.
 2. Every linked open bug labeled `qa:found`, with its **Engineering handoff**.
 3. Attachments: step screenshots, `report.md`, `scenarios.json`, sanitized logs.
 4. The ticket record in `docs/tickets/`.
@@ -115,6 +116,10 @@ Follow `implement-ticket`'s Bug path, including its standards checks and project
 
 6. Link the PR on the ticket and the bugs, and add it to the record's links block.
 
+7. Build a `FIX` evidence PDF (`~/.claude/skills/evidence-pack/SKILL.md`) with `--responds-to <failed PDF>` and
+   `--before <its scenarios.json>`. Deliver it with `~/.claude/skills/evidence-pack/references/tracker-delivery.md`,
+   and update the `📁 Evidence Index`.
+
 ## Step 7 — Hand off
 
 Move the ticket to the review status, add `qa:fix-ready`, and post:
@@ -122,6 +127,7 @@ Move the ticket to the review status, add `qa:fix-ready`, and post:
 ```markdown
 🛠️ Fix ready for review · <PR link>
 Fixed: 🐞 <bug keys> · Root cause: <one line>
+Evidence: <FIX PDF name> · Responds to: <failed PDF name>
 Engineering retest: <result> on <sha>
 Next: approve and deploy, then QA runs `/qa <KEY-n> --retest`
 ```

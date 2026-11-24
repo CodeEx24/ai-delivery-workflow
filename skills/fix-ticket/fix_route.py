@@ -19,7 +19,7 @@ import subprocess
 import sys
 
 FIELDS = "number,state,title,url,headRefName,baseRefName,isDraft,mergedAt,isCrossRepository,author"
-TICKET = re.compile(r"^[A-Z][A-Z0-9]{1,9}-[1-9][0-9]*$")
+TICKET = re.compile(r"^[A-Z][A-Z0-9]{0,9}-[0-9]+$")
 
 
 def slugify(text, limit=6):
@@ -116,6 +116,8 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     ticket = args.ticket.upper()
+    if re.fullmatch(r"#[0-9]+", ticket):  # GitHub Issues
+        ticket = f"GH-{ticket[1:]}"
     if not TICKET.match(ticket):
         print(f"error: not a ticket key: {args.ticket}", file=sys.stderr)
         return 2

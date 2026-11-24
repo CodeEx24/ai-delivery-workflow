@@ -142,9 +142,10 @@ Bug, and `type:bug` where the issue type cannot carry it.
 - **Existing open bug:** add one comment with the environment, SHA, steps and new evidence. Search
   for the same QA run ID first so a retry cannot post it twice.
 
-**Evidence.** Attach every step screenshot in order, `report.md`, `scenarios.json` and sanitized
-logs, using the tracker's API or the signed-in browser route in `verify-ticket`'s
-`references/e2e-and-reporting.md`. First run the `scan` check in the handoff reference and review
+**Evidence.** When it came from `/qa`, attach or link its evidence PDF, `report.md`,
+`scenarios.json`, each `-FAIL` screenshot and sanitized logs, and name the PDF in the handoff. Without
+a PDF, attach every step screenshot in order. Deliver with `~/.claude/skills/evidence-pack/references/tracker-delivery.md`,
+which adapts to the tracker in use. First run the `scan` check in the handoff reference and review
 every image for secrets, tokens, cookies, auth headers and real personal data. Afterwards run its
 `evidence` check against what the tracker actually holds. **If anything is missing, do not call
 the handoff complete:** write `Evidence incomplete`, list what is missing, add

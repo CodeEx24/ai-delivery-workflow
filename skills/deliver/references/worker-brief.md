@@ -130,7 +130,7 @@ and say so in your report.
   by that report.
 - **REVIEW r<N>** — set stage `reviewing`. `git pull` so you hold the round's final commit
   (testers' commits included), then spawn the listed reviewers **in parallel** (models as
-  given). `reviewer-ui` and `reviewer-ux` read `round-N/screenshots/` and `test-device.md`
+  given). `tester-device` builds and delivers the evidence PDF. `reviewer-ui` and `reviewer-ux` read `round-N/screenshots/` and `test-device.md`
   when tester-device ran. When all have written: stage `reviewed`, report.
 - **FIX r<N>** — set stage `fixing`. Follow implement-ticket "Resuming with CHANGES verdicts"
   (read every file of round N, including `checks.md` when the gate failed; fix only what is

@@ -256,6 +256,12 @@ Idempotent: update or skip if a device-test comment for this round exists. The P
 that comment** (add the link to the PR description or the round summary) instead of duplicating
 images. Match the tracker's markup. Never change the ticket status.
 
+**Evidence PDF.** Give each walked path a named `flow`, write `scenarios.json` beside the round's
+screenshots, and build a `DEV` PDF with `~/.claude/skills/evidence-pack/SKILL.md`. Deliver it with
+`~/.claude/skills/evidence-pack/references/tracker-delivery.md`, which adapts to the project's tracker.
+The PDF is the primary proof. If it cannot be built or delivered, say `Evidence incomplete` and
+keep the local files.
+
 **Release the lane:** stop the dev server, simulator/emulator, local backend and any other
 process you started; sign out of the user's own browser profile if you used it; close your tabs;
 note any test data created. **(role)** List what you started and stopped (kind, port, pid) in

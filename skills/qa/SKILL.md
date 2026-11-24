@@ -103,6 +103,7 @@ Use `references/test-matrix.md`. Each AC gets positive, negative, edge and regre
 with stable IDs (`AC1-P1`, `AC1-N1`, `AC1-E1`, `AC1-R1`; routed checks use `UI-1`, `API-1`, …).
 Route extra test types from the diff with the table in that file. Write the expected result of
 each scenario **before** running it. Mark any scenario the access level forbids as BLOCKED now.
+Give each scenario a `flow`, such as `Login Flow`, reusing names from earlier runs on the ticket.
 
 ## Step 5 — Dry run stops here
 
@@ -167,9 +168,10 @@ Every report records environment, URL, deployed SHA, account role, browser, date
    Idempotent: search for `QA run <run-id>` first and edit instead of duplicating.
 2. **Replace** the previous QA result label with one of `qa:passed`, `qa:passed-with-notes`,
    `qa:failed`, `qa:blocked`. Add `qa:improvement` when there are `💡` items.
-3. **Scan, then attach** every step screenshot in order, `report.md`, `scenarios.json` and
-   sanitized logs, following `references/engineering-handoff.md` and `verify-ticket`'s
-   `references/e2e-and-reporting.md` upload order (API, then a signed-in browser). `.delivery/qa/`
+3. **Scan, build the evidence PDF, then attach** it with `report.md`, `scenarios.json`, every
+   `-FAIL` screenshot and sanitized logs. Use stage `QA`, or `RETEST` for a retest (`~/.claude/skills/evidence-pack/SKILL.md`).
+   Follow `references/engineering-handoff.md` and `~/.claude/skills/evidence-pack/references/tracker-delivery.md`,
+   which adapts to the project's tracker. Then update the single `📁 Evidence Index` comment. `.delivery/qa/`
    is local, so the tracker is the shared copy. If anything cannot be uploaded, **say so plainly**:
    mark it `Evidence incomplete`, list what is missing and add `qa:evidence-missing`.
 4. **On `❌ QA FAILED`, after Step 9, post the `🐞 Issues Found` comment** from

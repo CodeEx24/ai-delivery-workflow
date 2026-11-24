@@ -143,7 +143,7 @@ no `CHANGES_REQUESTED`; CI not red; `mergeLock.holder` is null.
 2. Run **`merge-ticket <KEY>`**. It marks the draft PR ready (`gh pr ready`; merge-ticket owns
    that step), re-syncs with the default branch and re-runs main's copy of the checks script
    (the pre-merge re-gate), merges per the merge path, verifies the deploy,
-   posts the proof (AC results + screenshots on the ticket; verdicts, decision, CI and cost on
+   posts the proof (AC results + evidence PDF on the ticket; verdicts, decision, CI and cost on
    the PR), moves the ticket to Done, re-syncs the other open PRs, and cleans up.
    - **Agent merge path** (`policy.mergePath` is `agent`, which `delivery-config` reports only
      when the merge command is allowed for agents): it merges with `policy.mergeStrategy`.
@@ -248,7 +248,7 @@ merge-ticket reports what it did; check it actually happened:
 |---|---|
 | PR merged | `gh pr view <n> --json state,mergeCommit` → `MERGED` |
 | Ticket Done | Re-read the ticket status |
-| Proof posted | Ticket comment with AC results + screenshots; PR comment with verdicts, decision, CI, cost |
+| Proof posted | Ticket comment with AC results, evidence PDF and Evidence Index; PR comment with verdicts, decision, CI, cost |
 | Worktree gone | `git worktree list`, `ORCA worktree list --json` (remove with `ORCA worktree rm --worktree <id> --json` if left and clean) |
 | Branch gone | `git branch --list <branch>`; remote deleted |
 | Working folder gone | `.delivery/jobs/<KEY>-<n>/` absent in the main checkout too |
