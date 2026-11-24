@@ -23,6 +23,22 @@ Legend: **(human)** owner decision or action · **(agent)** Claude Code skill or
 
 ---
 
+## Base branch
+
+Every project has a **base branch**: tickets start from it and PRs target it. Wherever this workflow says `main` or "default branch" about ticket work, it means the base branch. The **release branch** is production.
+
+```text
+python "$HOME/.claude/skills/delivery-config/config.py" --repo . branch [--base <branch>] --json
+```
+
+| Result | Do |
+|---|---|
+| `base` is set | Use it |
+| `needsChoice` | Ask once with AskUserQuestion, recommended option first, then save it with `/delivery-config baseBranch=<branch>` |
+| `requiresConfirmation` | The run targets production while the repo has an integration branch. Warn, and get an explicit yes |
+
+A repo with no `staging` is normal: the AI offers its default branch, usually `main`, and asks once. An unattended `/loop` never picks a branch by itself: it stops and asks. The resolver also reads `.engineering/config.json`, so a repo that already declares its branches is never asked. `--base <branch>` overrides the saved value for one run. Confirm every new PR's `baseRefName` matches.
+
 ## 1. The workflow at a glance
 
 ```
@@ -136,11 +152,11 @@ The approver reads every verdict and the AC table. The decision is posted as a P
 
 ### 7. Merge and close out — `/merge-ticket` (agent), merge (human or agent, per the merge path)
 
-1. Mark the draft PR ready (`gh pr ready`; only `/merge-ticket` does this), then re-sync the branch with `main` and run the checks again (another ticket may have merged since).
+1. Mark the draft PR ready (`gh pr ready`; only `/merge-ticket` does this), then re-sync the branch with the base branch and run the checks again (another ticket may have merged since).
 2. Merge (squash), per the merge path chosen in 1b. On the default path (owner merges) the ticket gets `ready-to-merge` and the agent hands over the PR link; after the owner merges, `/merge-ticket` finishes the steps below.
 3. Make sure the ticket record's link block has the ticket and every PR, then post the proof where section 7 says: AC results and step-by-step screenshots on the **ticket**; test and review results, CI and **cost of the ticket's agents** on the **PR**. Update the ticket record's "Outcome" section (deviations, known limitations, follow-ups).
 4. Move the ticket to Done; note deferred checks on their follow-up ticket.
-5. **Re-sync every other open PR** with `main`, re-run their checks, push.
+5. **Re-sync every other open PR** with the base branch, re-run their checks, push.
 6. **Clean up:** delete the worktree (with its dependencies folder) and the local branch, prune worktree records, delete leftover downloads and local services started for the ticket.
 
 ---
@@ -151,7 +167,7 @@ The approver reads every verdict and the AC table. The decision is posted as a P
 
 | Role | Does | Writes | Model |
 |---|---|---|---|
-| gate **(script)** | Runs `scripts/workflow/checks` from **`main`'s copy** | `round-N/checks.md` | none |
+| gate **(script)** | Runs `scripts/workflow/checks` from **the base branch's copy** | `round-N/checks.md` | none |
 | tester-functional | Writes acceptance tests per AC, including edge cases (empty, deleted, offline, invalid input or links), runs them with the suite; edits and commits test files only | `round-N/test-functional.md` (AC → test → result) | Sonnet |
 | tester-device | Runs the app locally, walks each AC like a user, step-by-step screenshots, records a replayable E2E flow, attaches the screenshots to the ticket | `round-N/test-device.md` (PASS / CHANGES / BLOCKED), `round-N/screenshots/` (→ ticket), E2E flow file (committed as a test) | Sonnet |
 | reviewer-code | Correctness, scope, repo rules, weakened or skipped tests (the testers' new tests included) | `round-N/review-code.md` | Haiku / Sonnet |
@@ -174,7 +190,7 @@ Everything lives in the **gitignored working folder** `.delivery/jobs/<KEY>-<n>/
 ### Rules that make the loop reliable
 
 - **Gate before testing, and again before merge.** A failing gate goes straight back to the builder with the log; no tester or reviewer is spawned.
-- **The gate runs `main`'s copy of the checks script**, so a branch can't weaken the checks it is judged by. Tests aren't protected (features update them), but the code reviewer fails any test that was weakened or skipped.
+- **The gate runs the base branch's copy of the checks script**, so a branch can't weaken the checks it is judged by. Tests aren't protected (features update them), but the code reviewer fails any test that was weakened or skipped.
 - **Verdict files.** Every review and test report starts with `VERDICT: PASS` or `VERDICT: CHANGES` (tester-device may also write `VERDICT: BLOCKED`); `checks.md` starts with `VERDICT: PASS` or `VERDICT: FAIL`; `decision.md` starts with `APPROVE` or `ESCALATE`. A round ends only when every routed role has written. Any CHANGES resumes the same builder, at most twice, then escalate.
 - **BLOCKED is not a code failure.** tester-device writes `VERDICT: BLOCKED` with a line `Blocked: <reason>` when a criterion can't be checked for reasons the builder can't fix (missing dev build, missing test account or local backend, a physical device needed). It never resumes the builder. The approver ESCALATEs with one owner question — provide what is missing (the device check then re-runs) or defer the criterion — unless the owner already deferred it in the ticket record.
 - **Testers never fix code.** A failing test goes back to the builder; testers only add or edit tests and E2E flows.

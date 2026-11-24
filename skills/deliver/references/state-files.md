@@ -69,6 +69,8 @@ the original. Timestamps are ISO 8601 with offset.
   "repo": {
     "nameWithOwner": "owner/repo",
     "defaultBranch": "main",
+    "baseBranch": "staging",
+    "releaseBranch": "main",
     "mainCheckout": "/path/to/main-checkout",
     "orcaRepoId": "…",
     "checksScript": "scripts/workflow/checks.sh",
@@ -341,7 +343,7 @@ All through Orca orchestration; subjects start with `[<KEY>-<n>]` so a batch is 
 | `[ABC-27] FIX r<N>` | Gate, testers or reviewers asked for changes; files to read; then back to `built` r<N+1> |
 | `[ABC-27] APPROVE` | Every routed role wrote PASS (tester-device may be BLOCKED); run approver, then explainer on APPROVE |
 | `[ABC-27] RESUME` | Owner answered the escalation: the answer, and what to do next |
-| `[ABC-27] RESYNC` | Re-sync with the default branch (conflict merge-ticket could not resolve) |
+| `[ABC-27] RESYNC` | Re-sync with the base branch (conflict merge-ticket could not resolve) |
 | `[ABC-27] STOP` | Owner asked to stop (or `--pause --now`): commit WIP to the branch, push, report, end |
 | `[ABC-27] PAUSE` | Soft pause: finish the current step, commit, push, update job.json, report, then wait |
 | `[ABC-27] CONTINUE` | Resume after a pause: the recorded stage and the next instruction (re-sync first if behind) |

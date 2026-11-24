@@ -52,13 +52,15 @@ reproducing the failure. Possible security issues stay out of PR text and shared
 ## Step 2 — Choose the route
 
 ```text
-python "$HOME/.claude/skills/fix-ticket/fix_route.py" --ticket <SOURCE-KEY> --slug "<bug title>" [--pr N] --repo . --json
+python "$HOME/.claude/skills/fix-ticket/fix_route.py" --ticket <SOURCE-KEY> --slug "<bug title>" --base <base-branch> [--pr N] --repo . --json
 ```
+
+Get `<base-branch>` first with `python "$HOME/.claude/skills/delivery-config/config.py" --repo . branch --json`. If it needs a choice, ask once and save it.
 
 | Route | Meaning | Do |
 |---|---|---|
 | `update-pr` | One open PR | Fix on that PR's branch. Add commits, no new PR |
-| `new-fix-pr` | Merged, nothing open | New branch from the merged PR's base, new worktree, new PR |
+| `new-fix-pr` | Merged, nothing open | New branch from the project's base branch, new worktree, new PR |
 | `ask` | Several open PRs, fork, closed unmerged, or no PR | Show `reason` and `candidates`, then ask with AskUserQuestion |
 
 If the open PR belongs to someone else, ask before committing to it. Use the branch name the

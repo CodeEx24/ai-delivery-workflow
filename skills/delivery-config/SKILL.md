@@ -3,7 +3,7 @@ name: delivery-config
 description: >-
   Show or change delivery settings: personal machine settings (how many tickets this computer
   runs at once, loop pacing, worker engine) and team rules in docs/workflow/delivery.config.json
-  (review rounds, auto-accept, who merges, merge strategy). Shows allowed values, this computer's
+  (review rounds, auto-accept, who merges, merge strategy, PR target branch). Shows allowed values, this computer's
   suggested cap and how to change each one. Use when the user types /delivery-config.
 argument-hint: "[show | [--me] key=value ... | reset [--me] <key>... | reset [--me] --all]"
 user-invocable: true
@@ -38,6 +38,18 @@ Every other setting is a team rule. The script refuses `--me` for them, so do no
 
 If the user asks to raise the cap with no `--me` ("my computer is faster"), use `--me`. Use a team
 setting only when they say it is for everyone.
+
+## Base branch
+
+`baseBranch` is where tickets start and PRs point. `releaseBranch` is production. Both are team settings, so they cannot be set with `--me`.
+
+```text
+/delivery-config baseBranch=staging
+/delivery-config baseBranch=main releaseBranch=main
+python "$HOME/.claude/skills/delivery-config/config.py" --repo . branch
+```
+
+A branch must exist before it can be saved. If the repo has `.engineering/config.json`, its `baseBranch` and `productionBranch` are read as the current values, and saving here updates them too, so PR checks agree. Tell the owner to commit both files so everyone uses the same target.
 
 ## Confirm these two changes first
 

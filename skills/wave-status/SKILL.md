@@ -117,12 +117,12 @@ estimates exist. Never blend the two.
 
 Fetch the repo's PRs once (open, merged, closed) and match them to tickets by key in branch
 name, title, or body. Rules in the recipes file; the two that matter most: **match the whole
-key** (`VD-4` is not `VD-42`, case-insensitive), and **only a merge into the default branch
+key** (`VD-4` is not `VD-42`, case-insensitive), and **only a merge into the project's base branch
 (or the documented release branch) counts as landed.**
 
 | Tracker says | PRs say | Verdict |
 |---|---|---|
-| To do / In progress / In review | A PR **merged** into the default branch, none still open | **Merged but not closed** — the headline. PR number and merge date. Fix: `merge-ticket <KEY>` (already-merged path: verifies deploy, posts proof, closes, cleans up). |
+| To do / In progress / In review | A PR **merged** into the project's base branch, none still open | **Merged but not closed** — the headline. PR number and merge date. Fix: `merge-ticket <KEY>` (already-merged path: verifies deploy, posts proof, closes, cleans up). |
 | Done | No merged PR; one still open | **Closed too early.** |
 | Done | No PR at all | Usually fine (Spike, decision, config). Mention only if the ticket clearly called for code. |
 | To do | An open PR exists | **Started but not marked** — not available to pick. |

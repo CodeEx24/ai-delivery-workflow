@@ -65,7 +65,7 @@ how many tickets you are planning.**
   tool → ask for an export (CSV) or a pasted list, and say applying will not be possible.
   **Local backlog.** When the project uses the local backlog (no PM tool; `docs/tickets/backlog.md`, IDs `T-001…`, format in the `deliver` skill's `references/import-tasks.md`), read the backlog from that file, and apply wave markers (`Wave:`) and links (`Blocked by:` /
   `Blocks:`) by editing it on a `docs/backlog-waves` branch with one docs PR the owner merges
-  — never on the default branch directly.
+  — never on the base branch directly.
 - **Wave convention.** A label (`wave-1`, `wave:2`), a Wave field, a fix version or milestone
   per wave, or an epic per wave. Reuse what you find; none → propose `wave-N` labels.
 - **Type convention.** The issue type, or a `type:` label. Map to **Feature, Bug, Chore,

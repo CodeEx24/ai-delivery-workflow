@@ -139,6 +139,15 @@ You can also run any step on its own: `/plan-waves`, `/wave-status`, `/implement
 | `/fix-ticket ABC --mine` | Lists your failed tickets and fixes them one at a time. Add `--dry-run` to preview. |
 | `/qa ABC-123 --retest --env local` | After a fix: re-verifies what failed, reruns every scenario and checks for regressions. |
 
+## PR target branch
+
+Each repo saves where PRs point as `baseBranch`. If it is not set, the workflow recommends a branch from the repo and asks once. A repo with no `staging` is normal: it offers the default branch, usually `main`.
+
+```text
+/delivery-config baseBranch=staging      Save it for the team
+/deliver ABC --mine --base develop       Use another branch for one run
+```
+
 ## Per-project setup
 
 1. Add the import line to the project's `CLAUDE.md`, plus a `# Compact instructions` section — copy from `settings/claude-md-snippet.md`:

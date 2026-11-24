@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-24 (base-branch) — configurable PR target
+
+- **`baseBranch` and `releaseBranch`:** each repo saves where tickets start, where PRs point and which branch is production.
+- **Works in any repo:** with no saved value, the workflow recommends a branch from the repo and asks once. A repo with no `staging` gets its default branch offered.
+- **Safe targets:** `--base` overrides one run, production needs a yes when an integration branch exists, and `/merge-ticket` stops on a wrong target.
+
 ## 2026-11-24 (evidence) — evidence PDFs for any tracker
 
 - **Evidence PDFs:** dev tests, QA, fixes and retests create a timestamped PDF labeled by flow, with failed steps highlighted and before and after on fixes.

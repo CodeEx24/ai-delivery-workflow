@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Decide where a QA fix belongs, from the live pull request state of a ticket.
 
-    python fix_route.py --ticket ABC-123 --slug "filter resets" [--pr N] [--repo .] [--json]
+    python fix_route.py --ticket ABC-123 --slug "filter resets" [--pr N] [--base BRANCH] [--repo .] [--json]
     python fix_route.py --ticket ABC-123 --slug "filter resets" --prs-file prs.json --json
 
 Routes:
@@ -52,7 +52,7 @@ def ask(reason, prs):
     return {"route": "ask", "reason": reason, "candidates": [public(pr) for pr in prs]}
 
 
-def decide(ticket, slug, prs, only_pr=None, taken_branches=()):
+def decide(ticket, slug, prs, only_pr=None, taken_branches=(), base_branch=None):
     if only_pr is not None:
         matches = [pr for pr in prs if pr.get("number") == only_pr]
         if not matches:
@@ -78,7 +78,7 @@ def decide(ticket, slug, prs, only_pr=None, taken_branches=()):
         taken = set(taken_branches) | {p.get("headRefName") for p in prs}
         branch = unique_branch(f"fix/{ticket.lower()}/{slugify(slug)}", taken)
         return {"route": "new-fix-pr", "reason": "the work is already merged", "fixes": public(pr),
-                "branch": branch, "base": pr.get("baseRefName")}
+                "branch": branch, "base": base_branch or pr.get("baseRefName")}
     if matches:
         return ask("the only PRs were closed without merging", matches)
     return ask("no PR names this ticket", [])
@@ -110,6 +110,7 @@ def main(argv=None):
     parser.add_argument("--ticket", required=True)
     parser.add_argument("--slug", default="")
     parser.add_argument("--pr", type=int)
+    parser.add_argument("--base", help="the project's base branch, for a new fix PR")
     parser.add_argument("--repo", default=".")
     parser.add_argument("--prs-file")
     parser.add_argument("--json", action="store_true")
@@ -131,7 +132,7 @@ def main(argv=None):
         print(f"error: {error}", file=sys.stderr)
         return 2
 
-    result = {"ticket": ticket, **decide(ticket, args.slug, prs, args.pr, taken)}
+    result = {"ticket": ticket, **decide(ticket, args.slug, prs, args.pr, taken, args.base)}
     if args.json:
         print(json.dumps(result, indent=2))
     else:

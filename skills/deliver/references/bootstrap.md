@@ -17,7 +17,8 @@ is skipped. `--dry-run` runs all detection and prints the result without writing
 | Critical bug rule | Workflow doc; default: type Bug and label `severity:critical` (the recommended signal), or priority Highest/Blocker | `tracker.criticalBugRule` |
 | Type mapping | Workflow doc's mapping of tracker issue types to Feature / Bug / Chore / Spike. Jira "Task" with no mapping → propose the line **"Task → Chore"** for `docs/workflow/README.md` (info gap; the owner adds it) | `tracker.typeMap` |
 | Repo, default branch | `gh repo view --json nameWithOwner,defaultBranchRef`; `gh auth status` | `repo.*` |
-| Main checkout | `git rev-parse --show-toplevel`; must be on the default branch with a clean tree (`git status --porcelain`). If not: stop and report — the orchestrator never works on a feature branch | `repo.mainCheckout` |
+| **Base branch** | `python "$HOME/.claude/skills/delivery-config/config.py" --repo . branch [--base <branch>] --json`. `needsChoice` → ask once, recommended first, and save with `/delivery-config baseBranch=<branch>`. No `staging` is normal: offer the default branch. `requiresConfirmation` → warn and get a yes. Never choose silently, including in `/loop` | `repo.baseBranch`, `repo.releaseBranch` |
+| Main checkout | `git rev-parse --show-toplevel`; must be on the base branch with a clean tree (`git status --porcelain`; a just-saved, uncommitted `docs/workflow/delivery.config.json` is allowed, and report that it needs a small PR). If not: stop and report — the orchestrator never works on a feature branch | `repo.mainCheckout` |
 | Orca | `ORCA repo list --json` (Orca running? repo registered? note its id), `ORCA worktree list --json` | `repo.orcaRepoId` |
 | Workflow file | `~/.claude/workflows/ai-delivery-workflow.md` exists; `CLAUDE.md` imports it (`@~/.claude/workflows/…`) | gap if missing |
 
@@ -26,7 +27,7 @@ One-line report: `Detected: Jira ABC (acme.atlassian.net) · owner/repo @ main �
 **File mode:** after this step and step 2, run the import (`import-tasks.md`) before step 3.
 
 **Hard stops** (no cycle until fixed): Orca not running; tracker unreachable or key not
-found (local backlog: file missing and not in file mode); `gh` unauthenticated; main checkout dirty or not on the default branch.
+found (local backlog: file missing and not in file mode); `gh` unauthenticated; main checkout dirty or not on the base branch.
 
 ## 2. Project setup check (workflow step 1b)
 
@@ -34,7 +35,7 @@ Detect each item, classify it, and print one table: **Item · Found · Severity 
 
 | Item | Detect | Missing → severity | Fix to propose |
 |---|---|---|---|
-| Checks script | `scripts/workflow/checks.{sh,ps1}` (or the path the workflow doc names) on the default branch; note whether it supports `--report <path>` (workflow 1b) | **degraded** if CI / `CLAUDE.md` give the check commands (gate runs those in CI order and says so), or if it lacks `--report` (you write `checks.md` from its output); **blocking** if no check commands can be found at all | Propose (owner's yes) a small Chore ticket to add it **with the `--report` mode** (template: workflow section 6) |
+| Checks script | `scripts/workflow/checks.{sh,ps1}` (or the path the workflow doc names) on the base branch; note whether it supports `--report <path>` (workflow 1b) | **degraded** if CI / `CLAUDE.md` give the check commands (gate runs those in CI order and says so), or if it lacks `--report` (you write `checks.md` from its output); **blocking** if no check commands can be found at all | Propose (owner's yes) a small Chore ticket to add it **with the `--report` mode** (template: workflow section 6) |
 | Agent files | `.claude/agents/{reviewer-code,reviewer-security,reviewer-ui,reviewer-ux,tester-functional,tester-device,approver,explainer}.md` in the repo, else `~/.claude/agents/` | **degraded** per missing role (worker falls back to a general-purpose subagent with the workflow's role row, noted on the PR); **blocking** only if `approver` *and* the workflow file are both missing | Install/copy the agent files (owner) |
 | Merge path | `delivery-config show --json` (`mergePath`, `effectiveMergePath`, `mergePermission`); else the workflow doc / `CLAUDE.md` | **info**: no choice recorded means the default, owner merges; never block on it | To change it: `/delivery-config mergePath=agent`, and the owner allows `gh pr merge` themselves (via `/update-config`); this skill never edits settings. "Agent" without the command allowed → treat as owner and report the gap |
 | Worker push policy | Recorded in `policy.workerMayPush` | **blocking** first time | Ask: workers may push their ticket branch and open **draft** PRs (recommended; nothing merges without the gates) — or every push waits for the owner |

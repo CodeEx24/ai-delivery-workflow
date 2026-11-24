@@ -9,8 +9,8 @@ little. Keep your own output short: one line per action, the detail lives in fil
 0. **Scope.** Read `policy.scope`. No confirmed scope → start nothing and ask (`scope.md`).
    `/factory` runs and local backlogs have no scope and skip this step.
 1. **Lock.** Refresh `lock.heartbeatAt`; if another fresh holder exists, stop (state-files.md).
-2. **Main checkout.** `git status --porcelain` must be empty; `git pull --ff-only`. Dirty or
-   diverged → do not cycle; report. (`main`'s checks script and agent files are read from here.)
+2. **Main checkout.** `git status --porcelain` must be empty, apart from a just-saved `docs/workflow/delivery.config.json`; `git pull --ff-only`. Dirty or
+   diverged → do not cycle; report. (The base branch's checks script and agent files are read from here.)
 3. **Inbox.** Drain with a plain consuming `ORCA orchestration check --json` until it returns
    nothing. Handle each message by type: `worker_done` → step 3 event; `question` → step 6;
    `escalation` with `stopReason` → the worker stopped without reporting: `worker-show`,
@@ -141,7 +141,7 @@ no `CHANGES_REQUESTED`; CI not red; `mergeLock.holder` is null.
 
 1. Take `mergeLock`; stage `merging`.
 2. Run **`merge-ticket <KEY>`**. It marks the draft PR ready (`gh pr ready`; merge-ticket owns
-   that step), re-syncs with the default branch and re-runs main's copy of the checks script
+   that step), re-syncs with the base branch and re-runs the base branch's copy of the checks script
    (the pre-merge re-gate), merges per the merge path, verifies the deploy,
    posts the proof (AC results + evidence PDF on the ticket; verdicts, decision, CI and cost on
    the PR), moves the ticket to Done, re-syncs the other open PRs, and cleans up.

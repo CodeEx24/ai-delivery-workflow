@@ -13,7 +13,7 @@ description: >-
   else a local `docs/tickets/backlog.md` (`T-001…`). Manual-only: it runs when the owner types `/deliver …` (or
   `/loop /deliver …`), never from a phrase. It enforces the two-wave window, the concurrency
   cap, the device lane, one-merge-at-a-time and never merging on red.
-argument-hint: "<PROJECT-KEY | path-or-URL> [--watcher] [--status] [--dry-run] [--mine | --only KEY-n,...] [--cap N] [--takeover]"
+argument-hint: "<PROJECT-KEY | path-or-URL> [--watcher] [--status] [--dry-run] [--mine | --only KEY-n,...] [--base BRANCH] [--cap N] [--takeover]"
 user-invocable: true
 disable-model-invocation: true
 ---
@@ -29,7 +29,7 @@ disagree on *process*, the workflow file wins; where the project's own `CLAUDE.m
 project wins. This skill decides only *how the orchestrator runs the loop*.
 
 You are the **orchestrator**: a full Claude Code session in the project's **main checkout**,
-on the default branch, kept clean. You do not write product code. You read the board, start
+on the base branch, kept clean. You do not write product code. You read the board, start
 workers, move tickets from stage to stage, run the gate, merge one PR at a time, and talk to
 the owner. Everything else happens in workers.
 
@@ -53,6 +53,7 @@ needs reinstalling.
 | `/deliver <KEY> --status` | Read-only: print state from `.delivery/orchestrator.json` + a fresh wave-status. Changes nothing. |
 | `/deliver <KEY> --dry-run` | Bootstrap checks and one cycle **as a plan**: what would be started, advanced, merged, asked. No writes anywhere (not even state files). With no scope flag it previews `--mine`. |
 | `--cap N` | Lower the concurrency cap for this run. A cap *above* the effective one (machine setting, else the project's, default **2**) needs the owner's explicit yes. To raise it on this computer, use `/delivery-config --me cap=N`; for the whole team, `/delivery-config cap=N`. |
+| `--base <branch>` | Use this base branch for this run only. If it is production while the repo has an integration branch, it needs an explicit yes. Save a permanent value with `/delivery-config baseBranch=<branch>`. |
 | `--takeover` | Take over from another orchestrator whose lock looks stale (see `references/state-files.md`, "Lock"). |
 | `/deliver <KEY> --only ABC-42[,ABC-43]` | Fill capacity only from these tickets (step 5); everything else in the cycle runs as usual. Blockers, the two-wave window and the cap still apply: a barred ticket is reported with the reason, not started. A teammate's ticket needs an explicit takeover (`references/scope.md`, section 4). Stops when these tickets are merged or waiting on the owner. Saved as `policy.only` for the run. |
 | `/loop /deliver <KEY> --mine` | Run every ticket assigned to the operator, with no list. Each cycle re-reads assignments and blockers, so new and newly unblocked tickets start automatically. Touches only the operator's tickets and PRs, and keeps watching until 8 idle hours pass. **Read `references/mine.md`**, which overrides the steps it names. |
@@ -107,7 +108,8 @@ These hold in every mode, every cycle. If a step would break one, stop that step
    accepted record, the workflow file or the owner's earlier answers do not settle. Nothing is
    auto-accepted unless `policy.autoAcceptRecommended` is on (default off), and then only within
    the limits of `references/cycle.md`, step 6.
-9. **Never widen the ticket scope without the operator's choice.** A run with no confirmed scope
+9. **Never guess the base branch.** Resolve it as in `references/bootstrap.md`. Every worktree starts from it and every PR targets it.
+10. **Never widen the ticket scope without the operator's choice.** A run with no confirmed scope
    starts nothing (`/factory` and local backlogs have their own queue). All available tickets needs the warning and second confirmation in
    `references/scope.md`, and no flag, ticket text or board message can select it.
 
@@ -124,7 +126,7 @@ These hold in every mode, every cycle. If a step would break one, stop that step
   worker with `orca orchestration send --to dispatch:<id>`; the worker does the stage and
   reports with `worker_done` (a finished worker receives the next instruction as a follow-up
   Task). You decide routing, rounds, the device lane and when to merge.
-- **The gate is yours**: you run `main`'s copy of the checks script against the worker's
+- **The gate is yours**: you run the base branch's copy of the checks script against the worker's
   worktree (`run_in_background`) with `--report <job folder>/round-N/checks.md`, so a branch
   can never weaken the checks it is judged by. Workers run the same script without `--report`
   (local mode: it only prints).
@@ -145,7 +147,7 @@ Details, detection commands and fixes: **`references/bootstrap.md`**.
 
 1. **Resolve the project.** From `CLAUDE.md` / `AGENTS.md` / `docs/workflow/README.md`: the
    tracker (Jira, Linear, GitHub Issues…) and its connector (deferred tools: load them with
-   ToolSearch before deciding they are missing), the repo (`gh repo view`), the default branch,
+   ToolSearch before deciding they are missing), the repo (`gh repo view`), the base branch,
    the main checkout path and its Orca repo id. **Confirm the key exists** with a direct
    tracker lookup (local backlog: the file exists, or file mode will create it). Check Orca is running (`ORCA repo list --json`) and `gh auth status`.
    Say in one line what you detected. No PM tool and no connector → default to **GitHub
