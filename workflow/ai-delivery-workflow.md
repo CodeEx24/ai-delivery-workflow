@@ -57,6 +57,11 @@ python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses target
 | `requiresPerson` | `qaPassed` and `verified`: a person moves it. Name the status in the comment |
 | `needsSetup` | No mapping yet. Run `/delivery-config statuses sync`, and ask the owner once |
 
+**Each status has a guide:** what it means, who moves a ticket into it (`agent`, `person` or
+`any`) and when. Read it with `python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses guide` before moving tickets. Any move
+that did not come from `statuses target` must pass `statuses allowed --to "<Status>"` first:
+exit 1 means only a person may make it. One event, one move: never chain moves in one run.
+
 `merged` goes to the first of Testing (Staging), Done (Staging) or Done that the project has. So
 a 7-status project lands in testing, and a 4-status project lands in Done. Details: `~/.claude/skills/delivery-config/references/statuses.md`.
 

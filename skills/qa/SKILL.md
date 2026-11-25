@@ -188,7 +188,8 @@ Every report records environment, URL, deployed SHA, account role, browser, date
    Read the available transitions first, then re-read the ticket to confirm. If there is no
    status or the transition is not available, leave the status alone and say so in the comment
    and the final report. Never guess a status. Blocked and `--dry-run` runs do not move it.
-   **On a pass**, do not move it: `qaPassed` needs a person. End the comment with
+   **On a pass**, do not move it: `qaPassed` needs a person, and `statuses allowed` refuses an
+   agent move into a person-only status. End the comment with
    `Next: a person moves it to <statuses target --event qaPassed>`.
 6. **Never move a ticket to Done**, or put emoji in its title. On a passing retest, remove
    `qa:fix-ready`.

@@ -103,10 +103,15 @@ the worktree path, branch, base branch and PR number from `job.json` when it exi
 
 Another ticket may have merged since the review loop passed, so the green it earned is stale.
 
+**One push, one CI run.** Every push restarts CI from the start and cancels the run before it.
+So steps 2 and 3 commit locally, and push **once**, after the ticket record is closed (step 3).
+Never push the re-sync, the feature guide and the record one at a time.
+
 1. **Draft → ready.** If the PR is still a draft (`isDraft`), run `gh pr ready <n>`. This skill
    is the only one that does this (builders and the orchestrator leave the PR as a draft), and
    it happens right before the re-gate so CI runs once more on a ready PR.
-2. **Re-sync** the PR branch with the latest base branch in the ticket's worktree, the way the repo
+2. **Re-sync** the PR branch with the latest base branch in the ticket's worktree, only if the base
+   moved (`git merge-base --is-ancestor origin/<base> HEAD` fails). Do it the way the repo
    does it (merge `origin/<base>` into the branch, or `gh pr update-branch`, or rebase if the repo
    rebases). **Conflicts → stop**: abort the merge/rebase, report the files, send it back to the
    builder. Only resolve purely mechanical conflicts (a generated file the repo regenerates by
@@ -119,8 +124,9 @@ Another ticket may have merged since the review loop passed, so the green it ear
    because the re-sync may have changed the result.
 4. **Red → refuse to merge.** Report the failing step with the log tail. Do not offer to merge
    past it unless the user explicitly overrides in those words.
-5. Push the re-synced branch and wait for **CI green** on the new head (`gh pr checks <n>
-   --watch`). Then read merge readiness: `mergeStateStatus` (`DIRTY`/`BLOCKED`/`BEHIND`),
+5. **Do not push yet.** Go to step 3, then push once and wait for **CI green** on the new head
+   (`gh pr checks <n> --watch`). If CI is already green on the current head and nothing new was
+   committed (no re-sync, record already closed), do not push at all. Then read merge readiness: `mergeStateStatus` (`DIRTY`/`BLOCKED`/`BEHIND`),
    `reviewDecision` (`CHANGES_REQUESTED` is a stop). Details in `references/merge-checks.md`.
 
 ## Step 3 — Close the ticket record (before the merge, so it lands with it)
@@ -144,8 +150,10 @@ for large tickets), update it **on the PR branch** so the squash carries it:
 the ticket touches them.
 
 Facts only, from the working folder, PR and ticket — never invent an outcome. Commit
-(`docs(<scope>): close out ticket record (<KEY>-<n>)` or the repo's equivalent), re-run the
-ticket record check if the checks script has one, push, wait for CI again.
+(`docs(<scope>): close out ticket record (<KEY>-<n>)` or the repo's equivalent) and re-run the
+ticket record check if the checks script has one. **Now push once** (the re-sync from step 2, any
+feature-guide commit and this record together) and wait for CI green, as in step 2.5. If CI
+fails on a docs-only commit, fix it in one more commit; do not push partial fixes.
 
 ## Step 4 — Merge, per the project's merge path
 
@@ -208,6 +216,9 @@ ticket** too: what was deferred from which ticket, the owner's decision, the lin
 
 ## Step 6 — Move the ticket
 
+Read the project's status guide first: `python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses guide`. It says what each status means,
+who moves a ticket into it, and when.
+
 Merged + deploy green (or no deploy) → move it by the `merged` event:
 
 ```text
@@ -217,7 +228,12 @@ python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses target
 It returns the first of the project's Testing (Staging), Done (Staging) or Done statuses. A
 7-status project lands in testing, and a 4-status project lands in Done. Pick the transition
 by that **name**, never a hardcoded id. Deploy failed or pending → leave it and say why.
-`needsSetup` → run `/delivery-config statuses sync` first, or leave it and report. Rules: `~/.claude/skills/delivery-config/references/statuses.md`. Remove `ready-to-merge` (and `needs-human`
+`needsSetup` → run `/delivery-config statuses sync` first, or leave it and report. If
+`requiresPerson` is true, do not move it: name the status in the close-out comment for the person.
+**Then stop.** One move per merge. Never move the ticket further (for example to Done Staging or
+Done) in the same run: testers and people make the later moves. Before any move that did not
+come from `statuses target`, run `python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses allowed --to "<Status>"`; exit 1 means an
+agent may not make it. Rules: `~/.claude/skills/delivery-config/references/statuses.md`. Remove `ready-to-merge` (and `needs-human`
 if this run added it).
 
 ## Step 7 — Re-sync the other open PRs, then clean up
