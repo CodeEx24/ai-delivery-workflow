@@ -47,7 +47,7 @@ seven stages in `docs/workflow/delivery.config.json`, and leaves out the ones it
 Skills move tickets by **event**:
 
 ```text
-python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses target --event <start|prOpened|merged|qaPassed|released|verified|qaFailed>
+python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses target --event <start|prOpened|merged|qaPassed|released|verified|qaFailed|ciFailed>
 ```
 
 | Result | Do |

@@ -1,9 +1,10 @@
 ---
 name: merge-ticket
 description: >-
-  Close out a ticket whose PR is ready, end to end: mark the draft PR ready for review, re-sync
-  the branch with the base branch and re-run the
-  project's checks script (refusing on red), close the ticket record (links block, Status: Merged,
+  Close out a ticket whose PR is ready, end to end: if the PR's CI is already green and it is
+  approved, merge it as it is (no re-sync, no re-run); if CI is red, send the ticket back to
+  in progress and ask the author to fix it; otherwise mark the draft PR ready, re-sync the
+  branch with the base branch and re-run the project's checks script (refusing on red), close the ticket record (links block, Status: Merged,
   Outcome), merge by the project's chosen merge path — or hand the owner the exact merge command
   and detect the merge afterwards — verify any post-merge deploy, post the proof where it belongs
   (AC results and step-by-step screenshots on the tracker ticket; review rounds, approver
@@ -29,9 +30,12 @@ cost script) is used **if the project has it** and skipped with a one-line note 
 
 Seven steps, in order:
 
-**Resolve & check state → Ready + re-gate (draft → ready, re-sync, checks) → Close the ticket
-record → Merge (per the merge path) → Post the proof → Move the ticket → Re-sync other PRs & clean
-up.**
+**Resolve & check state → Decide from CI (green: merge now / red: send back / other: re-gate) →
+Ready + re-gate (draft → ready, re-sync, checks) → Close the ticket record → Merge (per the merge
+path) → Post the proof → Move the ticket → Re-sync other PRs & clean up.**
+
+A PR that is already green and approved skips the re-gate and the record commit: **green means
+merge**. Pass `--regate` to force the full re-gate anyway.
 
 The order matters. Everything after the merge assumes the merge happened and worked; calling a
 ticket Done when its re-gate was red or its deploy failed is worse than not touching it.
@@ -89,7 +93,7 @@ The field is `state` (`OPEN` / `MERGED` / `CLOSED`); there is no `merged` field.
 | State | Path |
 |---|---|
 | `MERGED` | **Already-merged path.** Report who merged and when; skip steps 2 and 4 (step 3 becomes a follow-up docs fix if the record is incomplete — see the reference). Go to 4b. |
-| `OPEN` | Continue to step 2. |
+| `OPEN` | Continue to step 1b. |
 | `CLOSED` unmerged | Stop. Reopening is the human's decision. |
 
 In a workflow project, also confirm the approver said **APPROVE** (`decision.md` in
@@ -98,6 +102,35 @@ In a workflow project, also confirm the approver said **APPROVE** (`decision.md`
 the worktree path, branch, base branch and PR number from `job.json` when it exists.
 
 **Check the target.** Resolve the base branch (`python "$HOME/.claude/skills/delivery-config/config.py" --repo . branch --json`). If the PR's `baseRefName` differs, **stop and report it**, unless it is a recorded hotfix or promotion to the release branch.
+
+## Step 1b — Decide from CI: merge now, send back, or re-gate
+
+Read the PR once, and **do not push anything** in this step:
+
+```bash
+gh pr view <n> --json isDraft,headRefOid,mergeable,mergeStateStatus,reviewDecision,statusCheckRollup
+gh pr checks <n> --required
+```
+
+| What you see | Do |
+|---|---|
+| Every required check on the **current head** passed (success, skipped or neutral), none failed, `reviewDecision` is not `CHANGES_REQUESTED`, the approver said APPROVE, and `mergeStateStatus` is `CLEAN`, `UNSTABLE` (only non-required checks failing) or `HAS_HOOKS` | **Green: merge now.** Skip steps 2 and 3. If the PR is a draft, run `gh pr ready <n>` (it does not re-run the tests). Go straight to step 4. Do not re-sync, re-run checks or push a record commit |
+| A required check **failed** or ended `cancelled`/`timed_out` on the current head, or `mergeStateStatus` is `DIRTY` (merge conflict) | **Red: send back.** Do not merge, re-run or push. Move the ticket by the `ciFailed` event (`python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses target --event ciFailed`, usually In Progress). Post the comment below on the PR and the ticket, mentioning the PR author and the ticket assignee. Remove `ready-to-merge`. Stop and report |
+| Checks still running | Wait (`gh pr checks <n> --required --watch`), then decide again. Do not push |
+| `mergeStateStatus` is `BEHIND` and the base branch requires branches to be up to date (`BLOCKED`), or the owner passed `--regate` | **Re-gate.** Continue to step 2 |
+
+Send-back comment (Markdown, clickable links, edit it on a re-run instead of posting again):
+
+```markdown
+🔴 CI is red, so this was not merged · [PR #<n>](<PR URL>)
+Failing: [<check name>](<run URL>), …
+@<author>: please fix it on this branch and push. The ticket is back in <status>.
+When CI is green, run `/merge-ticket <KEY>-<n>` again and it will merge right away.
+```
+
+**The ticket record on the green path.** The merge does not wait for a record commit. If the
+record is not closed yet, merge first and close it afterwards as a docs follow-up, as in the
+already-merged path (`references/after-merge.md`). Say so in the report.
 
 ## Step 2 — Ready + re-gate: mark ready, re-sync with the base branch, re-run the checks
 

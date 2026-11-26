@@ -45,6 +45,7 @@ project has none of them, the ticket stays where it is and the skill says so.
 | `released` | Whoever promotes the base branch to the release branch | `testingProduction` → `done` | no |
 | `verified` | A person, after checking production | `done` | **yes** |
 | `qaFailed` | `/qa`, on a failed run | `inProgress` → `todo` | no |
+| `ciFailed` | `/merge-ticket`, when the PR's CI is red | `inProgress` → `todo` | no |
 
 **Needs a person** means no skill moves the ticket by itself. `/qa` reports the next status in its
 comment, and a person moves it, or tells the agent to.

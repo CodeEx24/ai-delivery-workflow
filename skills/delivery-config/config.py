@@ -524,6 +524,7 @@ EVENTS = {
     "released": ("testingProduction", "done"),
     "verified": ("done",),
     "qaFailed": ("inProgress", "todo"),
+    "ciFailed": ("inProgress", "todo"),
 }
 PERSON_EVENTS = ("qaPassed", "verified")
 # Who may move a ticket INTO each stage, and when. A project can override any of these per stage.
