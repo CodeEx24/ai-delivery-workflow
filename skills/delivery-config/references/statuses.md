@@ -45,6 +45,7 @@ project has none of them, the ticket stays where it is and the skill says so.
 | `released` | Whoever promotes the base branch to the release branch | `testingProduction` → `done` | no |
 | `verified` | A person, after checking production | `done` | **yes** |
 | `qaFailed` | `/qa`, on a failed run | `inProgress` → `todo` | no |
+| `ciFailed` | `/merge-ticket`, when the PR's CI is red | `inProgress` → `todo` | no |
 
 **Needs a person** means no skill moves the ticket by itself. `/qa` reports the next status in its
 comment, and a person moves it, or tells the agent to.
@@ -69,11 +70,47 @@ It prints `status`, `stage`, `requiresPerson`, `needsSetup` and `reason`.
    once. An unattended loop does not guess: it leaves the status, and reports the gap.
 2. **`status` is null:** the project has no status for this event. Leave the ticket and say so.
 3. **`requiresPerson`:** do not move it. Name the status in the comment for the person.
+   This is also true when the target status is `movedBy: "person"` in the guide.
 4. Otherwise read the ticket's available transitions, and pick the one whose **target status
    name** equals `status`, ignoring case. Never use a hard-coded transition id.
 5. If that transition is not offered from the current status, take the obvious two-step path
    if there is one and say so. Otherwise report the options and leave it.
 6. Re-read the ticket to confirm the new status.
+
+## Status guide: what each status means and who moves it
+
+Each stage can carry a short guide, so agents know exactly when to move a ticket and when to stop.
+Write the stage as an object instead of a name:
+
+```json
+"statuses": {
+  "inReview": "In Review",
+  "testingStaging": {
+    "name": "Testing (Staging)",
+    "meaning": "Deployed to staging. A tester checks it",
+    "movedBy": "agent",
+    "when": "After the PR is merged and the staging deploy is green. Then stop"
+  },
+  "doneStaging": { "name": "DONE STAGING", "movedBy": "person", "when": "Only a tester, after QA passes" },
+  "done": { "name": "Done", "movedBy": "person" }
+}
+```
+
+| Field | Meaning | Default |
+|---|---|---|
+| `name` | The tracker status (required) | — |
+| `meaning` | What a ticket in this status is waiting for | The stage text above |
+| `movedBy` | Who may move a ticket **into** it: `agent`, `person` or `any` | `doneStaging` is `person`; the rest `agent` or `any` |
+| `when` | The exact moment to move it | A sentence per stage |
+
+```text
+python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses guide          # read it
+python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses allowed --to "DONE STAGING"
+```
+
+`allowed` exits 1 when an agent may not make the move: the status is `person`-only, or it is not
+in the mapping at all. `statuses target` also reports `requiresPerson` when its target stage is
+`person`-only. Renaming a status with `statuses set` keeps its guide.
 
 ## Setting up a project
 
@@ -120,6 +157,8 @@ Report them, but they are not an error.
 ## Rules
 
 - Never create, rename or delete a tracker status or workflow. That is the owner's change.
+- **One event, one move.** After a move, stop. Never chain a second move in the same run.
+- Any move that did not come from `statuses target` must pass `statuses allowed` first.
 - A legacy `QA testing status` or `QA failed status` line in `docs/workflow/README.md` is used
   only when the project has no `statuses` mapping. Offer to replace it with the mapping.
 - Never move a ticket to `done` from an event that does not lead there.

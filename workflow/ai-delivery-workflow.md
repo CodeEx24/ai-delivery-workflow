@@ -47,7 +47,7 @@ seven stages in `docs/workflow/delivery.config.json`, and leaves out the ones it
 Skills move tickets by **event**:
 
 ```text
-python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses target --event <start|prOpened|merged|qaPassed|released|verified|qaFailed>
+python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses target --event <start|prOpened|merged|qaPassed|released|verified|qaFailed|ciFailed>
 ```
 
 | Result | Do |
@@ -56,6 +56,11 @@ python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses target
 | `status` is null | The project has no such step. Leave the ticket and say so |
 | `requiresPerson` | `qaPassed` and `verified`: a person moves it. Name the status in the comment |
 | `needsSetup` | No mapping yet. Run `/delivery-config statuses sync`, and ask the owner once |
+
+**Each status has a guide:** what it means, who moves a ticket into it (`agent`, `person` or
+`any`) and when. Read it with `python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses guide` before moving tickets. Any move
+that did not come from `statuses target` must pass `statuses allowed --to "<Status>"` first:
+exit 1 means only a person may make it. One event, one move: never chain moves in one run.
 
 `merged` goes to the first of Testing (Staging), Done (Staging) or Done that the project has. So
 a 7-status project lands in testing, and a 4-status project lands in Done. Details: `~/.claude/skills/delivery-config/references/statuses.md`.

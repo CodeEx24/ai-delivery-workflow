@@ -7,6 +7,14 @@
 - **Up next:** each waiting ticket's status, whether it can start now, and why not (blockers with their status, no free slot, or waiting on you). Then **Needs you**.
 - New `board.py summary` prints it from the state files, so the view is the same every time.
 
+## 2026-11-25 (statuses) — a guide per status, and one CI run per close-out
+
+- **Status guide:** each status in `delivery.config.json` can say what it means, who moves a ticket into it (`agent`, `person` or `any`) and when. `statuses guide` prints it; agents read it before moving tickets.
+- **Guard:** `statuses allowed --to "<Status>"` refuses an agent move into a person-only status, or into a status that is not mapped. Done Staging is person-only by default, so merges stop at Testing (Staging).
+- **One move per event:** after the merge moves a ticket, the run stops. It never chains a second move.
+- **Green means merge:** `/merge-ticket` on a PR that is already green and approved merges it as it is, with no re-sync and no CI re-run. If CI is red, it sends the ticket back to In Progress (new `ciFailed` event) and asks the author to fix it. `--regate` forces the full re-gate.
+- **Fewer CI runs at merge time:** `/merge-ticket` re-syncs only when the base moved, and pushes the re-sync and the closed ticket record together, so CI runs once instead of once per commit.
+
 ## 2026-11-24 (loop) — `/loop /deliver` works
 
 - **Fixed:** `/loop 5m /deliver <KEY>` and `/loop /factory run` were refused with "can't be invoked from inside /loop". Both skills had `disable-model-invocation: true`, which blocks the loop from running them.
