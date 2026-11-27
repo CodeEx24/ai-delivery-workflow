@@ -65,6 +65,13 @@ exit 1 means only a person may make it. One event, one move: never chain moves i
 `merged` goes to the first of Testing (Staging), Done (Staging) or Done that the project has. So
 a 7-status project lands in testing, and a 4-status project lands in Done. Details: `~/.claude/skills/delivery-config/references/statuses.md`.
 
+## Draft PRs and CI
+
+Draft PRs run no paid CI: builders push to a draft as often as they like, and run the checks
+locally with `node .engineering/ci-local.mjs` (when the repo has it). `/merge-ticket` runs the
+local checks, posts "local checks passed · approved · ready for review" on the PR, marks it
+ready, and merges after that one CI run is green. Details: `docs/delivery/09-ci.md` in the repo.
+
 ## 1. The workflow at a glance
 
 ```
