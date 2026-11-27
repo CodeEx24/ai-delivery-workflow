@@ -109,6 +109,8 @@ These hold in every mode, every cycle. If a step would break one, stop that step
 7. **Report faithfully.** "Merged" means `gh pr view` says `MERGED`; "Done" means the tracker
    re-read says Done; a check you did not run is "not run". Every PR mention carries its full
    URL. When a PR becomes reviewable by the owner, say "ready for your review" with the link.
+   **Every cycle ends with the status board** (`board.py summary`: in progress, up next, needs
+   you), quiet cycles included. Never answer only "Nothing new". Details: `references/cycle.md`.
 8. **Owner questions are batched, recommendation first**, and only for what the brief, the
    accepted record, the workflow file or the owner's earlier answers do not settle. Nothing is
    auto-accepted unless `policy.autoAcceptRecommended` is on (default off), and then only within

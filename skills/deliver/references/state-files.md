@@ -125,7 +125,8 @@ the original. Timestamps are ISO 8601 with offset.
     "updatedAt": "…",
     "items": {
       "ABC-35": { "status": "done | in_progress | ready | blocked | todo | needs_owner", "wave": 3,
-                  "title": "…", "type": "Feature", "url": "https://…", "blockedBy": ["ABC-30"] }
+                  "title": "…", "type": "Feature", "url": "https://…", "blockedBy": ["ABC-30"],
+                  "trackerStatus": "To Do", "reason": "optional: why it cannot start" }
     }
   },
   "tickets": {
@@ -134,6 +135,7 @@ the original. Timestamps are ISO 8601 with offset.
       "url": "https://…/browse/ABC-27",
       "wave": 2, "type": "Feature", "risk": "medium", "critical": false,
       "stage": "reviewing",
+      "trackerStatus": "In Review",
       "round": 1,
       "holdsSlot": true,
       "waitingOn": null,

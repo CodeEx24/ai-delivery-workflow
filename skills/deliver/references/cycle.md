@@ -276,6 +276,25 @@ next wake-up.
 
 ### Cycle output (each turn)
 
+**Every cycle ends with the status board, including quiet ones.** Never answer only "Nothing
+new" or a single line. Print the action lines (if any), then the output of:
+
+```text
+python "$HOME/.claude/delivery-board/board.py" summary --repo <main>
+```
+
+It shows two tables from the state files: **In progress** (each ticket's tracker status, what it
+is doing now, round, what it waits on, and for how long) and **Up next** (each ticket's status,
+whether it can start now, and why not: blockers with their status, no free slot, or waiting on
+the owner), then **Needs you**. When nothing changed, say so in one line above the board, for
+example `No change since cycle 13.`
+
+Keep `trackerStatus` current so the board shows the tracker's own names: set
+`orchestrator.json.tickets[KEY].trackerStatus` after every status move and when reading the
+board, and `backlog.items[KEY].trackerStatus` when rewriting the backlog.
+
+Example of the action lines above the board:
+
 ```
 Cycle 12 · wave 2 (3 open) + wave 3 · in flight 3/3 · device: ABC-30 · merge lock: free
 - ABC-25 merged → https://github.com/owner/repo/pull/29 (cleanup verified)

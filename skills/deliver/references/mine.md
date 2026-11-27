@@ -75,8 +75,9 @@ is blocked, waiting on the operator, or when the queue is empty.
 | Only blocked, waiting or empty | `policy.loopMinutes` if it is a number, otherwise 1800 s |
 
 **Idle check.** When no worker, gate or merge is active, run only the lock, inboxes, assigned query
-and blocker re-read. If no ticket can start and nothing changed, write one line and schedule the
-next wake-up. Skip the full `wave-status`.
+and blocker re-read. If no ticket can start and nothing changed, write `No change since cycle <n>.`,
+then print the status board (`board.py summary`, see `cycle.md`), and schedule the next wake-up.
+Skip the full `wave-status`: the board uses the last ticket list and shows how old it is.
 
 **Idle limit.** Set `idleSince` when a cycle has nothing to start or advance, and clear it when
 anything starts, advances, merges or is answered. After **8 idle hours**, send the normal stop

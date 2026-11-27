@@ -254,6 +254,177 @@ def aggregate(repo: Path, worktrees: Worktrees) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Text summary: what the loop prints every cycle, so the owner always sees the state
+# ---------------------------------------------------------------------------
+
+# Plain-language step for each stage (orchestrator stage first, then the worker's job.json stage).
+STEP_TEXT = {
+    "queued": "Queued to start",
+    "dispatched": "Starting: worker is reading the ticket",
+    "intake": "Reading the ticket and exploring the code",
+    "awaiting_owner": "Waiting for your answer",
+    "building": "Building",
+    "built": "Built, waiting for the checks",
+    "gating": "Running the checks",
+    "gate_failed": "Checks failed, fixing",
+    "testing": "Testing",
+    "tested": "Tests done, starting review",
+    "device_wait": "Waiting for the browser test slot",
+    "reviewing": "In code review",
+    "reviewed": "Review done, waiting for the approver",
+    "fixing": "Fixing review or test findings",
+    "approving": "Approver deciding",
+    "ready_to_merge": "Approved, ready to merge",
+    "awaiting_owner_merge": "Approved, waiting for you to merge",
+    "merging": "Merging",
+    "escalated": "Stopped, needs you",
+    "blocked": "Blocked",
+    "failed": "Failed",
+    "merged": "Merged, cleaning up",
+    "cleaned": "Done",
+}
+BACKLOG_TEXT = {
+    "ready": "Ready",
+    "todo": "To do",
+    "blocked": "Blocked",
+    "needs_owner": "Needs you",
+    "in_progress": "In progress",
+    "done": "Done",
+}
+
+
+def _parse_iso(value) -> datetime | None:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def _ago(value, now: datetime) -> str:
+    when = _parse_iso(value)
+    if when is None:
+        return "-"
+    minutes = max(0, int((now - when).total_seconds() // 60))
+    if minutes < 60:
+        return f"{minutes} min"
+    hours, rest = divmod(minutes, 60)
+    return f"{hours} h {rest} min" if hours < 24 else f"{hours // 24} d {hours % 24} h"
+
+
+def _cell(text) -> str:
+    return str(text if text not in (None, "") else "-").replace("|", "/").replace("\n", " ")
+
+
+def _short(text, limit: int = 48) -> str:
+    text = str(text or "")
+    return text if len(text) <= limit else text[: limit - 1] + "…"
+
+
+def _doing_now(stage, job: dict) -> str:
+    step = STEP_TEXT.get(stage) or STEP_TEXT.get(job.get("stage")) or stage or "-"
+    progress = job.get("progress") or {}
+    if job.get("stage") == "building" and progress.get("tasksTotal"):
+        step = f"Building, task {min(progress.get('tasksDone', 0) + 1, progress['tasksTotal'])} of {progress['tasksTotal']}"
+    current = str(progress.get("current") or "")
+    if job.get("stage") in ("building", "fixing") and current:
+        if current.lower().startswith("task ") and job.get("stage") == "building":
+            step = f"Building, {_short(current, 50)}" + (f" ({progress.get('tasksDone', 0)} of {progress['tasksTotal']} done)"
+                                                       if progress.get("tasksTotal") else "")
+        else:
+            step += f": {_short(current, 40)}"
+    return step
+
+
+def render_summary(state: dict, now: datetime | None = None) -> str:
+    """Two tables, always: what is in progress, and what could start next. Pure: no I/O."""
+    now = now or datetime.now(timezone.utc)
+    orch = state.get("orchestrator") or {}
+    jobs = state.get("jobs") or {}
+    tickets = orch.get("tickets") or {}
+    backlog = (orch.get("backlog") or {}).get("items") or {}
+    cap = (orch.get("policy") or {}).get("cap")
+    in_flight = sum(1 for t in tickets.values() if t.get("holdsSlot"))
+    free = max(cap - in_flight, 0) if isinstance(cap, int) else 0
+    paused = (orch.get("pause") or {}).get("active")
+    device = (orch.get("deviceLane") or {}).get("holder") or "free"
+    merge = (orch.get("mergeLock") or {}).get("holder") or "free"
+    cycle = (orch.get("cycle") or {}).get("count")
+
+    lines = [
+        f"Cycle {cycle if cycle is not None else '?'} · in flight {in_flight}/{cap if cap else '?'} · free slots {free}"
+        f" · browser test slot: {device} · merge: {merge}" + (" · PAUSED" if paused else ""),
+        "",
+        "In progress",
+    ]
+    active = {k: t for k, t in tickets.items() if t.get("stage") != "cleaned"}
+    if active:
+        lines += ["| Ticket | Tracker status | Doing now | Round | Waiting on | In this step for | PR |",
+                  "|---|---|---|---|---|---|---|"]
+        for key, t in sorted(active.items()):
+            job = (jobs.get(key) or {}).get("job") or {}
+            pr = t.get("pr") or job.get("pr") or {}
+            lines.append("| " + " | ".join(_cell(x) for x in (
+                f"{key} {_short(t.get('title') or job.get('title'), 36)}",
+                t.get("trackerStatus"),
+                _doing_now(t.get("stage"), job),
+                f"r{t['round']}" if t.get("round") else "-",
+                t.get("waitingOn"),
+                _ago(t.get("stageSince") or t.get("waitingSince"), now),
+                f"#{pr['number']}" if pr.get("number") else "-",
+            )) + " |")
+    else:
+        lines.append("Nothing in progress.")
+
+    lines += ["", "Up next"]
+    status_of = {k: v.get("status") for k, v in backlog.items()}
+    upcoming = {k: v for k, v in backlog.items()
+                if k not in active and v.get("status") in ("ready", "todo", "blocked", "needs_owner")}
+    order = {"ready": 0, "needs_owner": 1, "blocked": 2, "todo": 3}
+    if upcoming:
+        lines += ["| Ticket | Status | Can start now? | Why |", "|---|---|---|---|"]
+        ready_seen = 0
+        for key, item in sorted(upcoming.items(),
+                                key=lambda kv: (order.get(kv[1].get("status"), 9), kv[1].get("wave") or 99, kv[0])):
+            status = item.get("status")
+            blockers = [b for b in (item.get("blockedBy") or []) if status_of.get(b) != "done"]
+            if paused:
+                can, why = "No", "the loop is paused"
+            elif blockers:
+                can = "No"
+                why = "blocked by " + ", ".join(
+                    f"{b} ({BACKLOG_TEXT.get(status_of.get(b), status_of.get(b) or 'not in the board')})" for b in blockers)
+            elif status == "needs_owner":
+                can, why = "No", item.get("reason") or "waiting for your answer or decision"
+            elif status == "ready":
+                ready_seen += 1
+                can = "Yes" if ready_seen <= free else "Next free slot"
+                why = "no blockers" if can == "Yes" else "all slots are busy"
+            elif status == "blocked":
+                can, why = "No", item.get("reason") or "blocked (see the ticket)"
+            else:
+                can, why = "Later", item.get("reason") or "not in the current wave window"
+            label = f"{key} {_short(item.get('title'), 36)}" if item.get("title") else key
+            shown = item.get("trackerStatus") or BACKLOG_TEXT.get(status, status)
+            lines.append("| " + " | ".join(_cell(x) for x in (label, shown, can, why)) + " |")
+    else:
+        lines.append("Nothing else is waiting.")
+
+    needs = [f"{q.get('id')} on {q.get('key')}: {_short(q.get('question'), 70)}"
+             for q in orch.get("ownerQuestions") or [] if not q.get("answeredAt") and not q.get("answer")]
+    for key in (orch.get("mergeLock") or {}).get("awaitingOwnerMerge") or []:
+        pr = (tickets.get(key) or {}).get("pr") or {}
+        needs.append(f"merge {key}" + (f" (PR #{pr['number']})" if pr.get("number") else ""))
+    needs += [f"{key} stopped and needs a decision" for key, t in sorted(active.items()) if t.get("stage") == "escalated"]
+    lines += ["", "Needs you: " + ("; ".join(needs) if needs else "nothing")]
+    as_of = (orch.get("backlog") or {}).get("updatedAt")
+    if as_of:
+        lines.append(f"Ticket list read {_ago(as_of, now)} ago.")
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
 # HTTP
 # ---------------------------------------------------------------------------
 
@@ -557,6 +728,7 @@ def main() -> None:
     p_serve.add_argument("--demo", action="store_true", help="serve the bundled sample project")
 
     add_repo(sub.add_parser("status", help="print the aggregated JSON"))
+    add_repo(sub.add_parser("summary", help="print the in-progress and up-next tables (every loop cycle)"))
 
     p_event = sub.add_parser("event", help="append one line to .delivery/events.jsonl")
     add_repo(p_event)
@@ -600,6 +772,10 @@ def main() -> None:
     repo = Path(args.repo).resolve()
     if args.cmd == "status":
         print(json.dumps(aggregate(repo, Worktrees(repo)), indent=2))
+    elif args.cmd == "summary":
+        if hasattr(sys.stdout, "reconfigure"):
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        print(render_summary(aggregate(repo, Worktrees(repo))))
     elif args.cmd == "event":
         cmd_event(repo, args.kind, args.ticket, args.text, args.actor)
     elif args.cmd == "inbox":
