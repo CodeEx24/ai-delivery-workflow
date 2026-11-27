@@ -68,6 +68,11 @@ never turns into a pass. Report the evidence as incomplete.
 Follow `references/tracker-delivery.md`. Upload the PDF, `scenarios.json`, every `-FAIL` PNG,
 `report.md` when the stage has one, and sanitized logs.
 
+**Every PDF this skill builds ends up attached to the ticket.** If the tracker connector cannot
+upload, use the signed-in browser, then the PR attachment. Leave a PDF local only through step 5
+of the ladder, which writes a `PENDING-UPLOAD` marker so the next cycle attaches it. Never post a
+comment that names a PDF that is not attached, unless the comment says `Evidence incomplete`.
+
 ## Evidence Index
 
 After upload, read the file names the tracker holds into a file, one per line, then:

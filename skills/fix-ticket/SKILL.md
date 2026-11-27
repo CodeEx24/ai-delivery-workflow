@@ -120,7 +120,9 @@ Follow `implement-ticket`'s Bug path, including its standards checks and project
 
 7. Build a `FIX` evidence PDF (`~/.claude/skills/evidence-pack/SKILL.md`) with `--responds-to <failed PDF>` and
    `--before <its scenarios.json>`. Deliver it with `~/.claude/skills/evidence-pack/references/tracker-delivery.md`,
-   and update the `📁 Evidence Index`.
+   and update the `📁 Evidence Index`. Attach the PDF to the ticket: when the connector cannot
+   upload, use the signed-in browser (ladder step 3), then the PR (step 4). Do not hand off with
+   the PDF only on disk unless step 5's `PENDING-UPLOAD` marker is written.
 
 ## Step 7 — Hand off
 

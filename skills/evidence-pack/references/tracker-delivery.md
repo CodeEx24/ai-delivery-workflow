@@ -7,15 +7,44 @@ deferred tools with ToolSearch before deciding a capability is missing.
 ## The delivery ladder
 
 Use the first route that works, then **read the ticket again to confirm the file is there**.
+Work down the ladder: "the connector has no upload tool" is the reason to try step 3, never a
+reason to stop.
 
 1. **Native attachment** through the tracker's connector, CLI or API.
 2. **File in a comment**, when the tracker stores uploads through comments.
-3. **Signed-in browser**, using the ticket's or comment's file input.
+3. **Signed-in browser**, using the ticket's file input. Load the browser tools with ToolSearch
+   first (for Claude in Chrome: `select:mcp__claude-in-chrome__tabs_context_mcp,mcp__claude-in-chrome__tabs_create_mcp,mcp__claude-in-chrome__navigate,mcp__claude-in-chrome__find,mcp__claude-in-chrome__file_upload,mcp__claude-in-chrome__tabs_close_mcp`;
+   Playwright and Chrome DevTools MCP have their own upload actions). Then:
+   1. Open the ticket in a new tab. If the page asks you to sign in, stop this route: never type
+      a password.
+   2. `find` the hidden attachment `<input type=file>` and give `file_upload` the absolute local
+      paths, every file in one call.
+   3. Wait for the upload, read the ticket through the connector, and check that each file name
+      is listed with its size. Then close your tab.
 4. **PR attachment** with `gh pr comment <n> --attach <file>` (`gh` 2.99+), linked from the ticket.
-5. **Keep it local.** Say `Evidence incomplete`, list the file and path, and add the project's
-   evidence-missing label. Never delete the local copy.
+5. **Keep it local**, only after steps 3 and 4 were tried. Then:
+   - Write `.delivery/evidence/<KEY-n>/PENDING-UPLOAD` in the main checkout, one file path per
+     line, then a line `reason: <why steps 3 and 4 failed>`.
+   - Say `Evidence incomplete` in the ticket comment, name each file, and add the project's
+     evidence-missing label.
+   - Never delete the local copy. The next `/deliver` cycle or `/merge-ticket` retries the upload
+     from the main session (see "Pending uploads").
 
 A link to a local path is not delivery. Never upload to a public file host.
+
+## Pending uploads
+
+A worker session often has no browser. The main session usually does. So the orchestrator and
+`/merge-ticket` retry every pending upload:
+
+```text
+ls .delivery/evidence/*/PENDING-UPLOAD
+```
+
+For each marker: upload the listed files with steps 1 to 4, confirm they are on the ticket,
+update the `📁 Evidence Index` with attachment links, remove the evidence-missing label, then
+delete the marker. If the upload still fails, keep the marker and list the ticket under
+**Needs you** as "Evidence to attach", with the file paths.
 
 ## Tracker notes
 
