@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-27 (statuses) — a hook enforces the status rules
+
+- **Status guard:** a Claude Code hook now checks every Jira move an agent makes, before Jira gets it. It refuses a person-only status (DONE STAGING, Done), any skipped status (In Review → DONE STAGING, In Progress → Testing (Staging)), and a move made without a fresh read of the ticket. Sending a ticket back to In Progress or To Do is allowed.
+- **When you say so:** if the owner asks for a refused move, the agent writes a one-time permit with their words (`status_guard.py permit`), makes that one move, and quotes them on the ticket.
+- **QA fixes no longer skip In Review:** `/fix-ticket` moves the ticket to In Review when its PR opens, and `/merge-ticket` moves a ticket that is still In Progress to In Review before Testing (Staging).
+- **Install per project:** `status_guard.py install --repo .`, then commit `.claude/settings.json`. `/delivery-init` offers it.
+
 ## 2026-11-27 (evidence) — evidence PDFs always reach the ticket
 
 - **No more PDFs left on disk:** when the tracker connector cannot upload, agents now must try the signed-in browser and then the PR attachment before keeping a file local. The browser steps are spelled out (load the tools, `file_upload` on the ticket's file input, confirm each file is listed).

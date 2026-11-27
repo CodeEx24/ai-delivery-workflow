@@ -84,7 +84,9 @@ changes. Then wait for a yes. `--dry-run` stops here.
 3. **`.gitignore`**: append `.delivery/` under a `# AI delivery workflow` comment if missing.
    Save the choice: `python "$HOME/.claude/skills/delivery-config/config.py" --repo . set baseBranch=<branch>`.
    Save the status mapping: `statuses suggest --from <file> --save`, or `statuses set` for the owner's edits.
-4. **`.claude/settings.json`**, only on an explicit yes: merge `templates/settings.recommended.json`.
+4. **`.claude/settings.json`**, only on an explicit yes: merge `templates/settings.recommended.json`,
+   then run `python "$HOME/.claude/skills/delivery-config/status_guard.py" install --repo .` so agents
+   cannot skip ticket statuses or make a person-only move (`delivery-config/references/statuses.md`).
    Add missing `allow` / `ask` / `deny` entries (never remove the project's own), replace the
    `<test-runner>` placeholders with the real commands from Step 1 (drop those that do not
    apply), keep `gh pr merge` under `ask` unless the owner chose "agent merges", add `env` only
