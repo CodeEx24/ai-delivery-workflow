@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-27 (loop) — a status board every cycle
+
+- **No more bare "Nothing new":** every `/loop /deliver` cycle ends with a status board, quiet cycles included.
+- **In progress:** each ticket's tracker status, what it is doing now in plain words (for example "Building, Task 3 of 5" or "In code review"), round, what it waits on, and for how long.
+- **Up next:** each waiting ticket's status, whether it can start now, and why not (blockers with their status, no free slot, or waiting on you). Then **Needs you**.
+- New `board.py summary` prints it from the state files, so the view is the same every time.
+
 ## 2026-11-25 (statuses) — a guide per status, and one CI run per close-out
 
 - **Status guide:** each status in `delivery.config.json` can say what it means, who moves a ticket into it (`agent`, `person` or `any`) and when. `statuses guide` prints it; agents read it before moving tickets.
