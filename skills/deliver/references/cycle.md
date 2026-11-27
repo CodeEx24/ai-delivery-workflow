@@ -46,6 +46,7 @@ In every scope, act only on the operator's tickets and PRs. Report the rest (`sc
 | `job-folder-stalled` (no file change for 2 days, ticket open, no live worker) | `worker-show`; resume with `send` or report. |
 | `closed-too-early`, `abandoned`, `possibly-stale` | Report in the summary; no action. |
 | `type-missing` | Report; the worker treats it as Feature unless the owner says otherwise. |
+| Evidence waiting to upload (`.delivery/evidence/*/PENDING-UPLOAD` in the main checkout) | Attach the listed files from this session, which has the browser ("Pending uploads" in `~/.claude/skills/evidence-pack/references/tracker-delivery.md`). Still failing → list under **Needs you** as "Evidence to attach". |
 
 ## 3. Advance running tickets
 

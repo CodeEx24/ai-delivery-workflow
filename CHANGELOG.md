@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-27 (evidence) — evidence PDFs always reach the ticket
+
+- **No more PDFs left on disk:** when the tracker connector cannot upload, agents now must try the signed-in browser and then the PR attachment before keeping a file local. The browser steps are spelled out (load the tools, `file_upload` on the ticket's file input, confirm each file is listed).
+- **Pending uploads:** a file that still cannot be attached gets a `.delivery/evidence/<KEY-n>/PENDING-UPLOAD` marker. Every `/deliver` cycle and `/merge-ticket` retries those from the main session, and lists any that still fail under **Needs you**.
+- **`/merge-ticket` checks the folder:** before the close-out, every PDF in the ticket's evidence folder must be on the ticket.
+
 ## 2026-11-27 (ci) — drafts check locally, CI runs once at ready
 
 - **Draft PRs run no paid CI** (with engineering kit 1.9.0). Builders push freely and run `node .engineering/ci-local.mjs` for the same checks on their machine.

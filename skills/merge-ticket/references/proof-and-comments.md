@@ -141,6 +141,12 @@ uploaded them already — upload only the missing ones.
 
 ## Evidence PDFs
 
+Before the close-out, check `.delivery/evidence/<KEY-n>/`. Every PDF there must be attached to
+the ticket: compare the file names with the ticket's attachments. Attach any missing PDF with the
+ladder in `~/.claude/skills/evidence-pack/references/tracker-delivery.md` (connector, signed-in
+browser, then PR), and clear its `PENDING-UPLOAD` marker. If one still cannot be attached, say so
+in the close-out and list it under **Needs you**.
+
 Link the ticket's `📁 Evidence Index` in the close-out instead of listing every screenshot. Use the
 individual screenshot route above only when no PDF exists.
 
