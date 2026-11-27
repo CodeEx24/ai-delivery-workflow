@@ -126,7 +126,9 @@ Follow `implement-ticket`'s Bug path, including its standards checks and project
 
 ## Step 7 — Hand off
 
-Move the ticket by the `prOpened` event (`statuses target --event prOpened`), add `qa:fix-ready`, and post:
+Move the ticket by the `prOpened` event (`statuses target --event prOpened`): In Progress → In
+Review, so the merge can later move it one step to Testing (Staging). Read the ticket first; the
+status guard refuses moves without a fresh read. Add `qa:fix-ready`, and post:
 
 ```markdown
 🛠️ Fix ready for review · [PR #<n>](<PR URL>)
