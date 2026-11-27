@@ -156,9 +156,9 @@ def load(root):
 def save(root, stored):
     body = {"schema": SCHEMA}
     body.update({k: stored[k] for k in SETTINGS if k in stored and stored[k] != SETTINGS[k][0]})
-    statuses = load_statuses(root)
-    if statuses:
-        body["statuses"] = statuses
+    # Keep the statuses block exactly as written (names or guide objects), after validating it.
+    if load_status_entries(root):
+        body["statuses"] = read_config_json(root)["statuses"]
     write_json(root / CONFIG_PATH, body)
 
 
@@ -524,8 +524,30 @@ EVENTS = {
     "released": ("testingProduction", "done"),
     "verified": ("done",),
     "qaFailed": ("inProgress", "todo"),
+    "ciFailed": ("inProgress", "todo"),
 }
 PERSON_EVENTS = ("qaPassed", "verified")
+# Who may move a ticket INTO each stage, and when. A project can override any of these per stage.
+MOVERS = ("agent", "person", "any")
+DEFAULT_MOVED_BY = {
+    "todo": "any",
+    "inProgress": "agent",
+    "inReview": "agent",
+    "testingStaging": "agent",
+    "doneStaging": "person",
+    "testingProduction": "any",
+    "done": "any",
+}
+DEFAULT_WHEN = {
+    "todo": "Only when QA fails and the project has no in-progress status",
+    "inProgress": "When work on the ticket starts, or when QA fails and it goes back for a fix",
+    "inReview": "When the PR is opened",
+    "testingStaging": "After the PR is merged and the deploy to staging is green. Then stop: a tester moves it on",
+    "doneStaging": "Only a tester, after QA passes on staging",
+    "testingProduction": "After the release to production",
+    "done": "When the work is finished: after the production check, or after the merge if the project has no testing step",
+}
+GUIDE_TEXT_MAX = 300
 CANCELLED = ("cancel", "won t", "wont", "reject", "duplicate", "invalid", "abandon")
 TODO_NAMES = ("to do", "todo", "ready", "ready for dev", "ready for development", "selected for development",
               "open", "backlog")
@@ -555,28 +577,103 @@ def read_config_json(root):
     return data
 
 
-def load_statuses(root):
+def clean_guide_text(stage, key, value):
+    if not isinstance(value, str) or not value.strip() or len(value) > GUIDE_TEXT_MAX:
+        raise ConfigError(f"statuses.{stage}.{key} must be text of 1 to {GUIDE_TEXT_MAX} characters")
+    return value.strip()
+
+
+def parse_status_entry(stage, entry):
+    """A stage maps to a status name, or to {name, meaning?, movedBy?, when?}."""
+    if isinstance(entry, str):
+        return {"name": clean_status(entry)}
+    if not isinstance(entry, dict) or "name" not in entry:
+        raise ConfigError(f"statuses.{stage} must be a status name or an object with a name")
+    unknown = set(entry) - {"name", "meaning", "movedBy", "when"}
+    if unknown:
+        raise ConfigError(f"statuses.{stage} has unknown keys: {', '.join(sorted(unknown))}")
+    parsed = {"name": clean_status(entry["name"])}
+    for key in ("meaning", "when"):
+        if key in entry:
+            parsed[key] = clean_guide_text(stage, key, entry[key])
+    if "movedBy" in entry:
+        if entry["movedBy"] not in MOVERS:
+            raise ConfigError(f"statuses.{stage}.movedBy must be one of: {', '.join(MOVERS)}")
+        parsed["movedBy"] = entry["movedBy"]
+    return parsed
+
+
+def load_status_entries(root):
     raw = read_config_json(root).get("statuses")
     if raw is None:
         return {}
     if not isinstance(raw, dict):
         raise ConfigError("statuses must be an object of stage: status name")
     found = {}
-    for stage, name in raw.items():
+    for stage, entry in raw.items():
         if stage not in STAGES:
             raise ConfigError(f"unknown stage '{stage}'. Stages: {', '.join(STAGES)}")
-        found[stage] = clean_status(name)
+        found[stage] = parse_status_entry(stage, entry)
     return found
 
 
+def load_statuses(root):
+    return {stage: entry["name"] for stage, entry in load_status_entries(root).items()}
+
+
+def status_guide(entries):
+    """Every mapped stage with its meaning, who may move a ticket into it, and when."""
+    return {
+        stage: {
+            "status": entries[stage]["name"],
+            "meaning": entries[stage].get("meaning", STAGE_TEXT[stage]),
+            "movedBy": entries[stage].get("movedBy", DEFAULT_MOVED_BY[stage]),
+            "when": entries[stage].get("when", DEFAULT_WHEN[stage]),
+        }
+        for stage in STAGES
+        if stage in entries
+    }
+
+
 def save_statuses(root, mapping):
+    """Save stage: name pairs. A stage already written as an object keeps its guide text."""
     data = read_config_json(root) or {"schema": SCHEMA}
     data.setdefault("schema", SCHEMA)
+    old = data.get("statuses") if isinstance(data.get("statuses"), dict) else {}
     if mapping:
-        data["statuses"] = {stage: mapping[stage] for stage in STAGES if stage in mapping}
+        out = {}
+        for stage in STAGES:
+            if stage not in mapping:
+                continue
+            previous = old.get(stage)
+            out[stage] = {**previous, "name": mapping[stage]} if isinstance(previous, dict) else mapping[stage]
+        data["statuses"] = out
     else:
         data.pop("statuses", None)
     write_json(root / CONFIG_PATH, data)
+
+
+def status_allowed(entries, target, actor):
+    """May this actor move a ticket into `target` (a stage key or a tracker status name)?"""
+    guide = status_guide(entries)
+    stage = target if target in guide else next(
+        (s for s, g in guide.items() if g["status"].lower() == str(target).strip().lower()), None)
+    body = {"target": target, "actor": actor, "stage": stage, "status": None, "movedBy": None,
+            "allowed": False, "reason": None}
+    if not guide:
+        body["reason"] = "this project has no status mapping yet. Run /delivery-config statuses"
+        return body
+    if stage is None:
+        body["reason"] = (f"'{target}' is not in this project's status mapping. Leave the ticket where it is "
+                          "and ask the owner")
+        return body
+    g = guide[stage]
+    body.update(status=g["status"], movedBy=g["movedBy"], when=g["when"])
+    if actor == "agent" and g["movedBy"] == "person":
+        body["reason"] = f"only a person moves a ticket to '{g['status']}': {g['when']}"
+        return body
+    body["allowed"] = True
+    return body
 
 
 def norm(name):
@@ -673,7 +770,7 @@ def check_statuses(mapping, statuses):
     return {"ok": not missing and bool(mapping), "configured": bool(mapping), "missing": missing, "unmapped": new}
 
 
-def status_target(mapping, event):
+def status_target(mapping, event, entries=None):
     if event not in EVENTS:
         raise ConfigError(f"unknown event '{event}'. Events: {', '.join(EVENTS)}")
     body = {"event": event, "stage": None, "status": None, "requiresPerson": event in PERSON_EVENTS,
@@ -681,18 +778,40 @@ def status_target(mapping, event):
     if not mapping:
         body["reason"] = "this project has no status mapping yet. Run /delivery-config statuses"
         return body
+    guide = status_guide(entries if entries is not None else {s: {"name": n} for s, n in mapping.items()})
     for stage in EVENTS[event]:
         if stage in mapping:
-            body.update(stage=stage, status=mapping[stage])
+            body.update(stage=stage, status=mapping[stage], when=guide[stage]["when"])
+            if guide[stage]["movedBy"] == "person":
+                body["requiresPerson"] = True
+                body["reason"] = f"only a person moves a ticket to '{mapping[stage]}': {guide[stage]['when']}"
             return body
     body["reason"] = f"this project has no status for '{event}', so leave the ticket where it is"
     return body
 
 
 def run_statuses(root, args):
-    mapping = load_statuses(root)
+    entries = load_status_entries(root)
+    mapping = {stage: entry["name"] for stage, entry in entries.items()}
+    if args.action == "guide":
+        guide = status_guide(entries)
+        if args.json:
+            print(json.dumps({"guide": guide}, indent=2))
+        elif not guide:
+            print("No mapping yet. Read the tracker's statuses, then: /delivery-config statuses suggest")
+        else:
+            who = {"agent": "the workflow", "person": "a person only", "any": "the workflow or a person"}
+            print(f"Ticket statuses in {root / CONFIG_PATH}\n")
+            for stage, g in guide.items():
+                print(f"{g['status']}  ({stage})\n  Means:    {g['meaning']}\n  Moved by: {who[g['movedBy']]}\n"
+                      f"  When:     {g['when']}\n")
+        return 0
+    if args.action == "allowed":
+        body = status_allowed(entries, args.to, args.actor)
+        print(json.dumps(body, indent=2))
+        return 0 if body["allowed"] else 1
     if args.action == "show":
-        body = {"statuses": mapping, "stages": {s: STAGE_TEXT[s] for s in STAGES},
+        body = {"statuses": mapping, "stages": {s: STAGE_TEXT[s] for s in STAGES}, "guide": status_guide(entries),
                 "events": {e: list(v) for e, v in EVENTS.items()}, "personEvents": list(PERSON_EVENTS)}
         if args.json:
             print(json.dumps(body, indent=2))
@@ -731,7 +850,7 @@ def run_statuses(root, args):
             mapping.pop(stage, None)
         save_statuses(root, {} if args.all else mapping)
     elif args.action == "target":
-        body = status_target(mapping, args.event)
+        body = status_target(mapping, args.event, entries)
         print(json.dumps(body, indent=2))
         return 1 if body["needsSetup"] else 0
     print(json.dumps({"ok": True, "statuses": load_statuses(root)}, indent=2))
@@ -780,6 +899,11 @@ def main(argv=None):
     status_reset.add_argument("--all", action="store_true")
     status_target_cmd = status_sub.add_parser("target")
     status_target_cmd.add_argument("--event", required=True)
+    status_guide_cmd = status_sub.add_parser("guide")
+    status_guide_cmd.add_argument("--json", action="store_true")
+    status_allowed_cmd = status_sub.add_parser("allowed")
+    status_allowed_cmd.add_argument("--to", required=True, help="tracker status name or stage key")
+    status_allowed_cmd.add_argument("--actor", choices=("agent", "person"), default="agent")
     args = parser.parse_args(argv)
 
     try:

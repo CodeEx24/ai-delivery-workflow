@@ -69,9 +69,25 @@ python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses check 
 | `statuses sync` or `statuses suggest` | Read the tracker's statuses (see the reference), run `suggest`, show the table and ask once, then save with `--save` |
 | `statuses <stage>="<Status>" ...` | Run `statuses set` |
 | `statuses reset <stage>...` or `statuses reset --all` | Run `statuses reset` |
+| `statuses guide` | Run `statuses guide` and print what each status means, who moves it and when |
 
 Stages: `todo`, `inProgress`, `inReview`, `testingStaging`, `doneStaging`, `testingProduction`,
 `done`. Leave out the ones the project does not have. It is a team setting, so suggest committing it.
+
+**Per-status guide.** A stage can be an object instead of a name, to say what the status means
+and who moves a ticket into it. Edit the JSON for this (the script keeps it when you rename):
+
+```json
+"testingStaging": {
+  "name": "Testing (Staging)",
+  "meaning": "Deployed to staging. A tester checks it",
+  "movedBy": "agent",
+  "when": "After the PR is merged and the staging deploy is green. Then stop"
+}
+```
+
+`movedBy` is `agent`, `person` or `any`. Defaults: Done Staging is `person`, the rest let the
+workflow move them. `statuses allowed --to "<Status>"` refuses an agent move into a `person` status.
 
 ## Confirm these two changes first
 
