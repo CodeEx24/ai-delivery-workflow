@@ -243,6 +243,10 @@ and CI, in CI order. Discovery, failure recipes and gates that cannot run here:
 **`references/verify-gates.md`**. Everything green, or the gap named explicitly. Paste real
 output for failures; never describe a run you did not do.
 
+**Local CI.** If the repo has `.engineering/ci-local.mjs`, commit and run it before you push
+(`node .engineering/ci-local.mjs`). The PR stays a draft, and drafts run no paid CI, so this is
+how the work is checked until `/merge-ticket` marks it ready. Fix failures locally, then push.
+
 **Standards.** If the repo has `.engineering/STANDARDS.md`, read it before you build and run the
 checks in `~/.claude/skills/deliver/references/standards-gate.md` before opening the PR, so the
 gate does not have to send the work back.

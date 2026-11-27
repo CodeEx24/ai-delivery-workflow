@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-27 (ci) — drafts check locally, CI runs once at ready
+
+- **Draft PRs run no paid CI** (with engineering kit 1.9.0). Builders push freely and run `node .engineering/ci-local.mjs` for the same checks on their machine.
+- **`/merge-ticket` on a draft:** runs the local checks, posts "Local checks passed · approved · ready for review" with the results table, marks the PR ready, waits for the one CI run, and merges when it is green. Failed local checks send the ticket back instead.
+
 ## 2026-11-27 (loop) — a status board every cycle
 
 - **No more bare "Nothing new":** every `/loop /deliver` cycle ends with a status board, quiet cycles included.

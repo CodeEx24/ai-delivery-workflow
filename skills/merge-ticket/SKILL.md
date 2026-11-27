@@ -114,7 +114,8 @@ gh pr checks <n> --required
 
 | What you see | Do |
 |---|---|
-| Every required check on the **current head** passed (success, skipped or neutral), none failed, `reviewDecision` is not `CHANGES_REQUESTED`, the approver said APPROVE, and `mergeStateStatus` is `CLEAN`, `UNSTABLE` (only non-required checks failing) or `HAS_HOOKS` | **Green: merge now.** Skip steps 2 and 3. If the PR is a draft, run `gh pr ready <n>` (it does not re-run the tests). Go straight to step 4. Do not re-sync, re-run checks or push a record commit |
+| The PR is a **draft** (`isDraft`) | Its heavy checks were skipped, so they prove nothing. **Check locally, then mark ready:** see "Draft PRs" below |
+| Every required check on the **current head** passed (success, skipped or neutral), none failed, `reviewDecision` is not `CHANGES_REQUESTED`, the approver said APPROVE, and `mergeStateStatus` is `CLEAN`, `UNSTABLE` (only non-required checks failing) or `HAS_HOOKS` | **Green: merge now.** Skip steps 2 and 3. Go straight to step 4. Do not re-sync, re-run checks or push a record commit |
 | A required check **failed** or ended `cancelled`/`timed_out` on the current head, or `mergeStateStatus` is `DIRTY` (merge conflict) | **Red: send back.** Do not merge, re-run or push. Move the ticket by the `ciFailed` event (`python "$HOME/.claude/skills/delivery-config/config.py" --repo . statuses target --event ciFailed`, usually In Progress). Post the comment below on the PR and the ticket, mentioning the PR author and the ticket assignee. Remove `ready-to-merge`. Stop and report |
 | Checks still running | Wait (`gh pr checks <n> --required --watch`), then decide again. Do not push |
 | `mergeStateStatus` is `BEHIND` and the base branch requires branches to be up to date (`BLOCKED`), or the owner passed `--regate` | **Re-gate.** Continue to step 2 |
@@ -127,6 +128,35 @@ Failing: [<check name>](<run URL>), …
 @<author>: please fix it on this branch and push. The ticket is back in <status>.
 When CI is green, run `/merge-ticket <KEY>-<n>` again and it will merge right away.
 ```
+
+### Draft PRs: local checks, one comment, one CI run
+
+A draft runs no paid CI (`docs/delivery/09-ci.md`). So in the ticket's worktree, on the PR's
+current head with nothing uncommitted:
+
+1. **Run the local checks** if the repo has them, else the project's checks script:
+
+   ```bash
+   node .engineering/ci-local.mjs --comment-file "$MAIN/.delivery/jobs/<KEY>-<n>/ci-local.md"
+   ```
+
+2. **Failed →** do not mark ready. Send back as on red (`ciFailed`), and put the local result
+   table in the comment instead of the failing GitHub checks.
+3. **Passed →** post one PR comment (edit it on a re-run instead of posting again):
+
+   ```markdown
+   ✅ Local checks passed on `<sha7>` · approved · ready for review
+   <the table from ci-local.md>
+   Approved by <approver> (<link to the decision comment>).
+   Marked **ready for review**: GitHub CI runs once now, and this merges when it is green.
+   ```
+
+   Then `gh pr ready <n>`, add the same one line to the ticket (`PR ready for review, local checks
+   passed`, with the PR link), and wait: `gh pr checks <n> --required --watch`. When it finishes,
+   decide again with the table above: green merges, red sends back.
+
+Never mark a PR ready when the local checks did not run or failed. A check you did not run is
+"not run", not passed.
 
 **The ticket record on the green path.** The merge does not wait for a record commit. If the
 record is not closed yet, merge first and close it afterwards as a docs follow-up, as in the
